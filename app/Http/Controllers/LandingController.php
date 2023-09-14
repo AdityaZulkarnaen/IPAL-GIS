@@ -24,19 +24,19 @@ class LandingController extends Controller
         ]);
         $param_kode_sample = $request->kode_sampel;
         $status_all = StatusModel::orderBy('status.created_at', 'DESC')->get();
-        $kode_sampel = TransaksiProdukModel::where('kode_sampel', $request->kode_sampel)->first();
+        // $kode_sampel = TransaksiProdukModel::where('kode_sampel', $request->kode_sampel)->first();
 
-        $id_transaksi_produk = 0;
+        // $id_transaksi_produk = 0;
 
-        if ($request->kode_sampel != null) {
-            if ($kode_sampel != null) {
+        // if ($request->kode_sampel != null) {
+        //     if ($kode_sampel != null) {
 
-                $id_transaksi_produk = $kode_sampel->id;
-                // if ($kode_sampel != null) {
-                //     $id_transaksi_produk = $kode_sampel->id;
-                // }
-            }
-        }
+        //         $id_transaksi_produk = $kode_sampel->id;
+        // if ($kode_sampel != null) {
+        //     $id_transaksi_produk = $kode_sampel->id;
+        // }
+        //     }
+        // }
 
         $toptitle = 'Landing';
         $title = 'Data Landing';
@@ -68,15 +68,18 @@ class LandingController extends Controller
         // echo $data_jenis_pengujian;
         // die();
 
-        $status_pengujian = StatusTransaksiProdukModel::leftJoin('transaksi_produk', 'status_transaksi_produk.id_transaksi_produk', '=', 'transaksi_produk.id')
-            ->leftJoin('status', 'status_transaksi_produk.id_status', '=', 'status.id')
-            ->where('transaksi_produk.id', $id_transaksi_produk)
-            ->groupBy('status_transaksi_produk.id_status')
-            ->select('transaksi_produk.id as id', 'transaksi_produk.nama as nama', 'transaksi_produk.jumlah as jumlah', 'status.nama as nama_status', 'status_transaksi_produk.created_at as tanggal')->orderBy('status_transaksi_produk.created_at', 'DESC')
-            ->get();
+        // $status_pengujian = StatusTransaksiProdukModel::leftJoin('transaksi_produk', 'status_transaksi_produk.id_transaksi_produk', '=', 'transaksi_produk.id')
+        //     ->leftJoin('status', 'status_transaksi_produk.id_status', '=', 'status.id')
+        //     ->where('transaksi_produk.id', $id_transaksi_produk)
+        //     ->groupBy('status_transaksi_produk.id_status')
+        //     ->select('transaksi_produk.id as id', 'transaksi_produk.nama as nama', 'transaksi_produk.jumlah as jumlah', 'status.nama as nama_status', 'status_transaksi_produk.created_at as tanggal')->orderBy('status_transaksi_produk.created_at', 'DESC')
+        //     ->get();
 
-        $status_sama = StatusModel::where('status.id', '!=', 'status_pengujian.id_status')->get();
+        // $status_sama = StatusModel::where('status.id', '!=', 'status_pengujian.id_status')->get();
         // $status_sama = StatusTransaksiProdukModel::where('status_transaksi_produk.id_status', '!=', 'status.id')->get();
+
+        $transaksi = TransaksiModel::where('kode_sampel', $request->kode_sampel)->first();
+        $status_pengujian = StatusTransaksiProdukModel::where('id_status', $transaksi->id)->get();
 
         return view('welcome', compact(
             'toptitle',
@@ -84,8 +87,8 @@ class LandingController extends Controller
             'subtitle',
             'data_banner',
             'data_jenis_pengujian',
-            'status_all',
-            'status_sama',
+            // 'status_all',
+            // 'status_sama',
             'status_pengujian',
             'param_kode_sample',
         ));

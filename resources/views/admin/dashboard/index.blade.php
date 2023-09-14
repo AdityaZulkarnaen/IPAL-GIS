@@ -77,6 +77,15 @@
                 <div class="card">
 
                     <div class="card-body">
+                        <a href="{{ route('pengajuan_by_admin.create') }}" class="btn btn-sm btn-primary mb-3">
+                            <span class="svg-icon svg-icon-2">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <rect opacity="0.5" x="11.364" y="20.364" width="16" height="2" rx="1" transform="rotate(-90 11.364 20.364)" fill="currentColor" />
+                                    <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
+                                </svg>
+                            </span>
+                            {{ 'Tambah ' . $subtitle }}
+                        </a>
 
                         <form class="row mb-3" action="" method="get">
 
@@ -157,7 +166,7 @@
                                             @elseif($dt->status_bayar=='Ditolak') text-danger 
                                             @else text-primary 
                                             @endif">
-                                            <u><strong>{{ $dt->status_bayar }}</strong></u></i>
+                                                <u><strong>{{ $dt->status_bayar }}</strong></u></i>
                                             {{-- @if($dt->status_bayar==NULL)
                                                 <i class="text-danger"><u><strong>Belum Dibayar</strong></u></i>
                                             @endif --}}
@@ -170,7 +179,7 @@
                                                 </small>
                                             </i>
                                             @endif
-                                            
+
                                         </td>
 
                                         {{-- <td>

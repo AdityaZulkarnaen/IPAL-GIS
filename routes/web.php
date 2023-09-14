@@ -24,6 +24,7 @@ use App\Http\Controllers\Admin\StatusPengajuanController;
 use App\Http\Controllers\Admin\ParameterPengujianController;
 use App\Http\Controllers\Admin\RiwayatStatusPengujianController;
 use App\Http\Controllers\Pengguna\CetakPermintaanPengujianController;
+use App\Http\Controllers\Admin\PengajuanByAdminController;
 
 //landing
 
@@ -34,6 +35,7 @@ Route::get('lacak/{kode_sampel}', [LandingController::class, 'lacak']);
 Route::resource('dashboard', DashboardController::class)->middleware(['checkRole:Super Admin,Admin,Pengguna', 'auth', 'verified']);
 
 //fitur
+Route::resource('pengajuan_by_admin', PengajuanByAdminController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
 Route::resource('pengajuan_uji', PembayaranController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
 Route::resource('admin_produk_uji', ProdukController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
 Route::get('status_pengujian/export/', [StatusPengajuanController::class, 'export'])

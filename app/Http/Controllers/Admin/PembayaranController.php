@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\JenisModel;
+use App\Models\StatusTransaksiProdukModel;
 use App\Models\TransaksiModel;
 use App\Models\TransaksiProdukModel;
 use Illuminate\Http\Request;
@@ -159,11 +160,26 @@ class PembayaranController extends Controller
 
         $dataUp['no_order'] = $request->no_order;
         $dataUp['kode_sampel'] = $request->kode_sampel;
-
         $dataUp['status_bayar'] = $request->status_bayar;
         $dataUp['catatan'] = $request->catatan;
-
         $data_up->update($dataUp);
+
+        $berkas = "";
+        if ($request->hasFile('berkas')) {
+            $file = $request->file('berkas');
+            $fileName = auth()->user()->id . time() . uniqid() . '.' . $file->getClientOriginalExtension();
+            $destinationPath = public_path() . '/berkas';
+            $file->move($destinationPath, $fileName);
+            $berkas = 'berkas/' . $fileName;
+        }
+
+        $data_input = StatusTransaksiProdukModel::create([
+            'id_status' => $id,
+            'id_transaksi_produk' => $request->id_transaksi_produk,
+            'catatan' => $request->status_bayar . ', ' . $request->catatan,
+            'berkas' => $berkas,
+        ]);
+
         return redirect()->route('dashboard.index')->with(['success' => 'Data Berhasil Disimpan']);
 
         // return back()->with(['success' => 'Data Berhasil Disimpan']);

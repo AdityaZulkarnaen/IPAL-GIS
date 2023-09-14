@@ -41,7 +41,7 @@
                                 Tanggal Order:<br>
                                 <strong>{{ date('d-m-Y', strtotime($data_edit->created_at)) }}</strong><br>
                             </div>
-                            
+
                             <div class="form-group col-md-4">
                                 <div id="werwer" class="form-group">
                                     <label for="role">No.Pesanan</label>
@@ -56,7 +56,7 @@
 
                             <div class="form-group col-md-4">
                                 <label for="role">Ubah Status Order</label>
-                                <select class="form-select" data-control="select2" id="status_bayar" name="status_bayar">
+                                <select class="form-select" data-control="select2" id="status_bayar" name="status_bayar" onchange="toggleInput()">
                                     <option @if($data_edit->status_bayar=='Ditolak' ) selected @endif>Ditolak</option>
                                     <option @if($data_edit->status_bayar=='Belum Dibayar' ) selected @endif>Belum Dibayar</option>
                                     <option @if($data_edit->status_bayar=='Sudah Dibayar' ) selected @endif value="Sudah Dibayar">Sudah Dibayar</option>
@@ -92,6 +92,11 @@
                                     <textarea class="form-control" name="catatan" rows="3" placeholder="Catatan...">{{ $data_edit->catatan }}</textarea>
                                 </div>
 
+                                <div class="form-group mt-3" id="berkas">
+                                    <label for="role">LHU</label>
+                                    <input class="form-control" type="file" name="berkas" placeholder="Catatan...">
+                                </div>
+
                                 <div class="mt-2">
                                     <button type="submit" class="btn btn-sm btn-primary"><i class="far fa-save" style="margin-right: 8px;"></i> Simpan </button>
                                 </div>
@@ -99,6 +104,26 @@
                             </div>
 
                             <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+
+
+                            <script>
+                                document.getElementById("berkas").style.display = "none";
+
+                                function toggleInput() {
+                                    var selectElement = document.getElementById("status_bayar");
+                                    var inputElement = document.getElementById("berkas");
+
+                                    console.log("" + selectElement.value);
+
+                                    if (selectElement.value != "Order Selesai") {
+                                        console.log("Okeeeee");
+                                        inputElement.style.display = "none";
+                                    } else {
+                                        console.log("Tidak okeeee");
+                                        inputElement.style.display = "block";
+                                    }
+                                }
+                            </script>
 
                             <script>
                                 let modules = $('.form-group1').hide();

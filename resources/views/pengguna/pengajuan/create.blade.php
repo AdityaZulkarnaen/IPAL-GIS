@@ -26,10 +26,38 @@
                         <form class="row mt-3" method="POST" action="{{ route('pengajuan.store') }}" enctype="multipart/form-data">
                             @csrf
 
-                            <div class="row form-group col-md-4" hidden>
-                                <label class="col-md-3 text-right">Email</label>
-                                <div class="col-md-9">
-                                    <input type="text" name="email" value="{{ auth()->user()->email }}" class="form-control form-control-normal" placeholder="Email...">
+                            <div class="form-group col-md-12">
+                                <label class="text-right align-middle">Instansi / Nama Lengkap</label>
+                                <div class="">
+                                    <input type="text" name="name" value="@if(auth()->user()->role == 'Pengguna'){{ auth()->user()->name }}@endif" class="form-control form-control-normal" placeholder="Instansi / Nama Lengkap">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label class="text-right align-middle">Email</label>
+                                <div class="">
+                                    <input type="email" name="email" value="@if(auth()->user()->role == 'Pengguna'){{ auth()->user()->email }}@endif" class="form-control form-control-normal" placeholder="Email...">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label class="text-right align-middle">No. HP</label>
+                                <div class="">
+                                    <input type="text" name="nomor_hp" value="@if(auth()->user()->role == 'Pengguna'){{ auth()->user()->nomor_hp }}@endif" class="form-control form-control-normal" placeholder="No. HP...">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label class="text-right align-middle">Alamat</label>
+                                <div class="">
+                                    <input type="text" name="alamat" value="@if(auth()->user()->role == 'Pengguna'){{ auth()->user()->alamat }}@endif" class="form-control form-control-normal" placeholder="Alamat...">
+                                </div>
+                            </div>
+
+                            <div class="form-group col-md-12">
+                                <label class="text-right align-middle">Jenis Pekerjaan</label>
+                                <div class="">
+                                    <input type="text" name="kegiatan" value="" class="form-control form-control-normal" placeholder="Jenis Pekerjaan...">
                                 </div>
                             </div>
 
@@ -55,7 +83,6 @@
                             </div>
 
                             <div class="col-md-12 form-group" id="no_dok">
-
                                 <label class="">Surat Permohonan/Tgl.</label>
                                 <input type="text" name="no_dokumen" class="form-control" id="no_dokumen" placeholder="Surat Permohonan/Tgl.">
                             </div>

@@ -132,14 +132,14 @@
     <main id="main">
 
         <!-- ======= Cta Section ======= -->
-        <section id="lacak" class="cta" >
+        <section id="lacak" class="cta">
             <div class="container" data-aos="zoom-in">
 
                 <div class="text-center">
                     <h3>LACAK PESANAN ANDA!</h3>
                     <p> Masukan kode sampel anda disini!</p>
                     <br><br>
-                    <form class="text-center" method="GET" action="" >
+                    <form class="text-center" method="GET" action="">
                         <center>
                             <div class="col-md-4 form-group">
                                 <input type="text" value="{{ $param_kode_sample }}" name="kode_sampel" class="form-control text-center" id="kode_sampel" placeholder="Kode Sampel" required>
@@ -154,11 +154,11 @@
                     </form>
                 </div>
                 <div class="m-4" id="table_lacak">
-                    <table class="table table-light table-bordered m-auto rounded rounded-3 overflow-hidden" style="width: 50%; border-radius:30px" >
+                    <table class="table table-light table-bordered m-auto rounded rounded-3 overflow-hidden" style="width: 50%; border-radius:30px">
                         <thead>
                             <tr>
-                            <th scope="col">Status Pengujian</th>
-                            <th scope="col">Waktu Pengujian</th>
+                                <th scope="col">Status Pengujian</th>
+                                <th scope="col">Waktu Pengujian</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -167,7 +167,7 @@
                             @foreach($status_sama as $dt_lacak_all)
                             <tr>
                                 <th><strong><li style="color: rgb(156, 157, 158)"> {{ $dt_lacak_all->nama }}</strong><br></th>
-                                <td><small><i> - </i></u></small></td>
+                            <td><small><i> - </i></u></small></td>
                             </tr>
                             @endforeach
                             @endif --}}
@@ -176,27 +176,28 @@
                             @foreach($status_pengujian as $dt_lacak)
                             {{-- @if($dt_lacak->tanggal != null) --}}
                             <tr>
-                                <th><strong><li style="color: rgb(0, 0, 0)"> {{ $dt_lacak->nama_status }}</strong><br></th>
-                                <td><small><i> {{ date('Y-m-d', strtotime($dt_lacak->tanggal)) }}</i></small></td>
+                                <td><strong>
+                                        <li style="color: rgb(0, 0, 0)"> {{ $dt_lacak->catatan }}
+                                    </strong><br></th>
+                                <td><small><i> {{ date('d-m-Y', strtotime($dt_lacak->created_at)) }}</i></small></td>
                             </tr>
                             {{-- @endif --}}
                             @endforeach
-                            
+
                         </tbody>
 
                         <script>
                             var kode_sampel = document.getElementById('kode_sampel');
 
-                            function hideTable(){
-                                if(kode_sampel.value.length == 0){
+                            function hideTable() {
+                                if (kode_sampel.value.length == 0) {
                                     document.getElementById('table_lacak').style.visibility = "hidden";
-                                }      
+                                }
                             }
-
                         </script>
 
                     </table>
-                </div>                
+                </div>
 
             </div>
         </section><!-- End Cta Section -->
@@ -204,38 +205,40 @@
         <!-- Modal -->
         <div class="modal fade" id="staticBackdrop" data-bs-keyboard="false" tabindex="-1" aria-labelledby="staticBackdropLabel" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                <h1 class="modal-title fs-5" id="staticBackdropLabel">Progress Pesanan</h1>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <div class="container-fluid">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                  <th scope="col">Status Pengujian</th>
-                                  <th scope="col">Waktu Pengujian</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                @foreach($status_pengujian as $dt_lacak)
-                                <tr>
-                                
-                                <th><strong><li style="color: rgb(156, 157, 158)"> {{ $dt_lacak->nama_status }}</strong><br></th>
-                                <td><small><u><i>Tgl: {{ date('Y-m-d', strtotime($dt_lacak->tanggal)) }}</i></u></small></td>
-                                </tr>
-                                @endforeach
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="staticBackdropLabel">Progress Pesanan</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="container-fluid">
+                            <table class="table table-bordered">
+                                <thead>
+                                    <tr>
+                                        <th scope="col">Status Pengujian</th>
+                                        <th scope="col">Waktu Pengujian</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach($status_pengujian as $dt_lacak)
+                                    <tr>
 
-                              </tbody>
-                        </table>
+                                        <th><strong>
+                                                <li style="color: rgb(156, 157, 158)"> {{ $dt_lacak->nama_status }}
+                                            </strong><br></th>
+                                        <td><small><u><i>Tgl: {{ date('Y-m-d', strtotime($dt_lacak->tanggal)) }}</i></u></small></td>
+                                    </tr>
+                                    @endforeach
+
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        {{-- <button type="button" class="btn btn-primary">Understood</button> --}}
                     </div>
                 </div>
-                <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                {{-- <button type="button" class="btn btn-primary">Understood</button> --}}
-                </div>
-            </div>
             </div>
         </div>
 
@@ -406,10 +409,10 @@
                         </div>
 
                         {{-- <div class="col-md-3 form-group mt-3"> --}}
-                            <input type="hidden" class="form-control" name="nama_produk[]" value="" id="nama_produk[]" placeholder="Nama Produk" required>
+                        <input type="hidden" class="form-control" name="nama_produk[]" value="" id="nama_produk[]" placeholder="Nama Produk" required>
                         {{-- </div> --}}
 
-                        <div class="col-md-1 form-group mt-3" >
+                        <div class="col-md-1 form-group mt-3">
                             <input type="number" class="form-control" name="jumlah_sampel[]" min="1" id="jumlah_sampel[]" placeholder="Jumlah" required style="font-size: 0.9rem">
                         </div>
 
@@ -449,7 +452,7 @@
                         </div>
 
                         {{-- <div class="col-md-3 form-group mt-3"> --}}
-                            <input type="hidden" class="form-control" name="nama_produk[]" id="nama_produk[]" placeholder="Nama Produk" value=" " required>
+                        <input type="hidden" class="form-control" name="nama_produk[]" id="nama_produk[]" placeholder="Nama Produk" value=" " required>
                         {{-- </div> --}}
 
                         <div class="col-md-1 form-group mt-3">
@@ -668,7 +671,6 @@
         $(document).ready(function() {
             $('#example').DataTable();
         });
-
     </script>
 
 </body>
