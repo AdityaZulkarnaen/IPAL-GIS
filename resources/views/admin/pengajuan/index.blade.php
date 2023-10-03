@@ -67,7 +67,7 @@
                                             @else text-danger 
                                             @endif"><u><strong>{{ $dt->status_bayar }}</strong></u></i>
                                             @if($dt->status_bayar==NULL)
-                                                <i class="text-danger"><u><strong>Belum Dibayar</strong></u></i>
+                                            <i class="text-danger"><u><strong>Belum Dibayar</strong></u></i>
                                             @endif
                                             <br>
                                             @if($dt->status_bayar=='Ditolak')

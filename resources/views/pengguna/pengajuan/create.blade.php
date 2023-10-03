@@ -123,13 +123,13 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-3 form-group mt-3">
-                                    <input type="text" class="form-control" name="nama_produk[]" id="nama_produk[]" placeholder="Nama Produk" required>
+                                <div class="col-md-3 form-group mt-3" hidden>
+                                    <input type="text" class="form-control" value="-" name="nama_produk[]" id="nama_produk[]" placeholder="Nama Produk" required>
                                 </div>
 
-                                {{-- <div class="col-md-2 form-group mt-3"> --}}
-                                <input type="hidden" class="form-control" value="1" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
-                                {{-- </div> --}}
+                                <div class="col-md-2 form-group mt-3">
+                                    <input type="number" class="form-control" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
+                                </div>
 
                                 <div class="col-md-1 form-group mt-3">
                                     <button class="btn btn-sm btn-primary add-more" type="button">Tambah</button>

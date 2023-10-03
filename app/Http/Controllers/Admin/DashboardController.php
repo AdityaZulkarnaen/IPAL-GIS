@@ -28,8 +28,8 @@ class DashboardController extends Controller
         $jumlah_pengunjung = PengunjungModel::count();
         $jumlah_jenis_pengajuan = JenisModel::count();
         $jumlah_pengajuan = TransaksiModel::count();
-        $jumlah_pengajuan_selesai = StatusTransaksiProdukModel::leftJoin('status', 'id_status', '=', 'status.id')->where('status.nama', '=', 'Order Selesai')->count();
-        
+        $jumlah_pengajuan_selesai = TransaksiModel::where('status_bayar', '=', 'Order Selesai')->count();
+
         // $jumlah_pengajuan_selesai = StatusTransaksiProdukModel::where('id', '=', '7')->count();
         $jumlah_pengajuan_user = TransaksiModel::where('id_user', auth()->user()->id)->count();
 

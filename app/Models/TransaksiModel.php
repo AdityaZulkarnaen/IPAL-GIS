@@ -32,4 +32,9 @@ class TransaksiModel extends Model
     {
         return $this->hasMany(TransaksiProdukModel::class, 'id_transaksi', 'id');
     }
+
+    public function status()
+    {
+        return $this->hasMany(StatusTransaksiProdukModel::class, 'id_status', 'id');
+    }
 }

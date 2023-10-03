@@ -84,7 +84,7 @@
                                     <rect x="4.36396" y="11.364" width="16" height="2" rx="1" fill="currentColor" />
                                 </svg>
                             </span>
-                            {{ 'Tambah ' . $subtitle }}
+                            {{ 'Tambah Pengajuan' }}
                         </a>
 
                         <form class="row mb-3" action="" method="get">

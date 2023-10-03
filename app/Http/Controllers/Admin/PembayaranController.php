@@ -111,7 +111,7 @@ class PembayaranController extends Controller
         $title = 'Pengajuan';
         $subtitle = 'Tindak Lanjut Pengajuan';
 
-        $data_edit = TransaksiModel::where('id', $id)->first();
+        $data_edit = TransaksiModel::with('status')->where('id', $id)->first();
 
         // $data_edit = TransaksiModel::with('user')->rightJoin('transaksi_produk', 'transaksi.id', '=', 'transaksi_produk.id_transaksi')->select('transaksi_produk.id as id', 'transaksi.id_user as id_user', 'transaksi.kegiatan as kegiatan', 'transaksi.no_dokumen as no_dokumen', 'transaksi_produk.created_at as created_at', 'transaksi.sumber as sumber', 'transaksi_produk.status_bayar as status_bayar', 'transaksi_produk.no_order as no_order', 'transaksi_produk.kode_sampel as kode_sampel', 'transaksi_produk.catatan as catatan')->where('transaksi_produk.id', $id)->first();
 

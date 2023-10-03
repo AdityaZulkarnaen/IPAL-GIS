@@ -31,7 +31,8 @@ class PengajuanController extends Controller
             return redirect()->route('login');
         }
 
-        $all_data = TransaksiModel::where('id_user', auth()->user()->id)
+        $all_data = TransaksiModel::with('status')
+            ->where('id_user', auth()->user()->id)
             ->orderBy('id', 'DESC')
             ->get();
 
@@ -110,7 +111,7 @@ class PengajuanController extends Controller
                 'revisi' => $request->revisi,
                 'sumber' => $request->sumber,
                 'status_bayar' => 'Belum Dibayar'
-                
+
             ]);
 
             foreach ($request->nama_produk as $index => $namaProduk) {
@@ -186,9 +187,9 @@ class PengajuanController extends Controller
         // $all_data = TransaksiModel::with('transaksi_produk.parameter_uji')->where('id', $id)->first();
 
         $all_data = $data_transaksi_produk = TransaksiProdukModel::with('parameter_uji')
-        ->where('id_transaksi', $id)
-        ->orderBy('id', 'DESC')
-        ->get();
+            ->where('id_transaksi', $id)
+            ->orderBy('id', 'DESC')
+            ->get();
 
         // $data_parameter_uji = ParameterUjiModel::where('id_jenis', $all_data->id_jenis)->get();
 

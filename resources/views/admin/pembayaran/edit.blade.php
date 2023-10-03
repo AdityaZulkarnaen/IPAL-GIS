@@ -152,8 +152,19 @@
                             </script>
                         </form>
 
+                        <hr>
+                        <strong><u>Riwayat Status: </u></strong>
+                        <br>
+                        @foreach($data_edit->status as $dts)
+                        - {{ $dts->catatan }}
+                        @if($dts->berkas != null)
+                        | <a href="{{ asset($dts->berkas) }}" target="_blank" rel="berkas"><i><strong>Unduh LHU</strong></i></a>
+                        @endif
+                        <br>
+                        @endforeach
+                        <hr>
+
                         <form>
-                            <hr>
                             @php
                             $no = 1;
                             $total = 0;

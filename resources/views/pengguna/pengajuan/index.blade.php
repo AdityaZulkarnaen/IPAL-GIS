@@ -37,13 +37,9 @@
                                     <tr>
                                         <th>No</th>
                                         <th>Tanggal</th>
-                                        <th>No. Order</th>
-                                        <th>Kode Sampel</th>
+                                        <th>No. Order | Kode Sampel</th>
                                         <th>Kegiatan</th>
-                                        <th>Sumber</th>
-                                        <th>Jenis Pengujian</th>
-                                        <th>Parameter Uji</th>
-                                        <th>Status Bayar</th>
+                                        <th>Status</th>
                                         <th>Aksi</th>
                                     </tr>
                                 </thead>
@@ -53,21 +49,23 @@
                                     <tr>
                                         <td><button class="btn btn-secondary btn-sm" style="padding: 6px 12px 6px 12px;">{{ $no++ }}</button></td>
                                         <td>{{ date('d-m-Y', strtotime($dt->created_at)) }}</td>
-                                        <td>{{ $dt->no_order }}</td>
-                                        <td>{{ $dt->kode_sampel }}</td>
-                                        <td>{{ $dt->kegiatan }}</td>
-                                        <td>{{ $dt->sumber }}</td>
-                                        <td>{{ $dt->nama }}</td>
-                                        <td><a href="{{ route('pengajuan.show', $dt->id) }}" class="text-primary" style="font-style: italic;"><u>Lihat Detail</u></a></td>
+                                        <td>
+                                            {{ $dt->no_order ." | ". $dt->kode_sampel }}
+                                        </td>
+                                        <td>{{ $dt->kegiatan }}
+                                            <br>
+                                            <a href="{{ route('pengajuan.show', $dt->id) }}" class="text-primary" style="font-style: italic;"><u>Lihat Parameter Uji</u></a>
+                                            <br>Sumber: <br><i><strong>{{ $dt->sumber }}</strong></i>
+                                        </td>
 
                                         <td>
-                                            <i class="
+                                            <!-- <i class="
                                             @if($dt->status_bayar=='Sudah Dibayar') text-success 
                                             @elseif($dt->status_bayar=='Belum Dibayar') text-danger 
-                                            @else text-danger 
+                                            @else text-primary 
                                             @endif"><u><strong>{{ $dt->status_bayar }}</strong></u></i>
                                             @if($dt->status_bayar==NULL)
-                                                <i class="text-danger"><u><strong>Belum Dibayar</strong></u></i>
+                                            <i class="text-danger"><u><strong>Belum Dibayar</strong></u></i>
                                             @endif
                                             <br>
                                             @if($dt->status_bayar=='Ditolak')
@@ -77,7 +75,14 @@
                                                     {{ $dt->catatan }}
                                                 </small>
                                             </i>
+                                            @endif -->
+                                            @foreach($dt->status as $dts)
+                                            - {{ $dts->catatan }}
+                                            @if($dts->berkas != null)
+                                            | <a href="{{ asset($dts->berkas) }}" target="_blank" rel="berkas"><i><strong>Unduh LHU</strong></i></a>
                                             @endif
+                                            <br>
+                                            @endforeach
                                         </td>
 
                                         <td class="">
