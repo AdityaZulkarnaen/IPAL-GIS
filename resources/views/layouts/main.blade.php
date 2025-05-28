@@ -49,10 +49,9 @@ License: For each use you must have a valid license purchased only from above li
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    {{-- Live Edit Table --}}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    {{-- <script src="/assets/js/jquery.tabledit.js"></script> --}}
-    {{-- <script src="{{ asset('js/jquery.tabledit.js')}}></script> --}}
+    <!-- <script src="/assets/js/jquery.tabledit.js"></script>
+    <script src="{{ asset('js/jquery.tabledit.js') }}"></script> -->
 
 </head>
 <!--end::Head-->

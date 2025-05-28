@@ -8,6 +8,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
@@ -36,14 +37,25 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
+        $newCode = rand(100000, 999999);
+        $newExpiry = now()->addHour()->timestamp;
+
         $user = User::create([
             'name' => $request->name,
             'nomor_hp' => $request->nomor_hp,
             'alamat' => $request->alamat,
             'email' => $request->email,
             'role' => 'Pengguna',
+            'verif_wa' => $newCode . '_' . $newExpiry,
             'api_token' => Hash::make($request->nomor_hp . $request->email),
             'password' => Hash::make($request->password),
+        ]);
+
+        Http::post('https://wagw.madanateknologi.com/send-message', [
+            'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
+            'sender' => '6281226067656',
+            'number' => $request->nomor_hp,
+            'message' => 'Kode verifikasi WhatsApp Anda: ' . $newCode
         ]);
 
         event(new Registered($user));

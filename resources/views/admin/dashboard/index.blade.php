@@ -8,20 +8,13 @@
     <div id="kt_app_content_container" class="app-container container-fluid">
         @if(auth()->user()->role == 'Pengguna')
         <!--begin::Row-->
-        <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-            <!--begin::Col-->
-            <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 ">
-                <div class="card bg-primary">
-                    <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengajuan_user }}+</h1>
-                        <span>Jumlah Pengajuan Pengujian</span>
-                    </div>
-                </div>
-            </div>
-            <!--end::Col-->
 
-            <div class="col-md-10 col-lg-10 col-xl-10 col-xxl-10 ">
-                <div class="card bg-danger">
+        <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+
+
+            <div class="col-md-9 mb-5">
+
+                <div class="card bg-danger mb-5">
                     <div class="card-body">
                         <div class="text-light">
                             <h5 class="text-light">*Perhatikan</h5>
@@ -29,6 +22,56 @@
                             2. Anda harus membawa berkas PERMINTAAN PENGUJIAN yang didapat melalui sistem <strong>{{ $service['data_konfig']->nama_sistem }}</strong><br>
                             3. Anda dapan mengunduh berkas tersebut pada menu <strong>Pengajuan</strong> -> <strong>Lihat Detail</strong> pada kolom <strong>Parameter Uji</strong>
                         </div>
+                    </div>
+                </div>
+
+                @if(auth()->user()->verif_wa != 'aktif')
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-1">Verifikasi via WhatsApp</h3>
+                        <small class="text-danger mb-3">*Nomor Anda belum terverifikasi. Silakan verifikasi untuk mempermudah penggunaan sistem ini!</small>
+
+                        <form method="POST" action="{{ route('verify.wa') }}" class="my-5">
+                            @csrf
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    id="wa_otp"
+                                    name="wa_otp"
+                                    class="form-control {{ $errors->has('wa_otp') ? 'is-invalid' : '' }}"
+                                    placeholder="Masukkan Kode WA"
+                                    required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-sm btn-primary py-2">
+                                        {{ __('Verifikasi') }}
+                                    </button>
+                                </div>
+                                @error('wa_otp')
+                                <div class="invalid-feedback d-block w-100">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+                        </form>
+
+                        {{-- Tombol Kirim Ulang Kode --}}
+                        <form method="POST" action="{{ route('resend.wa') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-link p-0 text-decoration-none">
+                                <i class="fas fa-redo-alt mr-1"></i> {{ __('Kirim Ulang Kode WA') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
+            </div>
+
+            <div class="col-md-3">
+                <div class="card bg-primary mb-3">
+                    <div class="card-body text-light">
+                        <h1 class="text-light">{{ $jumlah_pengajuan_user }}+</h1>
+                        <span>Jumlah Pengajuan Pengujian</span>
                     </div>
                 </div>
             </div>
