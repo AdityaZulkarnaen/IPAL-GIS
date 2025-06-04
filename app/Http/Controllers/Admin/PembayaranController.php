@@ -7,7 +7,9 @@ use App\Models\JenisModel;
 use App\Models\StatusTransaksiProdukModel;
 use App\Models\TransaksiModel;
 use App\Models\TransaksiProdukModel;
+use App\Models\User;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 
 class PembayaranController extends Controller
 {
@@ -113,8 +115,6 @@ class PembayaranController extends Controller
 
         $data_edit = TransaksiModel::with('status')->where('id', $id)->first();
 
-        // $data_edit = TransaksiModel::with('user')->rightJoin('transaksi_produk', 'transaksi.id', '=', 'transaksi_produk.id_transaksi')->select('transaksi_produk.id as id', 'transaksi.id_user as id_user', 'transaksi.kegiatan as kegiatan', 'transaksi.no_dokumen as no_dokumen', 'transaksi_produk.created_at as created_at', 'transaksi.sumber as sumber', 'transaksi_produk.status_bayar as status_bayar', 'transaksi_produk.no_order as no_order', 'transaksi_produk.kode_sampel as kode_sampel', 'transaksi_produk.catatan as catatan')->where('transaksi_produk.id', $id)->first();
-
         $data_edit_prod = TransaksiProdukModel::where('id', $id)->get();
 
         $data_jenis_pengujian = JenisModel::with('parameter_uji')
@@ -151,12 +151,7 @@ class PembayaranController extends Controller
             'status_bayar' => 'required',
         ]);
 
-        // $data_up = TransaksiModel::findOrFail($id);
-
-        // $data_up = TransaksiModel::with('user')->where('id', $id);
-        $data_up = TransaksiModel::where('id', $id);
-
-        // $data_up = TransaksiModel::with('user')->rightJoin('transaksi_produk', 'transaksi.id', '=', 'transaksi_produk.id_transaksi')->select('transaksi_produk.id as id', 'transaksi.id_user as id_user', 'transaksi.kegiatan as kegiatan', 'transaksi.no_dokumen as no_dokumen', 'transaksi_produk.created_at as created_at', 'transaksi.sumber as sumber', 'transaksi_produk.status_bayar as status_bayar', 'transaksi_produk.no_order as no_order', 'transaksi_produk.kode_sampel as kode_sampel', 'transaksi_produk.catatan as catatan')->where('transaksi_produk.id', $id);
+        $data_up = TransaksiModel::where('id', $id)->first();
 
         $dataUp['no_order'] = $request->no_order;
         $dataUp['kode_sampel'] = $request->kode_sampel;
@@ -173,16 +168,31 @@ class PembayaranController extends Controller
             $berkas = 'berkas/' . $fileName;
         }
 
-        $data_input = StatusTransaksiProdukModel::create([
+        StatusTransaksiProdukModel::create([
             'id_status' => $id,
             'id_transaksi_produk' => $request->id_transaksi_produk,
             'catatan' => $request->status_bayar . ', ' . $request->catatan,
             'berkas' => $berkas,
         ]);
 
-        return redirect()->route('dashboard.index')->with(['success' => 'Data Berhasil Disimpan']);
+        $pesan = "Info terbaru dari SIMLAB:\n\n" .
+            "Kegiatan : " . $data_up->kegiatan . "\n" .
+            "No Order : " . $request->no_order . "\n" .
+            "Kode Sampel : " . $request->kode_sampel . "\n" .
+            "Status Bayar : " . $request->status_bayar . "\n" .
+            "Catatan : " . $request->catatan . "\n\n" .
+            "Terimakasih atas perhatiannya. Selamat beraktifitas.";
 
-        // return back()->with(['success' => 'Data Berhasil Disimpan']);
+        $pelanggan = User::where('id', $data_up->id_user)->first();
+
+        Http::post('https://wagw.madanateknologi.com/send-message', [
+            'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
+            'sender' => '6281226067656',
+            'number' => $pelanggan->nomor_hp,
+            'message' => $pesan
+        ]);
+
+        return redirect()->route('dashboard.index')->with(['success' => 'Data Berhasil Disimpan']);
     }
 
 

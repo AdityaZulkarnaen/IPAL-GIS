@@ -25,10 +25,19 @@ use App\Http\Controllers\Admin\ParameterPengujianController;
 use App\Http\Controllers\Admin\RiwayatStatusPengujianController;
 use App\Http\Controllers\Pengguna\CetakPermintaanPengujianController;
 use App\Http\Controllers\Admin\PengajuanByAdminController;
+use App\Http\Controllers\Pengguna\WaGatewayController;
 
 //landing
 
-Route::get('/', [LandingController::class, 'index']);
+Route::get('manehole', function () {
+    return view('manehole');
+})->name('manehole');
+
+Route::post('/verify-wa', [WaGatewayController::class, 'verify_wa'])->name('verify.wa');
+Route::post('/resend-wa', [WaGatewayController::class, 'resend_wa'])->name('resend.wa');
+
+
+Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::get('lacak/{kode_sampel}', [LandingController::class, 'lacak']);
 
 //dashboard

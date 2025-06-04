@@ -9,13 +9,10 @@
     <meta content="" name="description">
     <meta content="" name="keywords">
 
-    <!-- Favicons -->
     <link rel="icon" href="{{ asset($service['data_konfig']->logo) }}" type="image/x-icon">
 
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Roboto:300,300i,400,400i,500,500i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
 
-    <!-- Vendor CSS Files -->
     <link href="{{ asset('tema_landing') }}/assets/vendor/fontawesome-free/css/all.min.css" rel="stylesheet">
     <link href="{{ asset('tema_landing') }}/assets/vendor/animate.css/animate.min.css" rel="stylesheet">
     <link href="{{ asset('tema_landing') }}/assets/vendor/aos/aos.css" rel="stylesheet">
@@ -26,20 +23,9 @@
     <link href="{{ asset('tema_landing') }}/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" integrity="sha512-vKMx8UnXk60zUwyUnUPM3HbQo8QfmNx7+ltw8Pm5zLusl1XIfwcxo8DbWCqMGKaWeNxWA8yrx5v3SaVpMvR3CA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <!-- Template Main CSS File -->
     <link href="{{ asset('tema_landing') }}/assets/css/style.css" rel="stylesheet">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 
-    <!-- <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css"> -->
-
-    <!-- =======================================================
-  * Template Name: Medicio
-  * Updated: Mar 10 2023 with Bootstrap v5.2.3
-  * Template URL: https://bootstrapmade.com/medicio-free-bootstrap-theme/
-  * Author: BootstrapMade.com
-  * License: https://bootstrapmade.com/license/
-  ======================================================== -->
 </head>
 
 <body onload="javascript:hideTable()">
@@ -74,18 +60,26 @@
 
             <nav id="navbar" class="navbar order-last order-lg-0">
                 <ul>
-                    <li><a class="nav-link scrollto " href="#hero">Beranda</a></li>
+                    <li><a class="nav-link scrollto" href="#hero">Beranda</a></li>
                     <li><a class="nav-link scrollto" href="#lacak">Lacak</a></li>
-                    <li><a class="nav-link scrollto" href="#jenis_pengujian">Jenis Pengujian</a></li>
-                    <!-- <li><a class="nav-link scrollto" href="{{ asset($service['data_konfig']->petunjuk_penggunaan) }}" target="_blank">Petunjuk Penggunaan</a></li> -->
-                    <li><a class="nav-link scrollto" href="{{ 'https://klinikkonstruksi.jogjaprov.go.id/' }}" target="_blank">Klinik Konstruksi</a></li>
+                    <li class="dropdown">
+                        <a href="#" class="nav-link scrollto">
+                            <span>Layanan</span>
+                            <i class="bi bi-chevron-down"></i>
+                        </a>
+                        <ul>
+                            <li><a class="nav-link scrollto" href="#jenis_pengujian">Pengujian Laboratorium</a></li>
+                            <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Klinik Konstruksi</a></li>
+                            <li><a class="nav-link" href="{{ route('manehole') }}">Manehole</a></li>
+                            <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Barier Gate</a></li>
+                            <!-- Jika ingin menambahkan petunjuk penggunaan -->
+                            <!-- <li><a class="nav-link" href="{{ asset($service['data_konfig']->petunjuk_penggunaan) }}" target="_blank">Petunjuk Penggunaan</a></li> -->
+                        </ul>
+                    </li>
                     <li><a class="nav-link scrollto" href="#kontak">Kontak</a></li>
-                    <!-- <li><a class="nav-link scrollto" href="#kontak">ORDER</a></li>
-                    <li><a class="nav-link scrollto" href="#kontak">LOGIN</a></li> -->
-                    <!-- <li><a class="nav-link scrollto" href="#contact">Contact</a></li> -->
                 </ul>
                 <i class="bi bi-list mobile-nav-toggle"></i>
-            </nav><!-- .navbar -->
+            </nav>
 
             <a href="#buat_pengajuan" class="btn btn-sm btn-danger" style="margin-right: 8px; margin-left: 16px;"><span class="d-inline">ORDER</a>
             <a href="{{ route('login') }}" class="btn btn-sm btn-danger" style="margin-right: 8px;"><span class="d-inline">LOGIN</a>
@@ -483,7 +477,7 @@
 
                         // Mengambil parameter uji berdasarkan jenis pengujian terpilih
                         if (idJenis !== '') {
-                            var data_jenis_pengujian = @json($data_jenis_pengujian);
+                            var data_jenis_pengujian = <?= json_encode($data_jenis_pengujian) ?>;
 
                             data_jenis_pengujian.forEach(k => {
                                 if (k.id == idJenis) {
