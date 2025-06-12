@@ -30,7 +30,6 @@ use App\Http\Controllers\Pengguna\WaGatewayController;
 
 use App\Http\Controllers\VerifEmailController;
 
-use App\Http\Controllers\Pengguna\WaGatewayController;
 
 //landing
 
