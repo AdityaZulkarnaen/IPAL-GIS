@@ -26,6 +26,7 @@ use App\Http\Controllers\Admin\ParameterPengujianController;
 use App\Http\Controllers\Admin\RiwayatStatusPengujianController;
 use App\Http\Controllers\Pengguna\CetakPermintaanPengujianController;
 use App\Http\Controllers\Admin\PengajuanByAdminController;
+use App\Http\Controllers\Pengguna\WaGatewayController;
 
 use App\Http\Controllers\VerifEmailController;
 
@@ -43,7 +44,6 @@ Route::post('/resend-wa', [WaGatewayController::class, 'resend_wa'])->name('rese
 
 
 Route::get('/', [LandingController::class, 'index'])->name('home');
-
 Route::get('lacak/{kode_sampel}', [LandingController::class, 'lacak']);
 
 //dashboard
