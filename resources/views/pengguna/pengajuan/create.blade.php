@@ -82,7 +82,7 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-12 form-group" id="no_dok">
+                            <div class="col-md-12 form-group" id="no_dok" hidden>
                                 <label class="">Surat Permohonan/Tgl.</label>
                                 <input type="text" name="no_dokumen" class="form-control" id="no_dokumen" placeholder="Surat Permohonan/Tgl.">
                             </div>
@@ -102,7 +102,7 @@
                                 }
                             </script>
 
-                            <div class="text-center">
+                            <div class="text-center mt-3">
                                 <h4>Tambah Parameter Uji</h4>
                                 <p>Tambahkan sesuai dengan yang dibutuhkan. Dapat lebih dari 1 dengan menekan tombol <strong>"Tambah"</strong></p>
                             </div>
@@ -136,7 +136,7 @@
                                 </div>
                             </div>
 
-                            <div class="form-group col-sm-12">
+                            <div class="form-group col-sm-12 mt-3">
                                 <div class="">
                                     <button type="submit" class="btn btn-primary"><i class="far fa-save" style="margin-right: 8px;"></i> Simpan dan Lanjutkan </button>
                                 </div>
@@ -145,7 +145,7 @@
 
 
                         <div class="copy invisible" data-index="">
-                            <div class="row">
+                            <div class="row tambahan">
                                 <div class="col-md-3 form-group mt-3">
                                     <select name="id_jenis[]" onchange="getParamUji(this)" class="form-select">
                                         <option value="">Pilih Jenis Pengujian</option>
@@ -161,13 +161,13 @@
                                     </select>
                                 </div>
 
-                                <div class="col-md-3 form-group mt-3">
+                                <div class="col-md-3 form-group mt-3" hidden>
                                     <input type="text" class="form-control" name="nama_produk[]" id="nama_produk[]" placeholder="Nama Produk" required>
                                 </div>
 
-                                {{-- <div class="col-md-2 form-group mt-3"> --}}
-                                <input type="hidden" class="form-control" value="1" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
-                                {{-- </div> --}}
+                                <div class="col-md-2 form-group mt-3">
+                                <input type="number" class="form-control" value="1" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
+                                </div>
 
                                 <div class="col-md-1 form-group mt-3">
                                     <button class="btn btn-danger remove" type="button">
@@ -221,7 +221,7 @@
 
                                 // saat tombol remove dklik control group akan dihapus 
                                 $("body").on("click", ".remove", function() {
-                                    $(this).parents(".row").remove();
+                                    $(this).parents(".tambahan").remove();
                                     reindex();
                                 });
 

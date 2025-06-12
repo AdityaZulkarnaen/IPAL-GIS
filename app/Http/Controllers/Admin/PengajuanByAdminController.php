@@ -90,6 +90,7 @@ class PengajuanByAdminController extends Controller
                 'alamat' => $request->alamat,
                 'email' => $request->email,
                 'role' => 'Pengguna',
+                'email_verified_at' => now(),
                 'api_token' => Hash::make($request->nomor_hp . $request->email),
                 'password' => Hash::make($request->email)
             ]);
@@ -116,9 +117,6 @@ class PengajuanByAdminController extends Controller
                         'nama' => $namaProduk,
                         'jumlah' => $request->jumlah_sampel[$index],
                     ]);
-
-                    // $dataUp['kode_sampel'] = $data_input_param_uji->id . '/BB/' . date('Y', time());
-                    // $data_input_param_uji->update($dataUp);
                 }
             }
 

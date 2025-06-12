@@ -155,6 +155,9 @@ class ProdukController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $data_del = TransaksiProdukModel::findOrFail($id);
+        $id_red = $data_del->id_transaksi;
+        $data_del->delete();
+        return redirect()->route('pengajuan_uji.edit', $id_red)->with(['success' => 'Data Berhasil Dihapus']);
     }
 }

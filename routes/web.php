@@ -6,6 +6,7 @@ use App\Http\Controllers\ProfilController;
 use App\Http\Controllers\LandingController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\DashboardController;
+use App\Http\Controllers\Admin\EksporController;
 use App\Http\Controllers\Admin\PembayaranController;
 use App\Http\Controllers\Admin\ProdukController;
 use App\Http\Controllers\Pengguna\BerandaController;
@@ -26,13 +27,34 @@ use App\Http\Controllers\Admin\RiwayatStatusPengujianController;
 use App\Http\Controllers\Pengguna\CetakPermintaanPengujianController;
 use App\Http\Controllers\Admin\PengajuanByAdminController;
 
+use App\Http\Controllers\VerifEmailController;
+
+use App\Http\Controllers\Pengguna\WaGatewayController;
+
 //landing
 
 Route::get('/', [LandingController::class, 'index']);
+Route::get('manehole', function () {
+    return view('manehole');
+})->name('manehole');
+
+Route::post('/verify-wa', [WaGatewayController::class, 'verify_wa'])->name('verify.wa');
+Route::post('/resend-wa', [WaGatewayController::class, 'resend_wa'])->name('resend.wa');
+
+
+Route::get('/', [LandingController::class, 'index'])->name('home');
+
 Route::get('lacak/{kode_sampel}', [LandingController::class, 'lacak']);
 
 //dashboard
 Route::resource('dashboard', DashboardController::class)->middleware(['checkRole:Super Admin,Admin,Pengguna', 'auth', 'verified']);
+Route::resource('ekspor', EksporController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
+
+Route::get('/send-notif-via-email', [VerifEmailController::class, 'send'])->name('send-notif-via-email'); // Untuk verifikasi email saja
+Route::get('/verify-email/{email}/{token}', [VerifEmailController::class, 'verifyEmail'])->name('verify.email');
+// Untuk verifikasi email dan input pengajuan
+Route::get('/verify-input-pengajuan/{email}/{token}', [VerifEmailController::class, 'verifyEmailDanInput'])->name('verify_input_pengajuan.email');
+
 
 //fitur
 Route::resource('pengajuan_by_admin', PengajuanByAdminController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);

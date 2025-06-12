@@ -1,4 +1,23 @@
 <x-guest-layout>
+    @if(Session::has('success'))
+    <div style="color:green; text-align:center;">
+        <small>
+            <strong>Berhasil! </strong> {{ Session('success') }}
+        </small>
+    </div>
+    <br>
+    @endif
+
+    @if ($errors->any())
+    <div style="color:red; text-align:center;">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    <br>
+    @endif
     <form method="POST" action="{{ route('register') }}">
         @csrf
 
@@ -14,6 +33,18 @@
             <x-input-label for="nomor_hp" :value="__('No. HP (Contoh: +6281122223333)')" />
             <x-text-input id="nomor_hp" class="block mt-1 w-full" type="number" name="nomor_hp" :value="old('nomor_hp')" required autofocus autocomplete="nomor_hp" />
             <x-input-error :messages="$errors->get('nomor_hp')" class="mt-2" />
+            <small id="nomor_hp_error" class="text-light"></small>
+            <script>
+                document.getElementById('nomor_hp').addEventListener('input', function() {
+                    var nomor_hp = this.value;
+            
+                    if (nomor_hp.length < 10) {
+                        document.getElementById('nomor_hp_error').innerText = '*Nomor HP harus memiliki minimal 10 karakter.';
+                    } else {
+                        document.getElementById('nomor_hp_error').innerText = '';
+                    }
+                });
+            </script>
         </div>
 
         <!-- Alamat -->

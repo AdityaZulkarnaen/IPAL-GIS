@@ -8,20 +8,13 @@
     <div id="kt_app_content_container" class="app-container container-fluid">
         @if(auth()->user()->role == 'Pengguna')
         <!--begin::Row-->
-        <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
-            <!--begin::Col-->
-            <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3 ">
-                <div class="card bg-primary">
-                    <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengajuan_user }}+</h1>
-                        <span>Jumlah Pengajuan Pengujian</span>
-                    </div>
-                </div>
-            </div>
-            <!--end::Col-->
 
-            <div class="col-md-10 col-lg-10 col-xl-10 col-xxl-10 ">
-                <div class="card bg-danger">
+        <div class="row g-5 g-xl-10 mb-5 mb-xl-10">
+
+
+            <div class="col-md-9 mb-5">
+
+                <div class="card bg-danger mb-5">
                     <div class="card-body">
                         <div class="text-light">
                             <h5 class="text-light">*Perhatikan</h5>
@@ -29,6 +22,56 @@
                             2. Anda harus membawa berkas PERMINTAAN PENGUJIAN yang didapat melalui sistem <strong>{{ $service['data_konfig']->nama_sistem }}</strong><br>
                             3. Anda dapan mengunduh berkas tersebut pada menu <strong>Pengajuan</strong> -> <strong>Lihat Detail</strong> pada kolom <strong>Parameter Uji</strong>
                         </div>
+                    </div>
+                </div>
+
+                @if(auth()->user()->verif_wa != 'aktif')
+                <div class="card shadow-sm mb-4">
+                    <div class="card-body">
+                        <h3 class="card-title h5 mb-1">Verifikasi via WhatsApp</h3>
+                        <small class="text-danger mb-3">*Nomor Anda belum terverifikasi. Silakan verifikasi untuk mempermudah penggunaan sistem ini!</small>
+
+                        <form method="POST" action="{{ route('verify.wa') }}" class="my-5">
+                            @csrf
+                            <div class="input-group">
+                                <input
+                                    type="text"
+                                    id="wa_otp"
+                                    name="wa_otp"
+                                    class="form-control {{ $errors->has('wa_otp') ? 'is-invalid' : '' }}"
+                                    placeholder="Masukkan Kode WA"
+                                    required>
+                                <div class="input-group-append">
+                                    <button type="submit" class="btn btn-sm btn-primary py-2">
+                                        {{ __('Verifikasi') }}
+                                    </button>
+                                </div>
+                                @error('wa_otp')
+                                <div class="invalid-feedback d-block w-100">
+                                    {{ $message }}
+                                </div>
+                                @enderror
+                            </div>
+                        </form>
+
+                        {{-- Tombol Kirim Ulang Kode --}}
+                        <form method="POST" action="{{ route('resend.wa') }}">
+                            @csrf
+                            <button type="submit" class="btn btn-link p-0 text-decoration-none">
+                                <i class="fas fa-redo-alt mr-1"></i> {{ __('Kirim Ulang Kode WA') }}
+                            </button>
+                        </form>
+                    </div>
+                </div>
+                @endif
+
+            </div>
+
+            <div class="col-md-3">
+                <div class="card bg-primary mb-3">
+                    <div class="card-body text-light">
+                        <h1 class="text-light">{{ $jumlah_pengajuan_user }}</h1>
+                        <span>Jumlah Pengajuan Pengujian</span>
                     </div>
                 </div>
             </div>
@@ -42,7 +85,7 @@
             <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3">
                 <div class="card bg-info">
                     <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengunjung }}+</h1>
+                        <h1 class="text-light">{{ $jumlah_pengunjung }}</h1>
                         <span>Jumlah Pengunjung</span>
                     </div>
                 </div>
@@ -50,7 +93,7 @@
             <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3">
                 <div class="card bg-primary">
                     <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengguna }}+</h1>
+                        <h1 class="text-light">{{ $jumlah_pengguna }}</h1>
                         <span>Jumlah Pengguna</span>
                     </div>
                 </div>
@@ -58,7 +101,7 @@
             <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3">
                 <div class="card" style="background: orange">
                     <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengajuan }}+</h1>
+                        <h1 class="text-light">{{ $jumlah_pengajuan }}</h1>
                         <span>Jumlah Pengajuan</span>
                     </div>
                 </div>
@@ -66,7 +109,7 @@
             <div class="col-md-3 col-lg-3 col-xl-3 col-xxl-3">
                 <div class="card" style="background: rgb(14, 161, 48)">
                     <div class="card-body text-light">
-                        <h1 class="text-light">{{ $jumlah_pengajuan_selesai }}+</h1>
+                        <h1 class="text-light">{{ $jumlah_pengajuan_selesai }}</h1>
                         <span>Jumlah Pengajuan Selesai</span>
                     </div>
                 </div>
@@ -86,6 +129,9 @@
                             </span>
                             {{ 'Tambah Pengajuan' }}
                         </a>
+                        <a target="_blank" href="{{ route('ekspor.index') . '?jenis_layanan='. $jenis_layanan .'&status_transaksi='. $status_transaksi .'&tgl_1='. $tgl_1 .'&tgl_2='. $tgl_2 .'&kata_kunci='. $kata_kunci }}" class="btn btn-sm btn-success mb-3">
+                            {{ 'Unduh Data' }}
+                        </a>
 
                         <form class="row mb-3" action="" method="get">
 
@@ -102,9 +148,16 @@
                                 <label for="status_transaksi">Status Transaksi</label>
                                 <select class="form-select" data-control="select2" id="status_transaksi" name="status_transaksi">
                                     <option value="">Pilih Status..</option>
-                                    <option @if($status_transaksi=='Belum Dibayar' ) selected @endif>Belum Dibayar</option>
-                                    <option @if($status_transaksi=='Sudah Dibayar' ) selected @endif>Sudah Dibayar</option>
                                     <option @if($status_transaksi=='Ditolak' ) selected @endif>Ditolak</option>
+                                    <option @if($status_transaksi=='Belum Dibayar' ) selected @endif>Belum Dibayar</option>
+                                    <option @if($status_transaksi=='Sudah Dibayar' ) selected @endif value="Sudah Dibayar">Sudah Dibayar</option>
+                                    <option @if($status_transaksi=='Disposisi' ) selected @endif>Disposisi</option>
+                                    <option @if($status_transaksi=='Persiapan Uji' ) selected @endif>Persiapan Uji</option>
+                                    <option @if($status_transaksi=='Proses Pengujian' ) selected @endif>Proses Pengujian</option>
+                                    <option @if($status_transaksi=='Penyusunan LHU' ) selected @endif>Penyusunan LHU</option>
+                                    <option @if($status_transaksi=='Penerbitan LHU' ) selected @endif>Penerbitan LHU</option>
+                                    <option @if($status_transaksi=='Legalisasi' ) selected @endif>Legalisasi</option>
+                                    <option @if($status_transaksi=='Order Selesai' ) selected @endif>Order Selesai</option>
                                 </select>
                             </div>
                             <div class="col-md-2">
@@ -114,6 +167,10 @@
                             <div class="col-md-2">
                                 <label for="tgl_2">Tanggal Akhir</label>
                                 <input name="tgl_2" class="form-control input-lg" value="{{ $tgl_2 }}" placeholder="" type="date">
+                            </div>
+                            <div class="col-md-2">
+                                <label for="kata_kunci">Kata Kunci</label>
+                                <input name="kata_kunci" class="form-control input-lg" value="{{ $kata_kunci }}" placeholder="Kata Kunci..." type="text">
                             </div>
 
                             <div class="col-md-1">
@@ -149,7 +206,7 @@
 
                                     @foreach($all_data as $dt)
                                     <tr>
-                                        <td><button style="padding: 6px 12px 6px 12px;" class="btn btn-secondary btn-sm">{{ $no++ }}</button></td>
+                                        <td><button style="padding: 6px 12px 6px 12px;" class="btn btn-secondary btn-sm">{{ ($no++) + ($all_data->currentPage()-1)*10 }}</button></td>
                                         <td>{{ date('d/m/Y', strtotime($dt->created_at)) }}</td>
                                         <td>{{ $dt->no_order }}</td>
                                         <td>{{ $dt->kode_sampel }}</td>
@@ -231,6 +288,57 @@
 
                             </table>
                         </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination">
+                                @if ($all_data->onFirstPage())
+                                <li class="page-item disabled">
+                                    <span class="page-link">&laquo;</span>
+                                </li>
+                                @else
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $all_data->previousPageUrl() }}" aria-label="Previous">
+                                        <span aria-hidden="true">&laquo;</span>
+                                    </a>
+                                </li>
+                                @endif
+
+                                @if($all_data->currentPage() > 3)
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ $all_data->url(1) }}">1</a>
+                                </li>
+                                <li class="page-item disabled">
+                                    <span class="page-link">...</span>
+                                </li>
+                                @endif
+
+                                @for($i = max(1, $all_data->currentPage() - 1); $i <= min($all_data->lastPage(), $all_data->currentPage() + 1); $i++)
+                                    <li class="page-item {{ ($all_data->currentPage() == $i) ? 'active' : '' }}">
+                                        <a class="page-link" href="{{ $all_data->url($i) }}">{{ $i }}</a>
+                                    </li>
+                                    @endfor
+
+                                    @if($all_data->currentPage() < $all_data->lastPage() - 2)
+                                        <li class="page-item disabled">
+                                            <span class="page-link">...</span>
+                                        </li>
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $all_data->url($all_data->lastPage()) }}">{{ $all_data->lastPage() }}</a>
+                                        </li>
+                                        @endif
+
+                                        @if ($all_data->hasMorePages())
+                                        <li class="page-item">
+                                            <a class="page-link" href="{{ $all_data->nextPageUrl() }}" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                        @else
+                                        <li class="page-item disabled">
+                                            <span class="page-link">&raquo;</span>
+                                        </li>
+                                        @endif
+                            </ul>
+                        </nav>
 
                     </div>
                 </div>

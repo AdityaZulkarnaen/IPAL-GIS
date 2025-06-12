@@ -37,8 +37,8 @@ License: For each use you must have a valid license purchased only from above li
     <!--end::Vendor Stylesheets-->
 
     <!--begin::Global Datatable-->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css" rel="stylesheet" type="text/css" />
-    <link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css" />
+    <!--<link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.5.2/css/bootstrap.css" rel="stylesheet" type="text/css" />-->
+    <!--<link href="https://cdn.datatables.net/1.13.4/css/dataTables.bootstrap4.min.css" rel="stylesheet" type="text/css" />-->
 
     <!--begin::Global Stylesheets Bundle(mandatory for all pages)-->
     <link href="{{ asset('tema') }}/dist/assets/plugins/global/plugins.bundle.css" rel="stylesheet" type="text/css" />
@@ -47,12 +47,7 @@ License: For each use you must have a valid license purchased only from above li
 
     <script src="https://unpkg.com/xlsx/dist/xlsx.full.min.js"></script>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-
-    {{-- Live Edit Table --}}
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
-    {{-- <script src="/assets/js/jquery.tabledit.js"></script> --}}
-    {{-- <script src="{{ asset('js/jquery.tabledit.js')}}></script> --}}
 
 </head>
 <!--end::Head-->
@@ -681,6 +676,8 @@ License: For each use you must have a valid license purchased only from above li
     <script>
         var hostUrl = "{{ asset('tema') }}/dist/assets/";
     </script>
+
+    <!--<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>-->
 
     <!--begin::Global Javascript Bundle(mandatory for all pages)-->
     <script src="{{ asset('tema') }}/dist/assets/plugins/global/plugins.bundle.js"></script>

@@ -58,8 +58,8 @@
                             <!--</div>-->
 
                             <div id="module-1" class="form-group mt-3">
-                                <label for="role">Jumlah Sampel</label>
-                                <input type="number" class="form-control" name="jumlah" id="jumlah" placeholder="Jumlah Sampel" value="{{ $data_edit->jumlah }}" required>
+                                <label for="role">Jumlah Uji</label>
+                                <input type="number" class="form-control" name="jumlah" id="jumlah" placeholder="Jumlah Uji" value="{{ $data_edit->jumlah }}" required>
                             </div>
 
                             <div class="mt-3">

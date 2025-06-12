@@ -12,7 +12,7 @@ use App\Models\TransaksiProdukModel;
 use App\Models\StatusTransaksiProdukModel;
 use Carbon\Carbon;
 
-class DashboardController extends Controller
+class EksporController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -21,29 +21,12 @@ class DashboardController extends Controller
      */
     public function index(Request $request)
     {
-        $toptitle = 'Fitur';
-        $title = 'Dashboard';
-        $subtitle = 'Data Dashboard';
+        $toptitle = 'Ekspor';
+        $title = 'Ekspor';
+        $subtitle = 'Data Ekspor';
 
-        $jumlah_pengguna = User::where('role', '=', 'Pengguna')->count();
-        // $jumlah_pengunjung = PengunjungModel::count();
-        
-        // Mendapatkan tanggal saat ini
         $sekarang = Carbon::now();
         
-        // Menghitung jumlah pengunjung dalam satu bulan terakhir
-        $jumlah_pengunjung = PengunjungModel::whereYear('created_at', $sekarang->year) // Memfilter berdasarkan tahun saat ini
-            ->whereMonth('created_at', $sekarang->subMonth()->month) // Memfilter berdasarkan bulan sebelumnya
-            ->count();
-            
-            // $jumlah_pengunjung = 0;
-    
-        $jumlah_jenis_pengajuan = JenisModel::count();
-        $jumlah_pengajuan = TransaksiModel::count();
-        $jumlah_pengajuan_selesai = TransaksiModel::where('status_bayar', '=', 'Order Selesai')->count();
-
-        $jumlah_pengajuan_user = TransaksiModel::where('id_user', auth()->user()->id)->count();
-
 
         $jenis_layanan = $request->jenis_layanan;
         $status_transaksi = $request->status_transaksi;
@@ -51,32 +34,6 @@ class DashboardController extends Controller
         $tgl_2 = $request->tgl_2;
         $kata_kunci = $request->kata_kunci;
 
-        $jenis_pengujian = JenisModel::orderBy('id', 'DESC')
-            ->get();
-
-        // $query = TransaksiModel::with('user')
-        //     ->orderBy('created_at', 'DESC');
-            
-            
-        // if (!is_null($jenis_layanan)) {
-        //     $query->where('id_jenis', $jenis_layanan);
-        // }
-
-        // if (!is_null($status_transaksi)) {
-        //     $query->where('status_bayar', $status_transaksi);
-        // }
-
-        // if (!is_null($tgl_1)) {
-        //     $query->whereDate('created_at', '>=', $tgl_1);
-        // }
-
-        // if (!is_null($tgl_2)) {
-        //     $query->whereDate('created_at', '<=', $tgl_2);
-        // }
-
-        // $all_data = $query->paginate(10);
-        // $all_data->appends(['jenis_layanan' => $jenis_layanan, 'status_transaksi' => $status_transaksi, 'tgl_1' => $tgl_1, 'tgl_2' => $tgl_2]);
-        
         $query = TransaksiModel::with('user')
             ->orderBy('created_at', 'DESC');
         
@@ -104,27 +61,20 @@ class DashboardController extends Controller
             });
         }
         
-        $all_data = $query->paginate(10);
-        $all_data->appends([
-            'jenis_layanan' => $jenis_layanan,
-            'status_transaksi' => $status_transaksi,
-            'tgl_1' => $tgl_1,
-            'tgl_2' => $tgl_2,
-            'kata_kunci' => $kata_kunci,
-        ]);
+        $all_data = $query->get();
+        // $all_data->appends([
+        //     'jenis_layanan' => $jenis_layanan,
+        //     'status_transaksi' => $status_transaksi,
+        //     'tgl_1' => $tgl_1,
+        //     'tgl_2' => $tgl_2,
+        //     'kata_kunci' => $kata_kunci
+        // ]);
 
 
-        return view('admin.dashboard.index', compact(
+        return view('admin.dashboard.ekspor', compact(
             'toptitle',
             'title',
             'subtitle',
-            'jumlah_pengguna',
-            'jumlah_pengunjung',
-            'jumlah_jenis_pengajuan',
-            'jumlah_pengajuan',
-            'jumlah_pengajuan_selesai',
-            'jumlah_pengajuan_user',
-            'jenis_pengujian',
             'jenis_layanan',
             'status_transaksi',
             'tgl_1',

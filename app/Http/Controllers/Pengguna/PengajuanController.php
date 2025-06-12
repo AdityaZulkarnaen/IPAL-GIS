@@ -13,6 +13,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
+use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Mail;
+use Swift_TransportException;
 
 class PengajuanController extends Controller
 {
@@ -90,20 +93,40 @@ class PengajuanController extends Controller
         $pesan = "";
 
         if ($data_user == null) {
-            $user = User::create([
+            
+            $validator = Validator::make($request->all(), [
+                'name' => ['required', 'string', 'max:255'],
+                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
+            ]);
+        
+            // Tambahkan aturan validasi untuk memeriksa domain email
+            $validator->after(function ($validator) use ($request) {
+                $allowedDomains = ['gmail.com', 'yahoo.co.id', 'yahoo.com'];
+                $emailDomain = explode('@', $request->email)[1];
+        
+                if (!in_array($emailDomain, $allowedDomains)) {
+                    $validator->errors()->add('email', 'Hanya alamat email dari Gmail (.com) atau Yahoo (.com, .co.id) yang diperbolehkan.');
+                }
+            });
+        
+            if ($validator->fails()) {
+                echo $validator->errors()->first();
+                die();
+            }
+            
+            $email = $request->email;
+        
+            $data_user = [
                 'name' => $request->name,
                 'nomor_hp' => $request->nomor_hp,
                 'alamat' => $request->alamat,
                 'email' => $request->email,
                 'role' => 'Pengguna',
                 'api_token' => Hash::make($request->nomor_hp . $request->email),
-                'password' => Hash::make($request->email)
-            ]);
-
-            $id_user = $user->id;
-
-            $data_input = TransaksiModel::create([
-                'id_user' => $id_user,
+                'password' => Hash::make($request->password),
+            ];
+            
+            $data_input = [
                 'id_jenis' => $request->id_jenis[0],
                 'kegiatan' => $request->kegiatan,
                 'no_dokumen' => $request->no_dokumen,
@@ -112,30 +135,93 @@ class PengajuanController extends Controller
                 'sumber' => $request->sumber,
                 'status_bayar' => 'Belum Dibayar'
 
-            ]);
+            ];
+
+            $data_input_param_uji = [];
 
             foreach ($request->nama_produk as $index => $namaProduk) {
                 if ($request->id_param_uji[$index] > 0) {
-                    $data_input_param_uji = TransaksiProdukModel::create([
-                        'id_transaksi' => $data_input->id,
+                    $data_input_param_uji[] = [
                         'id_parameter_uji' => $request->id_param_uji[$index],
                         'nama' => $namaProduk,
                         'jumlah' => $request->jumlah_sampel[$index],
-                    ]);
-
-                    // $dataUp['kode_sampel'] = $data_input_param_uji->id . '/BB/' . date('Y', time());
-                    // $data_input_param_uji->update($dataUp);
+                    ];
                 }
             }
+    
+            $verificationToken = preg_replace('/[^A-Za-z]/', '', bcrypt($email));
+    
+            cache()->put('user_data_' . $email, $data_user, now()->addMinutes(60));
+            cache()->put('data_input_' . $email, $data_input, now()->addMinutes(60));
+            cache()->put('data_input_param_uji_' . $email, $data_input_param_uji, now()->addMinutes(60));
+            cache()->put('email_verification_' . $email, $verificationToken, now()->addMinutes(60));
+    
+            $verificationLink = route('verify_input_pengajuan.email', ['email' => $email, 'token' => $verificationToken]);
+    
+            $pesan = "Klik link berikut untuk verifikasi email Anda: <a href='{$verificationLink}'>Verifikasi Email</a>";
+    
+            try {
+                Mail::raw($pesan, function ($message) use ($email, $pesan) {
+                    $message->to($email)
+                        ->subject("Verifikasi Email!")
+                        ->html($pesan);
+                });
+                // echo 'Email berhasil terkirim';
+                // die();
+                return redirect()->route('register')->with(['success' => 'Email verifikasi berhasil terkirim']);
+            } catch (Swift_TransportException $e) {
+                return redirect()->route('register')->with(['error' => 'Email verifikasi gagal terkirim : ' . $e->getMessage()]);
+                // echo 'Email gagal terkirim: ' . ;
+                // die();
+            }
+                
+            // $user = User::create([
+            //     'name' => $request->name,
+            //     'nomor_hp' => $request->nomor_hp,
+            //     'alamat' => $request->alamat,
+            //     'email' => $request->email,
+            //     'role' => 'Pengguna',
+            //     'api_token' => Hash::make($request->nomor_hp . $request->email),
+            //     'password' => Hash::make($request->email)
+            // ]);
 
-            event(new Registered($user));
+            // $id_user = $user->id;
+            
 
-            // Auth::login($user);
+            // $data_input = TransaksiModel::create([
+            //     'id_user' => $id_user,
+            //     'id_jenis' => $request->id_jenis[0],
+            //     'kegiatan' => $request->kegiatan,
+            //     'no_dokumen' => $request->no_dokumen,
+            //     'tanggal' => $request->tanggal,
+            //     'revisi' => $request->revisi,
+            //     'sumber' => $request->sumber,
+            //     'status_bayar' => 'Belum Dibayar'
 
-            $pesan = "Akun telah dibuat, login dengan email " . $request->email . " dengan kata sandi " . $request->email;
-            return redirect(RouteServiceProvider::HOME)->with(['success' => $pesan]);
+            // ]);
 
-            return redirect()->route('cetak_permintaan_pengujian.show', $data_input->id)->with(['success' => $pesan]);
+            // foreach ($request->nama_produk as $index => $namaProduk) {
+            //     if ($request->id_param_uji[$index] > 0) {
+            //         $data_input_param_uji = TransaksiProdukModel::create([
+            //             'id_transaksi' => $data_input->id,
+            //             'id_parameter_uji' => $request->id_param_uji[$index],
+            //             'nama' => $namaProduk,
+            //             'jumlah' => $request->jumlah_sampel[$index],
+            //         ]);
+
+            //         // $dataUp['kode_sampel'] = $data_input_param_uji->id . '/BB/' . date('Y', time());
+            //         // $data_input_param_uji->update($dataUp);
+            //     }
+            // }
+
+            // event(new Registered($user));
+
+            // // Auth::login($user);
+
+            // $pesan = "Akun telah dibuat, login dengan email " . $request->email . " dengan kata sandi " . $request->email;
+            // return redirect(RouteServiceProvider::HOME)->with(['success' => $pesan]);
+
+            // return redirect()->route('cetak_permintaan_pengujian.show', $data_input->id)->with(['success' => $pesan]);
         } else {
             $id_user = $data_user->id;
         }
@@ -183,16 +269,20 @@ class PengajuanController extends Controller
         $toptitle = 'Fitur';
         $title = 'Pengajuan';
         $subtitle = 'Detail Pengajuan';
-
-        // $all_data = TransaksiModel::with('transaksi_produk.parameter_uji')->where('id', $id)->first();
-
-        $all_data = $data_transaksi_produk = TransaksiProdukModel::with('parameter_uji')
+    
+        $cek_data_user = TransaksiModel::where('id', $id)
+            ->where('id_user', auth()->user()->id)
+            ->first();
+    
+        if ($cek_data_user == null) {
+            return redirect()->route('pengajuan.index')->with('error', 'Data pengajuan tidak ditemukan atau Anda tidak memiliki akses ke data ini.');
+        }
+    
+        $all_data = TransaksiProdukModel::with('parameter_uji')
             ->where('id_transaksi', $id)
             ->orderBy('id', 'DESC')
             ->get();
-
-        // $data_parameter_uji = ParameterUjiModel::where('id_jenis', $all_data->id_jenis)->get();
-
+    
         return view('pengguna.pengajuan.detail', compact(
             'toptitle',
             'title',

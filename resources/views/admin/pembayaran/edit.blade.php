@@ -60,12 +60,13 @@
                                     <option @if($data_edit->status_bayar=='Ditolak' ) selected @endif>Ditolak</option>
                                     <option @if($data_edit->status_bayar=='Belum Dibayar' ) selected @endif>Belum Dibayar</option>
                                     <option @if($data_edit->status_bayar=='Sudah Dibayar' ) selected @endif value="Sudah Dibayar">Sudah Dibayar</option>
-
+                                    <option @if($data_edit->status_bayar=='Disposisi' ) selected @endif>Disposisi</option>
+                                    <option @if($data_edit->status_bayar=='Persiapan Uji' ) selected @endif>Persiapan Uji</option>
                                     <option @if($data_edit->status_bayar=='Proses Pengujian' ) selected @endif>Proses Pengujian</option>
-
+                                    <option @if($data_edit->status_bayar=='Penyusunan LHU' ) selected @endif>Penyusunan LHU</option>
+                                    <option @if($data_edit->status_bayar=='Penerbitan LHU' ) selected @endif>Penerbitan LHU</option>
+                                    <option @if($data_edit->status_bayar=='Legalisasi' ) selected @endif>Legalisasi</option>
                                     <option @if($data_edit->status_bayar=='Order Selesai' ) selected @endif>Order Selesai</option>
-
-
                                 </select>
 
                                 {{-- <div class="d-flex flex-row justify-content-between">
@@ -94,7 +95,7 @@
 
                                 <div class="form-group mt-3" id="berkas">
                                     <label for="role">LHU</label>
-                                    <input class="form-control" type="file" name="berkas" placeholder="Catatan...">
+                                    <input class="form-control" type="file" name="berkas" placeholder="LHU...">
                                 </div>
 
                                 <div class="mt-2">
@@ -107,7 +108,9 @@
 
 
                             <script>
+                                @if($data_edit->status_bayar!='Order Selesai')
                                 document.getElementById("berkas").style.display = "none";
+                                @endif
 
                                 function toggleInput() {
                                     var selectElement = document.getElementById("status_bayar");
@@ -156,15 +159,15 @@
                         <strong><u>Riwayat Status: </u></strong>
                         <br>
                         @foreach($data_edit->status as $dts)
-                        - {{ $dts->catatan }}
-                        @if($dts->berkas != null)
-                        | <a href="{{ asset($dts->berkas) }}" target="_blank" rel="berkas"><i><strong>Unduh LHU</strong></i></a>
-                        @endif
+                        - {{ explode(',', $dts->catatan)[0] .' | '. $dts->created_at }}
+                        <!--@if($dts->berkas != null)-->
+                        <!--| <a href="{{ asset($dts->berkas) }}" target="_blank" rel="berkas"><i><strong>Unduh LHU</strong></i></a>-->
+                        <!--@endif-->
                         <br>
                         @endforeach
                         <hr>
 
-                        <form>
+                        <!--<form>-->
                             @php
                             $no = 1;
                             $total = 0;
@@ -258,7 +261,7 @@
                                                         </div>
 
                                                         <div class="modal-body">
-                                                            <form action="{{ route('pengajuan_uji.destroy', $dt->id) }}" method="POST">
+                                                            <form action="{{ route('admin_produk_uji.destroy', $dt->id) }}" method="POST" >
                                                                 @csrf
                                                                 @method('delete')
 
@@ -374,7 +377,7 @@
                             </div>
                             <hr>
 
-                        </form>
+                        <!--</form>-->
                     </div>
                 </div>
 
