@@ -25,6 +25,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function store(LoginRequest $request): RedirectResponse
     {
+        // Check if this is accidentally sent as email login but with phone data
+        if ($request->has('login_type') && $request->login_type === 'phone') {
+            return redirect()->route('login')->withErrors(['nomor_hp' => 'Silakan gunakan tombol "Kirim Kode OTP" untuk login dengan nomor HP.']);
+        }
+        
         $request->authenticate();
 
         $request->session()->regenerate();

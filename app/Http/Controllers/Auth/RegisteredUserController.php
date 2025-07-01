@@ -88,7 +88,9 @@ class RegisteredUserController extends Controller
                     ->subject("Verifikasi Email!")
                     ->html($pesan);
             });
-            return redirect()->route('register')->with(['success' => 'Email verifikasi berhasil terkirim']);
+            // Redirect ke halaman verifikasi setelah register
+            auth()->login($data_user); // Login-kan user setelah register agar bisa akses halaman verifikasi
+            return redirect()->route('verification.notice')->with(['success' => 'Kode verifikasi berhasil dikirim ke WhatsApp & Email. Silakan cek dan verifikasi akun Anda!']);
         } catch (Swift_TransportException $e) {
             return redirect()->route('register')->with(['error' => 'Email verifikasi gagal terkirim : ' . $e->getMessage()]);
         }
