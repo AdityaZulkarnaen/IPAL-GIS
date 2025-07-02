@@ -49,6 +49,33 @@ License: For each use you must have a valid license purchased only from above li
 
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 
+    <!-- Custom styles for button menu item -->
+    <style>
+        .menu-item button.menu-link {
+            background-color: transparent;
+            border: none;
+            color: var(--kt-app-sidebar-dark-menu-link-color);
+            padding: 0.65rem 1rem;
+        }
+        
+        .menu-item button.menu-link:hover {
+            background-color: var(--kt-app-sidebar-dark-menu-link-hover-bg-color);
+            color: var(--kt-app-sidebar-dark-menu-link-hover-color);
+            transition: color 0.2s ease, background-color 0.2s ease;
+        }
+        
+        /* Fix for minimized sidebar */
+        [data-kt-app-sidebar-minimize="on"] #kt_app_sidebar_footer {
+            width: 75px; /* Adjust to match minimized sidebar width */
+        }
+        
+        /* Fix for mobile sidebar */
+        @media (max-width: 991.98px) {
+            #kt_app_sidebar_footer {
+                width: 265px; /* Match the mobile sidebar width */
+            }
+        }
+    </style>
 </head>
 <!--end::Head-->
 <!--begin::Body-->
@@ -295,7 +322,7 @@ License: For each use you must have a valid license purchased only from above li
             <!--begin::Wrapper-->
             <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
                 <!--begin::Sidebar-->
-                <div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="225px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
+                <div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true" data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}" data-kt-drawer-overlay="true" data-kt-drawer-width="265px" data-kt-drawer-direction="start" data-kt-drawer-toggle="#kt_app_sidebar_mobile_toggle">
                     <!--begin::Logo-->
                     <div class="app-sidebar-logo px-6" id="kt_app_sidebar_logo">
                         <!--begin::Logo image-->
@@ -321,7 +348,7 @@ License: For each use you must have a valid license purchased only from above li
                     <!--begin::sidebar menu-->
                     <div class="app-sidebar-menu overflow-hidden flex-column-fluid">
                         <!--begin::Menu wrapper-->
-                        <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y my-5" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo, #kt_app_sidebar_footer" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="5px" data-kt-scroll-save-state="true">
+                        <div id="kt_app_sidebar_menu_wrapper" class="app-sidebar-wrapper hover-scroll-overlay-y my-5" data-kt-scroll="true" data-kt-scroll-activate="true" data-kt-scroll-height="auto" data-kt-scroll-dependencies="#kt_app_sidebar_logo" data-kt-scroll-wrappers="#kt_app_sidebar_menu" data-kt-scroll-offset="0px" data-kt-scroll-save-state="true">
                             <!--begin::Menu-->
 
                             @if(auth()->user()->role == 'Admin' || auth()->user()->role == 'Super Admin')
@@ -517,6 +544,26 @@ License: For each use you must have a valid license purchased only from above li
                                     <!--end:Menu link-->
                                 </a>
                                 <!--end:Menu item-->
+
+                                <!--begin:Menu item - Logout-->
+                                <div class="menu-item">
+                                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="menu-link w-100">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-2">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect opacity="0.3" width="12" height="2" rx="1" transform="matrix(0 -1 -1 0 15.5 19.5)" fill="currentColor"/>
+                                                        <rect width="12" height="2" rx="1" transform="matrix(0 -1 -1 0 12.5 16.5)" fill="currentColor"/>
+                                                        <path d="M17.5 13L9 5.5V3H6V5.5L10.5 10L4.5 16H11.5L17.5 10V13Z" fill="currentColor"/>
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title">Logout</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <!--end:Menu item - Logout-->
 
                             </div>
                             @else
