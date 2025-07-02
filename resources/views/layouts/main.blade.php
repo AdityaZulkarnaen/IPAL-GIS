@@ -634,6 +634,34 @@ License: For each use you must have a valid license purchased only from above li
                                         <span class="menu-title">Pengujian</span>
                                     </span>
                                 </a> -->
+                                
+                                <!--begin:Menu item - Logout-->
+                                <div class="menu-item pt-5">
+                                    <!--begin:Menu content-->
+                                    <div class="menu-content">
+                                        <span class="menu-heading fw-bold text-uppercase fs-7">Account</span>
+                                    </div>
+                                    <!--end:Menu content-->
+                                </div>
+                                
+                                <div class="menu-item">
+                                    <form method="POST" action="{{ route('logout') }}" class="m-0">
+                                        @csrf
+                                        <button type="submit" class="menu-link w-100">
+                                            <span class="menu-icon">
+                                                <span class="svg-icon svg-icon-2">
+                                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                        <rect opacity="0.3" width="12" height="2" rx="1" transform="matrix(0 -1 -1 0 15.5 19.5)" fill="currentColor"/>
+                                                        <rect width="12" height="2" rx="1" transform="matrix(0 -1 -1 0 12.5 16.5)" fill="currentColor"/>
+                                                        <path d="M17.5 13L9 5.5V3H6V5.5L10.5 10L4.5 16H11.5L17.5 10V13Z" fill="currentColor"/>
+                                                    </svg>
+                                                </span>
+                                            </span>
+                                            <span class="menu-title">Logout</span>
+                                        </button>
+                                    </form>
+                                </div>
+                                <!--end:Menu item - Logout-->
 
                             </div>
                             @endif
