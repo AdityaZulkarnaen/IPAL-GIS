@@ -8,6 +8,15 @@
     <br>
     @endif
 
+    @if(Session::has('error'))
+    <div style="color:red; text-align:center;">
+        <small>
+            <strong>Gagal! </strong> {{ Session('error') }}
+        </small>
+    </div>
+    <br>
+    @endif
+
     @if ($errors->any())
     <div style="color:red; text-align:center;">
         <ul>

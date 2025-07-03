@@ -54,7 +54,6 @@ Route::get('/verify-email/{email}/{token}', [VerifEmailController::class, 'verif
 // Untuk verifikasi email dan input pengajuan
 Route::get('/verify-input-pengajuan/{email}/{token}', [VerifEmailController::class, 'verifyEmailDanInput'])->name('verify_input_pengajuan.email');
 
-
 //fitur
 Route::resource('pengajuan_by_admin', PengajuanByAdminController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
 Route::resource('pengajuan_uji', PembayaranController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);
@@ -90,5 +89,10 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 });
+
+// Route untuk menampilkan halaman verifikasi email & OTP pengajuan
+Route::get('verifikasi-pengajuan', [VerifEmailController::class, 'showVerifEmailPengajuan'])->name('verifikasi.pengajuan');
+
+Route::post('/verify-otp-pengajuan', [VerifEmailController::class, 'verifyOtpPengajuan'])->name('verify.otp.pengajuan');
 
 require __DIR__ . '/auth.php';

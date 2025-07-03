@@ -1,3 +1,8 @@
+@php
+    // Cek apakah halaman ini untuk pengajuan (dari controller: showVerifEmailPengajuan)
+    $isPengajuan = isset($email) && request()->routeIs('verifikasi.pengajuan');
+@endphp
+
 <x-guest-layout>
     {{-- Success Notification --}}
     @if(Session::has('success'))
@@ -21,36 +26,70 @@
         </p>
     </div>
 
-    {{-- WA Verification Form --}}
-    <div class="mb-6">
-        <h3 class="text-lg font-medium text-gray-700 mb-3">Verifikasi via WhatsApp</h3>
-        <form method="POST" action="{{ route('verify.wa') }}" class="space-y-3">
-            @csrf
-            <div class="flex flex-col sm:flex-row gap-3">
-                <x-text-input
-                    id="wa_otp"
-                    name="wa_otp"
-                    type="text"
-                    required
-                    placeholder="Masukkan Kode WA"
-                    class="flex-1" />
-                <x-primary-button type="submit" class="w-full sm:w-auto justify-center">
-                    {{ __('Verifikasi') }}
-                </x-primary-button>
-            </div>
-            @error('wa_otp')
-            <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
-            @enderror
-        </form>
+    @if($isPengajuan)
+        {{-- Pengajuan Verification Section --}}
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">Verifikasi Pengajuan via WhatsApp</h3>
+            <form method="POST" action="{{ route('verify.otp.pengajuan') }}" class="space-y-3">
+                @csrf
+                <input type="hidden" name="email" value="{{ $email }}">
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <x-text-input
+                        id="wa_otp_pengajuan"
+                        name="wa_otp_pengajuan"
+                        type="text"
+                        required
+                        placeholder="Masukkan Kode WA Pengajuan"
+                        class="flex-1" />
+                    <x-primary-button type="submit" class="w-full sm:w-auto justify-center">
+                        {{ __('Verifikasi Pengajuan') }}
+                    </x-primary-button>
+                </div>
+                @error('wa_otp_pengajuan')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </form>
 
-        {{-- Resend WA Code Button --}}
-        <form method="POST" action="{{ route('resend.wa') }}" class="mt-2">
-            @csrf
-            <button type="submit" class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
-                {{ __('Kirim Ulang Kode WA') }}
-            </button>
-        </form>
-    </div>
+            {{-- Resend WA Code Button Pengajuan --}}
+            <form method="POST" action="{{ route('resend.wa') }}" class="mt-2">
+                @csrf
+                <button type="submit" class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                    {{ __('Kirim Ulang Kode WA Pengajuan') }}
+                </button>
+            </form>
+        </div>
+    @else
+        {{-- WA Verification Form (Register) --}}
+        <div class="mb-6">
+            <h3 class="text-lg font-medium text-gray-700 mb-3">Verifikasi via WhatsApp</h3>
+            <form method="POST" action="{{ route('verify.wa') }}" class="space-y-3">
+                @csrf
+                <div class="flex flex-col sm:flex-row gap-3">
+                    <x-text-input
+                        id="wa_otp"
+                        name="wa_otp"
+                        type="text"
+                        required
+                        placeholder="Masukkan Kode WA"
+                        class="flex-1" />
+                    <x-primary-button type="submit" class="w-full sm:w-auto justify-center">
+                        {{ __('Verifikasi') }}
+                    </x-primary-button>
+                </div>
+                @error('wa_otp')
+                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                @enderror
+            </form>
+
+            {{-- Resend WA Code Button --}}
+            <form method="POST" action="{{ route('resend.wa') }}" class="mt-2">
+                @csrf
+                <button type="submit" class="text-sm text-blue-600 hover:text-blue-800 hover:underline">
+                    {{ __('Kirim Ulang Kode WA') }}
+                </button>
+            </form>
+        </div>
+    @endif
 
     <div class="border-t border-gray-200 my-6"></div>
 

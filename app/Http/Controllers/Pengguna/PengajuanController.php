@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Providers\RouteServiceProvider;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Facades\Mail;
-use Swift_TransportException;
+
 
 class PengajuanController extends Controller
 {
@@ -161,6 +161,24 @@ class PengajuanController extends Controller
             $pesan = "Klik link berikut untuk verifikasi email Anda: <a href='{$verificationLink}'>Verifikasi Email</a>";
     
             try {
+                // OTP WhatsApp mirip fitur register
+                $newCode = rand(100000, 999999);
+                $newExpiry = now()->addHour()->timestamp;
+                // Simpan kode OTP dan expiry ke cache (atau bisa ke DB jika ingin)
+                cache()->put('otp_wa_' . $email, [
+                    'code' => $newCode,
+                    'expiry' => $newExpiry,
+                    'nomor_hp' => $request->nomor_hp
+                ], now()->addHour());
+
+                // Kirim OTP ke WhatsApp
+                \Illuminate\Support\Facades\Http::post('https://wagw.madanateknologi.com/send-message', [
+                    'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
+                    'sender' => '6281226067656',
+                    'number' => $request->nomor_hp,
+                    'message' => 'Kode verifikasi WhatsApp Anda: ' . $newCode
+                ]);
+
                 Mail::raw($pesan, function ($message) use ($email, $pesan) {
                     $message->to($email)
                         ->subject("Verifikasi Email!")
@@ -168,8 +186,9 @@ class PengajuanController extends Controller
                 });
                 // echo 'Email berhasil terkirim';
                 // die();
-                return redirect()->route('register')->with(['success' => 'Email verifikasi berhasil terkirim']);
-            } catch (Swift_TransportException $e) {
+                // Setelah OTP dikirim, redirect ke halaman form OTP pengajuan
+                return redirect()->route('verifikasi.pengajuan', ['email' => $email])->with(['success' => 'Kode verifikasi berhasil dikirim ke WhatsApp & Email. Silakan cek dan verifikasi akun Anda!']);
+            } catch (\Exception $e) {
                 return redirect()->route('register')->with(['error' => 'Email verifikasi gagal terkirim : ' . $e->getMessage()]);
                 // echo 'Email gagal terkirim: ' . ;
                 // die();
