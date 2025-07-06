@@ -131,12 +131,12 @@
 
                 <div class="text-center">
                     <h3>LACAK PESANAN ANDA!</h3>
-                    <p> Masukan kode sampel anda disini!</p>
+                    <p> Masukan kode benda anda di sini!</p>
                     <br><br>
                     <form class="text-center" method="GET" action="">
                         <center>
                             <div class="col-md-4 form-group">
-                                <input type="text" value="{{ $param_kode_sample }}" name="kode_sampel" class="form-control text-center" id="kode_sampel" placeholder="Kode Sampel" required>
+                                <input type="text" value="{{ $param_kode_sample }}" name="kode_sampel" class="form-control text-center" id="kode_sampel" placeholder="Kode Benda" required>
                             </div>
                         </center>
                         <br>

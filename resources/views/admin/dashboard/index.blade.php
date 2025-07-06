@@ -192,7 +192,7 @@
                                         <th>No. Order</th>
                                         <th>Kode Sampel</th>
                                         <th>Nama Pelanggan</th>
-                                        <th>Kegiatan</th>
+                                        <th>Paket Pekerjaan</th>
                                         {{-- <th>Nama Produk</th> --}}
                                         {{-- <th>No. Dokumen</th> --}}
                                         {{-- <th>Sumber</th> --}}

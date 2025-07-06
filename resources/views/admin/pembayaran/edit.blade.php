@@ -77,7 +77,7 @@
                                     </div>
     
                                     <div id="module-2" class="form-group1 mt-3 w-75" id="kode_sampel">
-                                        <label for="role">Satuan Sampel</label>
+                                        <label for="role">Satuan</label>
                                         <input class="form-control" name="satuan_sampel" id="satuan_sampel" value="">
                                     </div>
 
@@ -190,11 +190,11 @@
                                     <thead>
                                         <tr>
                                             <th>No</th>
-                                            <th>Nama Produk</th>
+                                            <th>Benda Uji</th>
                                             <th>Jenis Pengujian</th>
                                             <th>Parameter Uji</th>
                                             <th>Jumlah Uji</th>
-                                            <th>Satuan Sampel</th>
+                                            <th>Satuan</th>
                                             <!--<th>No. Pesanan</th>-->
                                             <!--<th>Kode Sampel</th>-->
                                             <th>Biaya</th>
@@ -301,7 +301,7 @@
                                                             {{-- @foreach($data_edit_prod as $dt) --}}
 
                                                             <div class="form-group mt-3">
-                                                                <input class="form-control" name="nama" id="nama" placeholder="Nama Produk" value="{{ $dt->nama }}" required>
+                                                                <input class="form-control" name="nama" id="nama" placeholder="Benda Uji" value="{{ $dt->nama }}" required>
                                                             </div>
 
                                                             {{-- <div class="col form-group mt-3">

@@ -51,9 +51,9 @@
                         </div>
 
                         <div class="form-group col-md-6">
-                            <label class="text-right align-middle">Jenis Pekerjaan</label>
+                            <label class="text-right align-middle">Parameter Uji</label>
                             <div class="">
-                                <input type="text" name="kegiatan" class="form-control form-control-normal" placeholder="Jenis Pekerjaan...">
+                                <input type="text" name="kegiatan" class="form-control form-control-normal" placeholder="Parameter Uji...">
                             </div>
                         </div>
 
@@ -131,7 +131,7 @@
                         </div>
 
                         <div class="col-md-2 form-group mt-3">
-                            <input type="number" class="form-control" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
+                            <input type="number" class="form-control" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah Uji" required>
                         </div>
 
                         <div class="col-md-1 form-group mt-3">
@@ -167,7 +167,7 @@
                         </div>
 
                         <div class="col-md-2 form-group mt-3">
-                            <input type="number" class="form-control" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah" required>
+                            <input type="number" class="form-control" name="jumlah_sampel[]" id="jumlah_sampel[]" placeholder="Jumlah Uji" required>
                         </div>
 
                         <div class="col-md-1 form-group mt-3">

@@ -2,6 +2,35 @@
     <!-- Session Status -->
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
+    @if(Session::has('success'))
+    <div style="color:green; text-align:center;">
+        <small>
+            <strong>Berhasil! </strong> {{ Session('success') }}
+        </small>
+    </div>
+    <br>
+    @endif
+
+    @if(Session::has('error'))
+    <div style="color:red; text-align:center;">
+        <small>
+            <strong>Gagal! </strong> {{ Session('error') }}
+        </small>
+    </div>
+    <br>
+    @endif
+
+    @if ($errors->any())
+    <div style="color:red; text-align:center;">
+        <ul>
+            @foreach ($errors->all() as $error)
+            <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+    <br>
+    @endif
+
     <!-- Login Method Toggle -->
     <div class="mb-6">
         <div class="flex border-b border-gray-200">

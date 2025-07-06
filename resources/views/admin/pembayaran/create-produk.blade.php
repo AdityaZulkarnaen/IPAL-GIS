@@ -47,8 +47,8 @@
                             </div>
 
                             <div id="module-1" class="form-group mt-3">
-                                <label for="role">Nama Produk</label>
-                                <input class="form-control" name="nama" id="nama" placeholder="Nama Produk" required>
+                                <label for="role">Nama Benda Uji</label>
+                                <input class="form-control" name="nama" id="nama" placeholder="Nama Benda Uji" required>
                             </div>
 
                             <!--<div id="module-1" class="form-group mt-3">-->

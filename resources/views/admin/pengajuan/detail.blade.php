@@ -68,7 +68,7 @@
                                         <th>No</th>
                                         {{-- <th>No. Order</th>
                                         <th>Kode Sampel</th> --}}
-                                        <th>Nama Produk</th>
+                                        <th>Benda Uji</th>
                                         <th>Parameter Uji</th>
                                         <th>Tarif</th>
                                         <th>Jumlah</th>

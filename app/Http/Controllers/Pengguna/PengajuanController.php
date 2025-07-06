@@ -89,43 +89,69 @@ class PengajuanController extends Controller
             // 'jumlah[]' => 'required|gt:0',
         ]);
 
-        $data_user = User::where('email', $request->email)->first();
+        // Mendukung pengajuan tanpa login, tanpa password
         $pesan = "";
+        $data_user = null;
+        $loginBy = null;
+        $message_warning = null;
+        // Utamakan nomor_hp
+        if ($request->filled('nomor_hp')) {
+            $data_user = User::where('nomor_hp', $request->nomor_hp)->first();
+            $loginBy = 'nomor_hp';
+            // Jika user ditemukan berdasarkan nomor_hp, cek email
+            if ($data_user && $request->filled('email') && $data_user->email !== $request->email) {
+                $message_warning = 'Nomor HP sudah terdaftar dengan email: ' . $data_user->email . '. Data user diambil berdasarkan nomor HP.';
+            }
+        } else if ($request->filled('email')) {
+            $data_user = User::where('email', $request->email)->first();
+            $loginBy = 'email';
+        }
 
         if ($data_user == null) {
-            
-            $validator = Validator::make($request->all(), [
+            // Validasi dinamis tergantung loginBy
+            $rules = [
                 'name' => ['required', 'string', 'max:255'],
-                'email' => ['required', 'string', 'email', 'max:255', 'unique:users'],
-            ]);
-        
-            // Tambahkan aturan validasi untuk memeriksa domain email
-            $validator->after(function ($validator) use ($request) {
-                $allowedDomains = ['gmail.com', 'yahoo.co.id', 'yahoo.com'];
-                $emailDomain = explode('@', $request->email)[1];
-        
-                if (!in_array($emailDomain, $allowedDomains)) {
-                    $validator->errors()->add('email', 'Hanya alamat email dari Gmail (.com) atau Yahoo (.com, .co.id) yang diperbolehkan.');
+                'alamat' => ['required', 'string', 'max:255'],
+            ];
+            if ($loginBy === 'email') {
+                $rules['email'] = ['required', 'string', 'email', 'max:255', 'unique:users'];
+                $rules['nomor_hp'] = ['required', 'string', 'max:20'];
+            } else {
+                $rules['nomor_hp'] = ['required', 'string', 'max:20', 'unique:users'];
+                $rules['email'] = ['nullable', 'string', 'email', 'max:255'];
+            }
+            $validator = Validator::make($request->all(), $rules);
+
+            // Validasi domain email jika email diisi
+            $validator->after(function ($validator) use ($request, $loginBy) {
+                if ($loginBy === 'email' && $request->filled('email')) {
+                    $allowedDomains = ['gmail.com', 'yahoo.co.id', 'yahoo.com'];
+                    $emailDomain = explode('@', $request->email)[1];
+                    if (!in_array($emailDomain, $allowedDomains)) {
+                        $validator->errors()->add('email', 'Hanya alamat email dari Gmail (.com) atau Yahoo (.com, .co.id) yang diperbolehkan.');
+                    }
                 }
             });
-        
+
             if ($validator->fails()) {
                 echo $validator->errors()->first();
                 die();
             }
-            
-            $email = $request->email;
-        
+
+            $email = $request->email ?? '';
+            $nomor_hp = $request->nomor_hp;
+
             $data_user = [
                 'name' => $request->name,
-                'nomor_hp' => $request->nomor_hp,
+                'nomor_hp' => $nomor_hp,
                 'alamat' => $request->alamat,
-                'email' => $request->email,
+                'email' => $email,
                 'role' => 'Pengguna',
-                'api_token' => Hash::make($request->nomor_hp . $request->email),
-                'password' => Hash::make($request->password),
+                'api_token' => Hash::make(($nomor_hp ?? '') . ($email ?? '')),
+                // Password diisi email (untuk kebutuhan sistem, walau tidak dipakai login)
+                'password' => Hash::make($email),
             ];
-            
+
             $data_input = [
                 'id_jenis' => $request->id_jenis[0],
                 'kegiatan' => $request->kegiatan,
@@ -134,11 +160,9 @@ class PengajuanController extends Controller
                 'revisi' => $request->revisi,
                 'sumber' => $request->sumber,
                 'status_bayar' => 'Belum Dibayar'
-
             ];
 
             $data_input_param_uji = [];
-
             foreach ($request->nama_produk as $index => $namaProduk) {
                 if ($request->id_param_uji[$index] > 0) {
                     $data_input_param_uji[] = [
@@ -148,101 +172,57 @@ class PengajuanController extends Controller
                     ];
                 }
             }
-    
-            $verificationToken = preg_replace('/[^A-Za-z]/', '', bcrypt($email));
-    
-            cache()->put('user_data_' . $email, $data_user, now()->addMinutes(60));
-            cache()->put('data_input_' . $email, $data_input, now()->addMinutes(60));
-            cache()->put('data_input_param_uji_' . $email, $data_input_param_uji, now()->addMinutes(60));
-            cache()->put('email_verification_' . $email, $verificationToken, now()->addMinutes(60));
-    
-            $verificationLink = route('verify_input_pengajuan.email', ['email' => $email, 'token' => $verificationToken]);
-    
+
+            // Token verifikasi berbasis email/nomor_hp
+            $verifKey = $loginBy === 'email' ? $email : $nomor_hp;
+            $verificationToken = preg_replace('/[^A-Za-z]/', '', bcrypt($verifKey));
+
+            cache()->put('user_data_' . $verifKey, $data_user, now()->addMinutes(60));
+            cache()->put('data_input_' . $verifKey, $data_input, now()->addMinutes(60));
+            cache()->put('data_input_param_uji_' . $verifKey, $data_input_param_uji, now()->addMinutes(60));
+            cache()->put('email_verification_' . $verifKey, $verificationToken, now()->addMinutes(60));
+
+            $verificationLink = route('verify_input_pengajuan.email', ['email' => $verifKey, 'token' => $verificationToken]);
             $pesan = "Klik link berikut untuk verifikasi email Anda: <a href='{$verificationLink}'>Verifikasi Email</a>";
-    
+
             try {
-                // OTP WhatsApp mirip fitur register
+                // OTP WhatsApp
                 $newCode = rand(100000, 999999);
                 $newExpiry = now()->addHour()->timestamp;
-                // Simpan kode OTP dan expiry ke cache (atau bisa ke DB jika ingin)
-                cache()->put('otp_wa_' . $email, [
+                cache()->put('otp_wa_' . $verifKey, [
                     'code' => $newCode,
                     'expiry' => $newExpiry,
-                    'nomor_hp' => $request->nomor_hp
+                    'nomor_hp' => $nomor_hp
                 ], now()->addHour());
 
-                // Kirim OTP ke WhatsApp
-                \Illuminate\Support\Facades\Http::post('https://wagw.madanateknologi.com/send-message', [
-                    'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
-                    'sender' => '6281226067656',
-                    'number' => $request->nomor_hp,
-                    'message' => 'Kode verifikasi WhatsApp Anda: ' . $newCode
-                ]);
+                // Kirim OTP ke WhatsApp jika nomor_hp ada
+                if ($nomor_hp) {
+                    \Illuminate\Support\Facades\Http::post('https://wagw.madanateknologi.com/send-message', [
+                        'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
+                        'sender' => '6281226067656',
+                        'number' => $nomor_hp,
+                        'message' => 'Kode verifikasi WhatsApp Anda: ' . $newCode
+                    ]);
+                }
 
-                Mail::raw($pesan, function ($message) use ($email, $pesan) {
-                    $message->to($email)
-                        ->subject("Verifikasi Email!")
-                        ->html($pesan);
-                });
-                // echo 'Email berhasil terkirim';
-                // die();
-                // Setelah OTP dikirim, redirect ke halaman form OTP pengajuan
-                return redirect()->route('verifikasi.pengajuan', ['email' => $email])->with(['success' => 'Kode verifikasi berhasil dikirim ke WhatsApp & Email. Silakan cek dan verifikasi akun Anda!']);
+                // Kirim email jika email ada
+                if ($email) {
+                    Mail::raw($pesan, function ($message) use ($email, $pesan) {
+                        $message->to($email)
+                            ->subject("Verifikasi Email!")
+                            ->html($pesan);
+                    });
+                }
+                return redirect()->route('verifikasi.pengajuan', ['email' => $verifKey])->with(['success' => 'Kode verifikasi berhasil dikirim ke WhatsApp & Email. Silakan cek dan verifikasi akun Anda!']);
             } catch (\Exception $e) {
-                return redirect()->route('register')->with(['error' => 'Email verifikasi gagal terkirim : ' . $e->getMessage()]);
-                // echo 'Email gagal terkirim: ' . ;
-                // die();
+                return redirect()->route('register')->with(['error' => 'Verifikasi gagal terkirim : ' . $e->getMessage()]);
             }
-                
-            // $user = User::create([
-            //     'name' => $request->name,
-            //     'nomor_hp' => $request->nomor_hp,
-            //     'alamat' => $request->alamat,
-            //     'email' => $request->email,
-            //     'role' => 'Pengguna',
-            //     'api_token' => Hash::make($request->nomor_hp . $request->email),
-            //     'password' => Hash::make($request->email)
-            // ]);
-
-            // $id_user = $user->id;
-            
-
-            // $data_input = TransaksiModel::create([
-            //     'id_user' => $id_user,
-            //     'id_jenis' => $request->id_jenis[0],
-            //     'kegiatan' => $request->kegiatan,
-            //     'no_dokumen' => $request->no_dokumen,
-            //     'tanggal' => $request->tanggal,
-            //     'revisi' => $request->revisi,
-            //     'sumber' => $request->sumber,
-            //     'status_bayar' => 'Belum Dibayar'
-
-            // ]);
-
-            // foreach ($request->nama_produk as $index => $namaProduk) {
-            //     if ($request->id_param_uji[$index] > 0) {
-            //         $data_input_param_uji = TransaksiProdukModel::create([
-            //             'id_transaksi' => $data_input->id,
-            //             'id_parameter_uji' => $request->id_param_uji[$index],
-            //             'nama' => $namaProduk,
-            //             'jumlah' => $request->jumlah_sampel[$index],
-            //         ]);
-
-            //         // $dataUp['kode_sampel'] = $data_input_param_uji->id . '/BB/' . date('Y', time());
-            //         // $data_input_param_uji->update($dataUp);
-            //     }
-            // }
-
-            // event(new Registered($user));
-
-            // // Auth::login($user);
-
-            // $pesan = "Akun telah dibuat, login dengan email " . $request->email . " dengan kata sandi " . $request->email;
-            // return redirect(RouteServiceProvider::HOME)->with(['success' => $pesan]);
-
-            // return redirect()->route('cetak_permintaan_pengujian.show', $data_input->id)->with(['success' => $pesan]);
         } else {
             $id_user = $data_user->id;
+            // Jika email input beda, tambahkan warning ke pesan sukses
+            if ($request->filled('email') && $data_user->email !== $request->email) {
+                $message_warning = 'Nomor HP sudah terdaftar dengan email: ' . $data_user->email . '. Data user diambil berdasarkan nomor HP. Silakan login menggunakan nomor HP atau email yang terdaftar.';
+            }
         }
 
         $data_input = TransaksiModel::create([
@@ -271,8 +251,10 @@ class PengajuanController extends Controller
         }
 
         $pesan = $pesan . "Pengajuan telah dibuat.";
-
-        return redirect()->route('pengajuan.index')->with(['success' => $pesan]);
+        if ($message_warning) {
+            $pesan .= $message_warning;
+        }
+        return redirect()->route('login')->with(['success' => $pesan]);
 
         // return back()->with('message', 'Pesanan Sudah Terkirim');
     }
