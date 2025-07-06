@@ -34,9 +34,9 @@ use App\Http\Controllers\VerifEmailController;
 //landing
 
 Route::get('/', [LandingController::class, 'index']);
-Route::get('manehole', function () {
-    return view('manehole');
-})->name('manehole');
+Route::get('manhole', function () {
+    return view('manhole');
+})->name('manhole');
 
 Route::post('/verify-wa', [WaGatewayController::class, 'verify_wa'])->name('verify.wa');
 Route::post('/resend-wa', [WaGatewayController::class, 'resend_wa'])->name('resend.wa');

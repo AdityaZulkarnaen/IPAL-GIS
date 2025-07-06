@@ -70,7 +70,7 @@
                         <ul>
                             <li><a class="nav-link scrollto" href="#jenis_pengujian">Pengujian Laboratorium</a></li>
                             <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Klinik Konstruksi</a></li>
-                            <li><a class="nav-link" href="{{ route('manehole') }}">Manehole</a></li>
+                            <li><a class="nav-link" href="{{ route('manhole') }}">Manhole</a></li>
                             <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Barier Gate</a></li>
                             <!-- Jika ingin menambahkan petunjuk penggunaan -->
                             <!-- <li><a class="nav-link" href="{{ asset($service['data_konfig']->petunjuk_penggunaan) }}" target="_blank">Petunjuk Penggunaan</a></li> -->
