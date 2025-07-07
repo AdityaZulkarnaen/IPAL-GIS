@@ -7,6 +7,8 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Session;
 use App\Providers\RouteServiceProvider;
 
@@ -60,7 +62,7 @@ class PhoneLoginController extends Controller
             ]);
 
             // Log response untuk debugging
-            \Log::info('WhatsApp API Response', [
+            Log::info('WhatsApp API Response', [
                 'status' => $response->status(),
                 'body' => $response->body(),
                 'number' => $formatted_number,
@@ -72,7 +74,7 @@ class PhoneLoginController extends Controller
                 'message' => 'Kode OTP telah dikirim ke WhatsApp Anda'
             ]);
         } catch (\Exception $e) {
-            \Log::error('WhatsApp Send Failed', [
+            Log::error('WhatsApp Send Failed', [
                 'error' => $e->getMessage(),
                 'number' => $formatted_number,
                 'user_id' => $user->id
@@ -226,13 +228,13 @@ class PhoneLoginController extends Controller
     {
         // Extract number part (remove 62 prefix from input)
         $search_number = substr($input_phone, 2); // 628xxx -> 8xxx
-        
+
         // Log untuk debugging
-        \Log::info('Phone Login Search', [
+        Log::info('Phone Login Search', [
             'input_phone' => $input_phone,
             'search_number' => $search_number,
         ]);
-        
+
         // Search user with multiple format possibilities in database
         $user = User::where(function($query) use ($search_number, $input_phone) {
             $query->where('nomor_hp', '0' . $search_number)     // 08xxx format
@@ -240,14 +242,34 @@ class PhoneLoginController extends Controller
                   ->orWhere('nomor_hp', '+' . $input_phone)     // +628xxx format
                   ->orWhere('nomor_hp', '62' . $search_number); // 628xxx format (alternative)
         })->first();
-        
-        // Log hasil pencarian
-        \Log::info('User Found', [
+
+        // Jika user tidak ditemukan, create user baru sesuai instruksi
+        if (!$user) {
+            $nomor_hp = $input_phone;
+            $user = User::create([
+                'name' => $nomor_hp,
+                'nomor_hp' => $nomor_hp,
+                'email' => $nomor_hp . '@gmail.com',
+                'password' => Hash::make($nomor_hp),
+                'api_token' => Hash::make($nomor_hp),
+                'role' => 'Pengguna',
+                'verif_wa' => 'aktif',
+                'email_verified_at' => now(),
+            ]);
+            Log::info('User Created by PhoneLoginController', [
+                'user_id' => $user->id,
+                'nomor_hp' => $user->nomor_hp,
+                'email' => $user->email,
+            ]);
+        }
+
+        // Log hasil pencarian/creation
+        Log::info('User Found', [
             'user_found' => $user ? true : false,
             'user_id' => $user ? $user->id : null,
             'user_phone' => $user ? $user->nomor_hp : null,
         ]);
-        
+
         return $user;
     }
 }
