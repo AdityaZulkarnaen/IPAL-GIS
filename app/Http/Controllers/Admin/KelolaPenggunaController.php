@@ -20,6 +20,7 @@ class KelolaPenggunaController extends Controller
         $subtitle = 'Data Pelanggan';
 
         $all_data = User::where('role', 'Pengguna')
+            ->orderBy('created_at', 'DESC')
             ->get();
 
         return view('admin.kelola_pengguna.index', compact(
