@@ -55,7 +55,7 @@ class VerifEmailController extends Controller
         $userData = cache()->get('user_data_' . $email);
 
         if ($token === $storedToken) {
-            
+
             $user = User::create([
                 'name' => $userData['name'],
                 'nomor_hp' => $userData['nomor_hp'],
@@ -66,20 +66,20 @@ class VerifEmailController extends Controller
                 'api_token' => Hash::make($userData['nomor_hp'] . $userData['email']),
                 'password' => Hash::make($userData['password']),
             ]);
-            
+
             cache()->forget('email_verification_' . $email);
             cache()->forget('user_data_' . $email);
-            
+
             // event(new Registered($user));
-    
+
             Auth::login($user);
-    
+
             return redirect(RouteServiceProvider::HOME);
         } else {
             return response()->json(['status' => 'error', 'message' => 'Token verifikasi tidak valid']);
         }
     }
-    
+
     public function verifyEmailDanInput($email, $token)
     {
         $storedToken = cache()->get('email_verification_' . $email);
@@ -88,7 +88,7 @@ class VerifEmailController extends Controller
         $inputParamUjiData = cache()->get('data_input_param_uji_' . $email);
 
         if ($token === $storedToken) {
-            
+
             $user = User::create([
                 'name' => $userData['name'],
                 'nomor_hp' => $userData['nomor_hp'],
@@ -99,9 +99,9 @@ class VerifEmailController extends Controller
                 'api_token' => Hash::make($userData['nomor_hp'] . $userData['email']),
                 'password' => Hash::make($userData['password']),
             ]);
-            
+
             $id_user = $user->id;
-            
+
             $data_input = TransaksiModel::create([
                 'id_user' => $id_user,
                 'id_jenis' => $inputData['id_jenis'],
@@ -122,16 +122,16 @@ class VerifEmailController extends Controller
                     'jumlah' => $dtParam['jumlah'],
                 ]);
             }
-            
+
             cache()->forget('email_verification_' . $email);
             cache()->forget('user_data_' . $email);
             cache()->forget('data_input_' . $email);
             cache()->forget('data_input_param_uji_' . $email);
-            
+
             // event(new Registered($user));
-    
+
             Auth::login($user);
-    
+
             return redirect(RouteServiceProvider::HOME);
         } else {
             return response()->json(['status' => 'error', 'message' => 'Token verifikasi tidak valid']);

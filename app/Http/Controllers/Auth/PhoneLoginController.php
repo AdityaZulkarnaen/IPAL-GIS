@@ -30,7 +30,7 @@ class PhoneLoginController extends Controller
 
         // Check if user exists (handle multiple database formats)
         $user = $this->findUserByPhone($nomor_hp);
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -58,7 +58,7 @@ class PhoneLoginController extends Controller
                 'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
                 'sender' => '6281226067656',
                 'number' => $formatted_number, // 628155228522 format
-                'message' => 'Kode OTP login SIMLAB BPJK: ' . $otp . '. Berlaku 5 menit. Jangan berikan kode ini kepada siapapun!'
+                'message' => 'Kode OTP login Aplikasi Pelayanan Terpadu Balai PALPJK DIY: ' . $otp . '. Berlaku 5 menit. Jangan berikan kode ini kepada siapapun!'
             ]);
 
             // Log response untuk debugging
@@ -79,7 +79,7 @@ class PhoneLoginController extends Controller
                 'number' => $formatted_number,
                 'user_id' => $user->id
             ]);
-            
+
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal mengirim OTP. Silakan coba lagi.'
@@ -120,13 +120,13 @@ class PhoneLoginController extends Controller
 
         // Login user
         $user = User::find($storedOtpData['user_id']);
-        
+
         if ($user) {
             Auth::login($user, true); // true for remember me
             Session::forget('login_otp_' . $nomor_hp);
-            
+
             $request->session()->regenerate();
-            
+
             return redirect()->intended(RouteServiceProvider::HOME);
         }
 
@@ -146,7 +146,7 @@ class PhoneLoginController extends Controller
 
         // Check if user exists (handle multiple database formats)
         $user = $this->findUserByPhone($nomor_hp);
-        
+
         if (!$user) {
             return response()->json([
                 'success' => false,
@@ -174,7 +174,7 @@ class PhoneLoginController extends Controller
                 'api_key' => 'pvFiN1pGDe9VKeljIJj5VNEJnEoXY3',
                 'sender' => '6281226067656',
                 'number' => $formatted_number, // 628155228522 format
-                'message' => 'Kode OTP login SIMLAB BPJK: ' . $otp . '. Berlaku 5 menit. Jangan berikan kode ini kepada siapapun!'
+                'message' => 'Kode OTP login Aplikasi Pelayanan Terpadu Balai PALPJK DIY: ' . $otp . '. Berlaku 5 menit. Jangan berikan kode ini kepada siapapun!'
             ]);
 
             return response()->json([
@@ -196,27 +196,27 @@ class PhoneLoginController extends Controller
     {
         // Remove any non-numeric characters first
         $clean_number = preg_replace('/[^0-9]/', '', $nomor_hp);
-        
+
         // If starts with 08, replace with +628
         if (substr($clean_number, 0, 2) === '08') {
             return '+628' . substr($clean_number, 2);
         }
-        
+
         // If starts with 8, add +62
         if (substr($clean_number, 0, 1) === '8') {
             return '+62' . $clean_number;
         }
-        
+
         // If already starts with 62, add +
         if (substr($clean_number, 0, 2) === '62') {
             return '+' . $clean_number;
         }
-        
+
         // If already starts with +62, return as is
         if (substr($nomor_hp, 0, 3) === '+62') {
             return $nomor_hp;
         }
-        
+
         // Default: assume it's Indonesian number starting with 8
         return '+62' . $clean_number;
     }
@@ -236,11 +236,11 @@ class PhoneLoginController extends Controller
         ]);
 
         // Search user with multiple format possibilities in database
-        $user = User::where(function($query) use ($search_number, $input_phone) {
+        $user = User::where(function ($query) use ($search_number, $input_phone) {
             $query->where('nomor_hp', '0' . $search_number)     // 08xxx format
-                  ->orWhere('nomor_hp', $input_phone)           // 628xxx format (exact match)
-                  ->orWhere('nomor_hp', '+' . $input_phone)     // +628xxx format
-                  ->orWhere('nomor_hp', '62' . $search_number); // 628xxx format (alternative)
+                ->orWhere('nomor_hp', $input_phone)           // 628xxx format (exact match)
+                ->orWhere('nomor_hp', '+' . $input_phone)     // +628xxx format
+                ->orWhere('nomor_hp', '62' . $search_number); // 628xxx format (alternative)
         })->first();
 
         // Jika user tidak ditemukan, create user baru sesuai instruksi
