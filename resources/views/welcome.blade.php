@@ -68,10 +68,10 @@
                             <i class="bi bi-chevron-down"></i>
                         </a>
                         <ul>
-                            <li><a class="nav-link scrollto" href="#jenis_pengujian">Pengujian Laboratorium</a></li>
+                            <li><a class="nav-link" href="{{ route('manhole') }}">Manajemen Jaringan</a></li>
+                            <li><a class="nav-link" href="https://stg-retripialam.simda.net/landing" target="_blank">Manajemen IPLT</a></li>
                             <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Klinik Konstruksi</a></li>
-                            <li><a class="nav-link" href="{{ route('manhole') }}">Manhole</a></li>
-                            <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Barier Gate</a></li>
+                            <li><a class="nav-link scrollto" href="#jenis_pengujian">Pengujian Laboratorium</a></li>
                             <!-- Jika ingin menambahkan petunjuk penggunaan -->
                             <!-- <li><a class="nav-link" href="{{ asset($service['data_konfig']->petunjuk_penggunaan) }}" target="_blank">Petunjuk Penggunaan</a></li> -->
                         </ul>

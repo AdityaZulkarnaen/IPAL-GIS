@@ -54,10 +54,10 @@
                             <i class="bi bi-chevron-down"></i>
                         </a>
                         <ul>
-                            <li><a class="nav-link scrollto" href="{{ route('home') }}#jenis_pengujian">Pengujian Laboratorium</a></li>
+                            <li><a class="nav-link" href="{{ route('manhole') }}">Manajemen Jaringan</a></li>
+                            <li><a class="nav-link" href="https://stg-retripialam.simda.net/landing" target="_blank">Manajemen IPLT</a></li>
                             <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Klinik Konstruksi</a></li>
-                            <li><a class="nav-link active" href="{{ route('manhole') }}">Manhole</a></li>
-                            <li><a class="nav-link" href="https://klinikkonstruksi.jogjaprov.go.id/" target="_blank">Barier Gate</a></li>
+                            <li><a class="nav-link scrollto" href="#jenis_pengujian">Pengujian Laboratorium</a></li>
                             <!-- Jika ingin menambahkan petunjuk penggunaan -->
                             <!-- <li><a class="nav-link" href="{{ asset($service['data_konfig']->petunjuk_penggunaan) }}" target="_blank">Petunjuk Penggunaan</a></li> -->
                         </ul>
@@ -77,7 +77,7 @@
 
         <section class="contact" style="margin-top: 91px;">
 
-            <div class="container">
+            <div>
                 <div class='tableauPlaceholder' id='viz1748428806456' style='position: relative'><noscript><a href='#'><img alt='Visualisasi Manhole DIY ' src='https:&#47;&#47;public.tableau.com&#47;static&#47;images&#47;ma&#47;manholediy&#47;VisualisasiManholeDIY&#47;1_rss.png' style='border: none' /></a></noscript><object class='tableauViz' style='display:none;'>
                         <param name='host_url' value='https%3A%2F%2Fpublic.tableau.com%2F' />
                         <param name='embed_code_version' value='3' />
