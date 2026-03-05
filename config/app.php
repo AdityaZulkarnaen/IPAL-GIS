@@ -196,6 +196,12 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        /*
+         * Module Service Providers...
+         * Hapus baris di bawah jika ingin menonaktifkan module IPAL
+         */
+        Modules\IPAL\Providers\IPALServiceProvider::class,
+
     ],
 
     /*

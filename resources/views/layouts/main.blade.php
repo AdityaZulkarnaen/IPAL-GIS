@@ -525,6 +525,24 @@ License: For each use you must have a valid license purchased only from above li
                                     </div>
                                 </div>
 
+                                <!--begin:Menu item - Module IPAL-->
+                                @if(config('ipal.enabled', false))
+                                <a href="{{ route('ipal.dashboard') }}" class="menu-item menu-accordion">
+                                    <span class="menu-link">
+                                        <span class="menu-icon">
+                                            <span class="svg-icon svg-icon-2">
+                                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M6 21C5.4 21 5 20.6 5 20V4C5 3.4 5.4 3 6 3H18C18.6 3 19 3.4 19 4V20C19 20.6 18.6 21 18 21H6ZM7 5V19H17V5H7Z" fill="currentColor"/>
+                                                    <path opacity="0.3" d="M9 7H15V9H9V7ZM9 11H15V13H9V11ZM9 15H13V17H9V15Z" fill="currentColor"/>
+                                                </svg>
+                                            </span>
+                                        </span>
+                                        <span class="menu-title">Module IPAL</span>
+                                    </span>
+                                </a>
+                                @endif
+                                <!--end:Menu item - Module IPAL-->
+
                                 <!--begin:Menu item-->
                                 <a href="{{ route('konfigurasi.index') }}" class="menu-item @if($title == 'Konfigurasi') show @endif menu-accordion">
                                     <!--begin:Menu link-->
