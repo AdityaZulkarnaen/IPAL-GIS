@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\IPAL\Http\Controllers\DashboardController;
+use Modules\IPAL\Http\Controllers\MapController;
 use Modules\IPAL\Http\Controllers\UploadController;
 
 /*
@@ -15,6 +16,9 @@ use Modules\IPAL\Http\Controllers\UploadController;
 | Contoh akses: /ipal/dashboard -> ipal.dashboard.index
 |
 */
+
+// Peta publik — dapat diakses tanpa login
+Route::get('/map', [MapController::class, 'index'])->name('map.index');
 
 Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(function () {
     // Dashboard IPAL
