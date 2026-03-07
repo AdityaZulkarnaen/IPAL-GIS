@@ -34,11 +34,14 @@ class AppServiceProvider extends ServiceProvider
             return (new CustomVerifyEmailNotification($url))->toMail($notifiable);
         });
 
-        $data_konfig = KonfigurasiModel::first();
-        $data = array(
-            'data_konfig' => $data_konfig,
-        );
-
-        View::share("service", $data);
+        try {
+            $data_konfig = KonfigurasiModel::first();
+            $data = array(
+                'data_konfig' => $data_konfig,
+            );
+            View::share("service", $data);
+        } catch (\Exception $e) {
+            View::share("service", ['data_konfig' => null]);
+        }
     }
 }
