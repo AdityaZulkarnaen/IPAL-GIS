@@ -13,5 +13,20 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::middleware('auth:sanctum')->group(function () {
-    // Tambahkan API routes IPAL di sini
+
+    /** Upload endpoints */
+    Route::get('/uploads', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'index'])->name('uploads.index');
+    Route::get('/uploads/{id}', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'show'])->name('uploads.show');
+    Route::post('/upload', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'store'])->name('uploads.store');
+    Route::delete('/uploads/{id}', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'destroy'])->name('uploads.destroy');
+
+    /** Manhole endpoints */
+    Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
+    Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
+    Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['index', 'show', 'update']);
+
+    /** Pipe endpoints */
+    Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'filters'])->name('pipes.filters');
+    Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
+    Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show', 'update']);
 });

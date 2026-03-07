@@ -47,6 +47,31 @@
     {{-- </a>                                                                    --}}
     {{-- ====================================================================== --}}
 
+    <!--begin:Menu item - Upload Data Jaringan-->
+    <a href="{{ route('ipal.upload.index') }}"
+        class="menu-item @if(isset($title) && $title == 'Upload Data Jaringan') show @endif">
+        <span class="menu-link">
+            <span class="menu-icon">
+                <span class="svg-icon svg-icon-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path opacity="0.3"
+                            d="M10 4H21C21.6 4 22 4.4 22 5V7H10V4Z" fill="currentColor" />
+                        <path
+                            d="M9.2 3H3C2.4 3 2 3.4 2 4V19C2 19.6 2.4 20 3 20H21C21.6 20 22 19.6 22 19V7C22 6.4 21.6 6 21 6H12L10.4 3.6C10.2 3.2 9.7 3 9.2 3Z"
+                            fill="currentColor" />
+                        <path
+                            d="M12 16C12 16 11.2 15.2 10.4 14.4C9.6 13.6 12 11 12 11C12 11 14.4 13.6 13.6 14.4C12.8 15.2 12 16 12 16Z"
+                            fill="white" opacity="0.6" />
+                        <path d="M11.5 16V12.5L12.5 12.5V16H11.5Z" fill="white" opacity="0.6" />
+                    </svg>
+                </span>
+            </span>
+            <span class="menu-title">Upload Data Jaringan</span>
+        </span>
+    </a>
+    <!--end:Menu item-->
+
     <!--begin:Section Header - Navigasi-->
     <div class="menu-item pt-5">
         <div class="menu-content">
