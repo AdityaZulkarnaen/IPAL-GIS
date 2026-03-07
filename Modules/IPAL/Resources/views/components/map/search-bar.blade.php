@@ -4,7 +4,7 @@
         <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
     </svg>
     <input id="search-input" type="text" placeholder="Cari ID Pipa, Jalan, atau Koordinat..."
-           class="flex-1 text-[13px] text-gray-700 border-none outline-none bg-transparent placeholder:text-slate-400">
+           class="flex-1 w-2/3 text-[13px] text-gray-700 border-none outline-none bg-transparent placeholder:text-slate-400">
     <button id="search-btn"
             class="text-[13px] font-semibold text-white bg-[#13C8EC] border-none rounded-lg px-4 py-1.5 cursor-pointer transition-colors shrink-0">
         Cari Data

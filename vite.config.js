@@ -7,6 +7,7 @@ export default defineConfig({
             input: [
                 'resources/css/app.css',
                 'resources/js/app.js',
+                'Modules/IPAL/Resources/assets/css/map.css',
             ],
             refresh: true,
         }),

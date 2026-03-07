@@ -1,0 +1,57 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Base layout ── */
+html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
+
+/* ── Filter button active/inactive states ── */
+.btn-aman    { border-color: #22c55e; color: #15803d; }
+.btn-perbaikan { border-color: #eab308; color: #a16207; }
+.btn-masalah { border-color: #ef4444; color: #dc2626; }
+.btn-aman .dot    { background: #22c55e; }
+.btn-perbaikan .dot { background: #eab308; }
+.btn-masalah .dot { background: #ef4444; }
+.status-btn.inactive { opacity: 0.35; }
+
+/* ── Filter/select focus styles ── */
+.filter-select:focus,
+.filter-input:focus { outline: 2px solid #3b82f6; outline-offset: -1px; }
+
+/* ── Wilayah search icon positioning ── */
+.wilayah-icon {
+    position: absolute;
+    left: 9px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #94a3b8;
+    pointer-events: none;
+}
+
+/* ── Live dot pulse ── */
+.live-dot { animation: live-pulse 2s infinite; }
+@keyframes live-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+
+/* ── Leaflet popup overrides ── */
+.leaflet-popup-content-wrapper { padding: 0; border-radius: 12px; overflow: hidden; }
+.leaflet-popup-content { margin: 0; }
+
+/* ── Collapsible panel body ── */
+.collapsible-body {
+    overflow: hidden;
+    transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+.collapsible-body.is-open  { max-height: 400px; opacity: 1; }
+.collapsible-body.is-closed { max-height: 0; opacity: 0; }
+
+/* ── Chevron rotation ── */
+.panel-chevron { transition: transform 0.25s ease; flex-shrink: 0; }
+.panel-chevron.is-open   { transform: rotate(0deg); }
+.panel-chevron.is-closed { transform: rotate(-90deg); }
+
+/* ── Panel header ── */
+.panel-header { cursor: pointer; user-select: none; }
+.panel-header:hover { opacity: 0.8; }
