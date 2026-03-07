@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\IPAL\Http\Controllers\DashboardController;
+use Modules\IPAL\Http\Controllers\UploadController;
 
 /*
 |--------------------------------------------------------------------------
@@ -20,12 +21,8 @@ Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(fu
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // ====================================================================
-    // Tambahkan route IPAL lainnya di bawah ini
-    // ====================================================================
-
-    // Contoh:
-    // Route::resource('pengolahan', PengolahanController::class);
-    // Route::resource('pemantauan', PemantauanController::class);
-    // Route::resource('laporan', LaporanController::class);
+    /** Upload Data Jaringan */
+    Route::get('/upload', [UploadController::class, 'index'])->name('upload.index');
+    Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
+    Route::delete('/upload/{id}', [UploadController::class, 'destroy'])->name('upload.destroy');
 });
