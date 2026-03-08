@@ -12,6 +12,16 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/** Manhole endpoints — public read access */
+Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
+Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
+Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['index', 'show']);
+
+/** Pipe endpoints — public read access */
+Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'filters'])->name('pipes.filters');
+Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
+Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show']);
+
 Route::middleware('auth:sanctum')->group(function () {
 
     /** Upload endpoints */
@@ -20,13 +30,9 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'store'])->name('uploads.store');
     Route::delete('/uploads/{id}', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'destroy'])->name('uploads.destroy');
 
-    /** Manhole endpoints */
-    Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
-    Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
-    Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['index', 'show', 'update']);
+    /** Manhole update — protected write access */
+    Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['update']);
 
-    /** Pipe endpoints */
-    Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'filters'])->name('pipes.filters');
-    Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
-    Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show', 'update']);
+    /** Pipe update — protected write access */
+    Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['update']);
 });
