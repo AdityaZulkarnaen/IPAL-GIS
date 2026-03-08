@@ -25,6 +25,9 @@ Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController:
 Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
 Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show']);
 
+/** Aduan submission — public access */
+Route::post('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'store'])->name('aduan.store');
+
 Route::middleware('auth:sanctum')->group(function () {
 
     /** Upload endpoints */
@@ -38,4 +41,9 @@ Route::middleware('auth:sanctum')->group(function () {
 
     /** Pipe update — protected write access */
     Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['update']);
+
+    /** Aduan management — admin access */
+    Route::get('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'index'])->name('aduan.index');
+    Route::get('/aduan/{id}', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'show'])->name('aduan.show');
+    Route::put('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
 });

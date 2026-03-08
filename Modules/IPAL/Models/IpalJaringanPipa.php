@@ -3,6 +3,7 @@
 namespace Modules\IPAL\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IpalJaringanPipa extends Model
 {
@@ -33,5 +34,10 @@ class IpalJaringanPipa extends Model
     public function upload()
     {
         return $this->belongsTo(IpalUpload::class, 'upload_id');
+    }
+
+    public function aduan(): HasMany
+    {
+        return $this->hasMany(Aduan::class, 'pipa_id');
     }
 }
