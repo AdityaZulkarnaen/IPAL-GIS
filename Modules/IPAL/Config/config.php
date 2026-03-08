@@ -38,4 +38,11 @@ return [
      */
     'allowed_roles' => ['Super Admin', 'Admin'],
 
+    /**
+     * Konfigurasi fitur Aduan.
+     */
+    'aduan_max_foto'          => env('IPAL_ADUAN_MAX_FOTO', 5),
+    'aduan_foto_max_kb_user'  => env('IPAL_ADUAN_FOTO_MAX_KB_USER', 200),
+    'aduan_foto_max_kb_admin' => env('IPAL_ADUAN_FOTO_MAX_KB_ADMIN', 1024),
+
 ];
