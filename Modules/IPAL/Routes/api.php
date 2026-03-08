@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/** Statistics endpoint — public read access */
+Route::get('/statistics', [\Modules\IPAL\Http\Controllers\Api\StatisticsController::class, 'index'])->name('statistics.index');
+
 /** Manhole endpoints — public read access */
 Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
 Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
