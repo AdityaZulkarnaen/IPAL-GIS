@@ -26,7 +26,8 @@ Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController:
 Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show']);
 
 /** Aduan submission — public access */
-Route::post('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'store'])->name('aduan.store');
+Route::get('/aduan/captcha', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'captcha'])->name('aduan.captcha');
+Route::post('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'store'])->middleware('throttle:aduan-submission')->name('aduan.store');
 
 Route::middleware('auth:sanctum')->group(function () {
 

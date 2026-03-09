@@ -45,4 +45,17 @@ return [
     'aduan_foto_max_kb_user'  => env('IPAL_ADUAN_FOTO_MAX_KB_USER', 200),
     'aduan_foto_max_kb_admin' => env('IPAL_ADUAN_FOTO_MAX_KB_ADMIN', 1024),
 
+    /**
+     * Aktifkan captcha matematika pada form aduan publik.
+     */
+    'aduan_captcha_enabled'   => env('IPAL_ADUAN_CAPTCHA_ENABLED', false),
+
+    /**
+     * Rate limiting untuk endpoint POST /aduan.
+     * Dua layer: per time window dan per hari, keduanya berdasarkan IP.
+     */
+    'aduan_rate_limit_per_window'      => env('IPAL_ADUAN_RATE_LIMIT_PER_WINDOW', 10),
+    'aduan_rate_limit_window_minutes'  => env('IPAL_ADUAN_RATE_LIMIT_WINDOW_MINUTES', 30),
+    'aduan_rate_limit_per_day'         => env('IPAL_ADUAN_RATE_LIMIT_PER_DAY', 20),
+
 ];

@@ -4,6 +4,7 @@ namespace Modules\IPAL\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
 use Modules\IPAL\Http\Controllers\Controller;
@@ -19,10 +20,74 @@ class AduanController extends Controller
     public function __construct(private ImageCompressionService $imageService) {}
 
     /**
+     * Generate a math captcha question and return an encrypted token containing the answer.
+     * Token expires in 10 minutes.
+     */
+    public function captcha(): JsonResponse
+    {
+        $a     = rand(1, 10);
+        $b     = rand(1, 10);
+        $token = Crypt::encryptString(json_encode([
+            'answer' => $a + $b,
+            'exp'    => now()->addMinutes(10)->timestamp,
+        ]));
+
+        return response()->json([
+            'success' => true,
+            'data'    => [
+                'question' => "{$a} + {$b}",
+                'token'    => $token,
+            ],
+        ]);
+    }
+
+    /**
      * Submit a new complaint (public, no auth required).
      */
     public function store(Request $request): JsonResponse
     {
+        if (config('ipal.aduan_captcha_enabled')) {
+            $captchaValidator = Validator::make($request->all(), [
+                'captcha_token'  => 'required|string',
+                'captcha_answer' => 'required|integer',
+            ], [
+                'captcha_token.required'  => 'Token captcha tidak ditemukan. Muat ulang halaman dan coba lagi.',
+                'captcha_answer.required' => 'Jawaban captcha wajib diisi.',
+                'captcha_answer.integer'  => 'Jawaban captcha harus berupa angka.',
+            ]);
+
+            if ($captchaValidator->fails()) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'data'    => $captchaValidator->errors(),
+                ], 422);
+            }
+
+            try {
+                $decoded = json_decode(Crypt::decryptString($request->captcha_token), true);
+
+                if (
+                    empty($decoded['exp']) ||
+                    empty($decoded['answer']) ||
+                    $decoded['exp'] < now()->timestamp ||
+                    (int) $decoded['answer'] !== (int) $request->captcha_answer
+                ) {
+                    return response()->json([
+                        'success' => false,
+                        'message' => 'Validasi gagal.',
+                        'data'    => ['captcha_answer' => ['Jawaban captcha salah atau telah kedaluwarsa.']],
+                    ], 422);
+                }
+            } catch (\Throwable) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'data'    => ['captcha_answer' => ['Token captcha tidak valid. Muat ulang halaman dan coba lagi.']],
+                ], 422);
+            }
+        }
+
         $validator = Validator::make($request->all(), [
             'pipa_id'     => 'required_without:manhole_id|nullable|integer|exists:ipal_jaringan_pipa,id',
             'manhole_id'  => 'required_without:pipa_id|nullable|integer|exists:ipal_manholes,id',
