@@ -108,6 +108,31 @@
                 <div id="fotoPreview" class="flex flex-wrap gap-2 mt-3"></div>
             </div>
 
+            @if(config('ipal.aduan_captcha_enabled'))
+            <!-- Captcha -->
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-2">
+                    Verifikasi <span class="text-red-500">*</span>
+                </label>
+                <div class="flex items-center gap-3 bg-gray-50 border border-gray-200 rounded-lg px-4 py-3">
+                    <div class="flex-1">
+                        <p class="text-xs text-gray-500 mb-1">Berapa hasil dari:</p>
+                        <p id="captchaQuestion" class="text-lg font-bold text-gray-800 font-mono">Memuat...</p>
+                    </div>
+                    <input type="number" id="captchaAnswer" min="0" max="99"
+                        placeholder="Jawaban"
+                        class="w-24 border border-gray-300 rounded-lg px-3 py-2 text-sm text-center focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <button type="button" onclick="loadCaptcha()" title="Muat ulang captcha"
+                        class="p-2 text-gray-400 hover:text-blue-600 transition">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            @endif
+
             <!-- Error Message -->
             <div id="errorMsg" class="hidden bg-red-50 border border-red-200 rounded-lg px-4 py-3 text-sm text-red-600"></div>
 
@@ -132,9 +157,31 @@
 const BASE_URL = '{{ url('/') }}';
 const MAX_FOTO = {{ config('ipal.aduan_max_foto') }};
 const MAX_KB_USER = {{ config('ipal.aduan_foto_max_kb_user') }};
+const CAPTCHA_ENABLED = {{ config('ipal.aduan_captcha_enabled') ? 'true' : 'false' }};
 let pipas = [];
 let manholes = [];
 let selectedFiles = [];
+let captchaToken = null;
+
+@if(config('ipal.aduan_captcha_enabled'))
+async function loadCaptcha() {
+    document.getElementById('captchaQuestion').textContent = 'Memuat...';
+    document.getElementById('captchaAnswer').value = '';
+    captchaToken = null;
+    try {
+        const res  = await fetch(`${BASE_URL}/api/ipal/aduan/captcha`);
+        const json = await res.json();
+        if (json.success) {
+            captchaToken = json.data.token;
+            document.getElementById('captchaQuestion').textContent = json.data.question + ' = ?';
+        } else {
+            document.getElementById('captchaQuestion').textContent = 'Gagal memuat. Klik ↻';
+        }
+    } catch (e) {
+        document.getElementById('captchaQuestion').textContent = 'Gagal memuat. Klik ↻';
+    }
+}
+@endif
 
 async function loadDropdowns() {
     try {
@@ -253,6 +300,7 @@ function resetForm() {
     document.getElementById('manholeInfo').textContent = '';
     selectedFiles = [];
     hideError();
+    if (CAPTCHA_ENABLED) loadCaptcha();
 }
 
 document.getElementById('aduanForm').addEventListener('submit', async function(e) {
@@ -279,6 +327,18 @@ document.getElementById('aduanForm').addEventListener('submit', async function(e
     if (jenis === 'manhole') formData.append('manhole_id', manhId);
     formData.append('deskripsi', deskripsi);
 
+    if (CAPTCHA_ENABLED) {
+        if (!captchaToken) {
+            return showError('Captcha belum dimuat. Klik tombol refresh (↻) untuk memuat ulang.');
+        }
+        const captchaAnswer = document.getElementById('captchaAnswer').value.trim();
+        if (!captchaAnswer) {
+            return showError('Jawaban captcha wajib diisi.');
+        }
+        formData.append('captcha_token', captchaToken);
+        formData.append('captcha_answer', captchaAnswer);
+    }
+
     const fotoInput = document.getElementById('fotoInput');
     Array.from(fotoInput.files).forEach((file, i) => {
         formData.append(`foto[${i}]`, file);
@@ -302,6 +362,7 @@ document.getElementById('aduanForm').addEventListener('submit', async function(e
             if (errors && typeof errors === 'object') {
                 const msgs = Object.values(errors).flat().join(' ');
                 showError(msgs);
+                if (CAPTCHA_ENABLED && errors.captcha_answer) loadCaptcha();
             } else {
                 showError(json.message ?? 'Terjadi kesalahan. Silakan coba lagi.');
             }
@@ -314,6 +375,7 @@ document.getElementById('aduanForm').addEventListener('submit', async function(e
 });
 
 loadDropdowns();
+if (CAPTCHA_ENABLED) loadCaptcha();
 </script>
 </body>
 </html>
