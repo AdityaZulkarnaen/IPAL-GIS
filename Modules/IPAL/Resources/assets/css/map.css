@@ -6,11 +6,11 @@
 html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 
 /* ── Filter button active/inactive states ── */
-.btn-aman    { border-color: #22c55e; color: #15803d; }
-.btn-perbaikan { border-color: #eab308; color: #a16207; }
-.btn-masalah { border-color: #ef4444; color: #dc2626; }
+.btn-aman      { border-color: #B9F8CF; color: #00C950; background-color: #F0FDF4; }
+.btn-perbaikan { border-color: #FEE685; color: #FE9A00; background-color: #FFFBEB; }
+.btn-masalah   { border-color: #FFC9C9; color: #FB2C36; background-color: #FEF2F2; }
 .btn-aman .dot    { background: #22c55e; }
-.btn-perbaikan .dot { background: #eab308; }
+.btn-perbaikan .dot { background: #f59e0b; }
 .btn-masalah .dot { background: #ef4444; }
 .status-btn.inactive { opacity: 0.35; }
 
@@ -55,3 +55,7 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 /* ── Panel header ── */
 .panel-header { cursor: pointer; user-select: none; }
 .panel-header:hover { opacity: 0.8; }
+
+/* ── Scrollbar hide for left panel container ── */
+.scrollbar-hide { scrollbar-width: none; }
+.scrollbar-hide::-webkit-scrollbar { display: none; }

@@ -1,4 +1,4 @@
-<div id="legend-panel" class="fixed bottom-24 left-4 md:bottom-auto md:top-[72px] md:left-auto md:right-4 z-[500] bg-white rounded-2xl shadow-lg p-4 w-40 max-w-[calc(100vw-2rem)]">
+<div id="legend-panel" class="fixed bottom-32 left-4 md:bottom-auto md:top-[72px] md:left-auto md:right-4 z-[500] bg-white rounded-2xl shadow-lg p-4 w-40 max-w-[calc(100vw-2rem)]">
 
     {{-- Header row (clickable to toggle) --}}
     <div class="panel-header flex items-center justify-between gap-2" id="legend-toggle">

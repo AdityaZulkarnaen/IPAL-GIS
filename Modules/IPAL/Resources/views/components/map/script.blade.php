@@ -1,4 +1,16 @@
-66+++++++++++++++++<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    .leaflet-bottom.leaflet-right .leaflet-control-zoom {
+        margin-bottom: 50px;
+        margin-right: 15px;
+    }
+    @media (max-width: 767px) {
+        .leaflet-bottom.leaflet-right .leaflet-control-zoom {
+            margin-bottom: 110px;
+            margin-right: 10px;
+        }
+    }
+</style>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ─── Map init ─────────────────────────────────────────────────────────────
 const map = L.map('map', {
@@ -40,8 +52,8 @@ const segments = [
 
 const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444' };
 const LABEL      = { aman:'AMAN',    perbaikan:'PERBAIKAN', masalah:'MASALAH' };
-const BADGE_BG   = { aman:'#dcfce7', perbaikan:'#fef3c7', masalah:'#fee2e2' };
-const BADGE_TEXT = { aman:'#15803d', perbaikan:'#a16207', masalah:'#dc2626' };
+const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2' };
+const BADGE_TEXT = { aman:'#22c55e', perbaikan:'#a16207', masalah:'#dc2626' };
 
 // ─── Draw pipe polylines ──────────────────────────────────────────────────
 const polylines = [];
@@ -57,10 +69,10 @@ segments.forEach(seg => {
 
     line.bindPopup(`
         <div style="font-family:'Montserrat',sans-serif;font-size:13px;">
-            <div style="background:#f8fafc;padding:14px 16px;border-bottom:1px solid #e2e8f0;">
-                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <div style="background:#f8fafc;padding:24px 16px;border-bottom:1px solid #e2e8f0;">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;margin-top:4px;">
                     <span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">ID SEGMEN</span>
-                    <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:999px;background:${BADGE_BG[seg.status]};color:${BADGE_TEXT[seg.status]};">${LABEL[seg.status]}</span>
+                    <span style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;background:${BADGE_BG[seg.status]};color:${BADGE_TEXT[seg.status]};">${LABEL[seg.status]}</span>
                 </div>
                 <div style="font-size:20px;font-weight:700;color:#1e293b;">${seg.id}</div>
             </div>
@@ -79,11 +91,11 @@ segments.forEach(seg => {
                     <div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Wilayah</div>
                     <div style="font-weight:500;color:#334155;">${seg.wilayah}</div>
                 </div>
-                <button onclick="return false;" style="width:100%;padding:9px;background:#3b82f6;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                <button onclick="return false;" style="width:100%;padding:9px;background:#FFE2E2;color:#9F0712;border:none;border-radius:8px;font-size:13px;font-weight:400;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z" />
                     </svg>
-                    Detail Lengkap
+                    Lapor Masalah
                 </button>
             </div>
         </div>`, { maxWidth: 290, minWidth: 270 });

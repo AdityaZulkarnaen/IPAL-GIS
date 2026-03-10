@@ -1,4 +1,4 @@
-<div id="filter-panel" class="fixed top-[72px] left-4 z-[500] bg-white rounded-2xl shadow-lg p-4 w-60 max-w-[calc(100vw-2rem)]">
+<div id="filter-panel" class="bg-white rounded-2xl shadow-lg p-4">
 
     {{-- Header row (clickable to toggle) --}}
     <div class="panel-header flex items-center justify-between" id="filter-toggle">
@@ -24,18 +24,18 @@
             {{-- Status Jaringan --}}
             <div class="mb-3.5">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Status Jaringan</p>
-                <div class="flex gap-1.5 flex-wrap">
-                    <button class="status-btn btn-aman inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-full px-2.5 py-1 border-2 bg-white cursor-pointer transition-opacity"
+                <div class="flex gap-1 flex-wrap">
+                    <button class="status-btn btn-aman inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
                             data-status="aman"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Aman</button>
-                    <button class="status-btn btn-perbaikan inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-full px-2.5 py-1 border-2 bg-white cursor-pointer transition-opacity"
+                    <button class="status-btn btn-perbaikan inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
                             data-status="perbaikan"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Perbaikan</button>
-                    <button class="status-btn btn-masalah inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-full px-2.5 py-1 border-2 bg-white cursor-pointer transition-opacity"
-                            data-status="masalah"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Masalah</button>
+                    <button class="status-btn btn-masalah inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
+                            data-status="masalah"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Bermasalah</button>
                 </div>
             </div>
 
             {{-- Jenis Pipa --}}
-            <div class="mb-3.5">
+            <div class="mb-0">
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Jenis Pipa</p>
                 <select id="filter-jenis" class="filter-select w-full text-[13px] text-gray-700 border border-slate-200 rounded-lg px-2.5 py-[7px] bg-white cursor-pointer">
                     <option value="">Semua Jenis Pipa</option>
@@ -47,7 +47,7 @@
             </div>
 
             {{-- Wilayah --}}
-            <div>
+            {{-- <div>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Wilayah</p>
                 <div class="relative">
                     <svg class="wilayah-icon" width="14" height="14" viewBox="0 0 24 24" fill="none"
@@ -57,7 +57,7 @@
                     <input id="filter-wilayah" type="text" placeholder="Cari wilayah..."
                            class="filter-input w-full text-[13px] text-gray-700 border border-slate-200 rounded-lg py-[7px] pl-8 pr-2.5 bg-white placeholder:text-slate-400">
                 </div>
-            </div>
+            </div> --}}
 
         </div>
     </div>

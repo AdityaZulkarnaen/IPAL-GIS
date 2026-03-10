@@ -5,7 +5,7 @@
 
         {{-- Logo + title --}}
         <div class="flex items-center gap-2.5 flex-1 min-w-0">
-            <img src="{{ asset('images/PJK.svg') }}" alt="Logo BPAL PJK DIY" class="h-9 w-9 object-contain shrink-0">
+            <img src="{{ asset('logo/216801987556425cc63bbea0.png') }}" alt="Logo BPAL PJK DIY" class="h-9 w-9 object-contain shrink-0">
             <span class="text-[15px] font-bold text-[#0F172A] leading-tight truncate hidden sm:block">
                 Balai Pengelolaan Air Limbah dan Pengembangan Jasa Konstruksi
             </span>
