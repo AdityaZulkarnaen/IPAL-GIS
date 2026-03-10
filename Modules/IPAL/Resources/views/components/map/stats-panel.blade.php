@@ -24,18 +24,18 @@
             {{-- Total Panjang Jaringan --}}
             <div>
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Total Panjang Jaringan</p>
-                <p class="text-[18px] font-bold text-slate-800 leading-none">1,234.5 <span class="text-[14px] font-bold text-slate-500">km</span></p>
+                <p class="text-[18px] font-bold text-slate-800 leading-none"><span id="stat-total-panjang">—</span> <span class="text-[14px] font-bold text-slate-500">km</span></p>
             </div>
 
             {{-- Jumlah Manhole + Jumlah Pipa --}}
             <div class="flex items-between justify-between gap-0 border-t border-slate-200 pt-3">
                 <div class="flex-1 pr-3">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Manhole</p>
-                    <p class="text-[18px] font-bold text-slate-800 leading-none">1,234</p>
+                    <p id="stat-total-manhole" class="text-[18px] font-bold text-slate-800 leading-none">—</p>
                 </div>
                 <div class="flex-row">
                     <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-1">Jumlah Pipa</p>
-                    <p class="text-[18px] font-bold text-slate-800 leading-none">567</p>
+                    <p id="stat-total-pipa" class="text-[18px] font-bold text-slate-800 leading-none">—</p>
                 </div>
             </div>
 
@@ -44,15 +44,15 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-t border-slate-200 pt-3">Status Manhole</p>
                 <div class="grid grid-cols-3 gap-1.5">
                     <div class="bg-green-50 border border-green-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-green-500 leading-none mb-0.5">308</p>
+                        <p id="stat-status-aman" class="text-[16px] font-semibold text-green-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-green-500 uppercase tracking-wider">Baik</p>
                     </div>
                     <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-yellow-500 leading-none mb-0.5">308</p>
+                        <p id="stat-status-perbaikan" class="text-[16px] font-semibold text-yellow-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-yellow-500 uppercase tracking-wider">Perbaikan</p>
                     </div>
                     <div class="bg-red-50 border border-red-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-red-500 leading-none mb-0.5">308</p>
+                        <p id="stat-status-masalah" class="text-[16px] font-semibold text-red-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-red-500 uppercase tracking-wider">Bermasalah</p>
                     </div>
                 </div>
@@ -63,15 +63,15 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-t border-slate-200 pt-3">Informasi Pipa</p>
                 <div class="grid grid-cols-3 gap-1.5">
                     <div class="bg-blue-50 border border-blue-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">189</p>
+                        <p id="stat-fungsi-glontor" class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-blue-500 uppercase tracking-wider">Glontor</p>
                     </div>
                     <div class="bg-blue-50 border border-blue-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">189</p>
+                        <p id="stat-fungsi-induk" class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-blue-500 uppercase tracking-wider">Induk</p>
                     </div>
                     <div class="bg-blue-50 border border-blue-300 rounded-xl p-2 text-center">
-                        <p class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">189</p>
+                        <p id="stat-fungsi-lateral" class="text-[16px] font-semibold text-blue-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-blue-500 uppercase tracking-wider">Lateral</p>
                     </div>
                 </div>

@@ -4,6 +4,7 @@ namespace Modules\IPAL\Http\Controllers\Api;
 
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\IPAL\Http\Controllers\Controller;
 use Modules\IPAL\Models\IpalManhole;
@@ -74,9 +75,9 @@ class StatisticsController extends Controller
         $total = (clone $query)->count();
 
         $byStatus = (clone $query)
-            ->selectRaw('status, COUNT(*) as total')
+            ->selectRaw('LOWER(status) as status, COUNT(*) as total')
             ->whereNotNull('status')
-            ->groupBy('status')
+            ->groupBy(DB::raw('LOWER(status)'))
             ->pluck('total', 'status')
             ->toArray();
 
@@ -116,11 +117,13 @@ class StatisticsController extends Controller
             ->pluck('total', 'status')
             ->toArray();
 
-        $byFungsi = (clone $query)
+        $byFungsi = collect((clone $query)
             ->selectRaw('fungsi, COUNT(*) as total')
             ->whereNotNull('fungsi')
             ->groupBy('fungsi')
             ->pluck('total', 'fungsi')
+            ->toArray())
+            ->mapWithKeys(fn ($v, $k) => [ucfirst(strtolower($k)) => $v])
             ->toArray();
 
         return [

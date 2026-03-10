@@ -41,7 +41,7 @@ html, body { margin: 0; padding: 0; height: 100%; overflow: hidden; }
 
 /* ── Collapsible panel body ── */
 .collapsible-body {
-    overflow: hidden;
+    overflow: visible;
     transition: max-height 0.25s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
 }
 .collapsible-body.is-open  { max-height: 400px; opacity: 1; }
