@@ -72,6 +72,24 @@
     </a>
     <!--end:Menu item-->
 
+    <!--begin:Menu item - Manajemen Aduan-->
+    <a href="{{ route('ipal.aduan.index') }}"
+        class="menu-item @if(isset($title) && $title == 'Manajemen Aduan') show @endif">
+        <span class="menu-link">
+            <span class="menu-icon">
+                <span class="svg-icon svg-icon-2">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        xmlns="http://www.w3.org/2000/svg">
+                        <path opacity="0.3" d="M2 4C1.4 4 1 4.4 1 5V21C1 21.6 1.4 22 2 22H20C20.6 22 21 21.6 21 21V5C21 4.4 20.6 4 20 4H2Z" fill="currentColor"/>
+                        <path d="M21 7H1V5C1 4.4 1.4 4 2 4H20C20.6 4 21 4.4 21 5V7ZM5 12H19C19.6 12 20 11.6 20 11C20 10.4 19.6 10 19 10H5C4.4 10 4 10.4 4 11C4 11.6 4.4 12 5 12ZM5 17H11C11.6 17 12 16.6 12 16C12 15.4 11.6 15 11 15H5C4.4 15 4 15.4 4 16C4 16.6 4.4 17 5 17Z" fill="currentColor"/>
+                    </svg>
+                </span>
+            </span>
+            <span class="menu-title">Manajemen Aduan</span>
+        </span>
+    </a>
+    <!--end:Menu item-->
+
     <!--begin:Section Header - Navigasi-->
     <div class="menu-item pt-5">
         <div class="menu-content">

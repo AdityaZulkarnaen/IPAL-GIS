@@ -48,6 +48,29 @@ class RouteServiceProvider extends ServiceProvider
         RateLimiter::for('api', function (Request $request) {
             return Limit::perMinute(60)->by($request->user()?->id ?: $request->ip());
         });
+
+        RateLimiter::for('aduan-submission', function (Request $request) {
+            return [
+                Limit::perMinutes(
+                    config('ipal.aduan_rate_limit_window_minutes', 30),
+                    config('ipal.aduan_rate_limit_per_window', 10)
+                )
+                    ->by($request->ip())
+                    ->response(fn () => response()->json([
+                        'success' => false,
+                        'message' => 'Terlalu banyak pengiriman. Silakan coba lagi dalam beberapa menit.',
+                        'data'    => null,
+                    ], 429)),
+
+                Limit::perDay(config('ipal.aduan_rate_limit_per_day', 20))
+                    ->by($request->ip())
+                    ->response(fn () => response()->json([
+                        'success' => false,
+                        'message' => 'Batas pengiriman harian telah tercapai. Silakan coba lagi besok.',
+                        'data'    => null,
+                    ], 429)),
+            ];
+        });
     }
 
     protected function mapWebRoutes()

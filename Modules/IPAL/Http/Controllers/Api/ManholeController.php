@@ -52,13 +52,18 @@ class ManholeController extends Controller
             $query->where('sektor', $request->sektor);
         }
 
+        if ($request->filled('wilayah')) {
+            $query->where('wilayah', 'like', '%' . $request->wilayah . '%');
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('kode_manhole', 'like', '%' . $search . '%')
                   ->orWhere('desa', 'like', '%' . $search . '%')
                   ->orWhere('kecamatan', 'like', '%' . $search . '%')
-                  ->orWhere('surveyor', 'like', '%' . $search . '%');
+                  ->orWhere('surveyor', 'like', '%' . $search . '%')
+                  ->orWhere('wilayah', 'like', '%' . $search . '%');
             });
         }
 
@@ -252,6 +257,10 @@ class ManholeController extends Controller
             $query->where('sektor', $request->sektor);
         }
 
+        if ($request->filled('wilayah')) {
+            $query->where('wilayah', 'like', '%' . $request->wilayah . '%');
+        }
+
         $manholes = $query->get();
 
         $features = $manholes->map(function ($manhole) {
@@ -296,6 +305,7 @@ class ManholeController extends Controller
                 'material_mh' => IpalManhole::distinct()->whereNotNull('material_mh')->pluck('material_mh'),
                 'status' => IpalManhole::distinct()->whereNotNull('status')->pluck('status'),
                 'sektor' => IpalManhole::distinct()->whereNotNull('sektor')->pluck('sektor'),
+                'wilayah' => IpalManhole::distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
             ],
         ]);
     }

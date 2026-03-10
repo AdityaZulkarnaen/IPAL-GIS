@@ -29,4 +29,9 @@ Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(fu
     Route::get('/upload', [UploadController::class, 'index'])->name('upload.index');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
     Route::delete('/upload/{id}', [UploadController::class, 'destroy'])->name('upload.destroy');
+
+    /** Manajemen Aduan */
+    Route::get('/aduan', [\Modules\IPAL\Http\Controllers\AduanController::class, 'index'])->name('aduan.index');
+    Route::get('/aduan/{id}', [\Modules\IPAL\Http\Controllers\AduanController::class, 'show'])->name('aduan.show');
+    Route::post('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
 });
