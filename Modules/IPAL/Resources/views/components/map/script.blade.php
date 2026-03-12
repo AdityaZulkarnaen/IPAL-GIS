@@ -47,17 +47,23 @@ L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
 L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 // ─── Constants ────────────────────────────────────────────────────────────
-const API_BASE           = '/api/ipal';
-const API_PIPES_GEOJSON  = API_BASE + '/pipes/geojson';
-const API_MHOLE_GEOJSON  = API_BASE + '/manholes/geojson';
-const API_PIPES_FILTERS  = API_BASE + '/pipes/filters';
-const API_STATISTICS     = API_BASE + '/statistics';
-const CACHE_TTL          = 5 * 60 * 1000; // 5 minutes
+const API_BASE          = '/api/ipal';
+const API_PIPES_GEOJSON = API_BASE + '/pipes/geojson';
+const API_MHOLE_GEOJSON = API_BASE + '/manholes/geojson';
+const API_PIPES_FILTERS = API_BASE + '/pipes/filters';
+const API_STATISTICS    = API_BASE + '/statistics';
+const CACHE_TTL         = 5 * 60 * 1000; // 5 minutes
 
 const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
 const LABEL      = { aman:'AMAN',    perbaikan:'PERBAIKAN', masalah:'MASALAH', rusak:'RUSAK', 'dalam perbaikan':'PERBAIKAN' };
 const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
 const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
+
+// SVG icons
+const SVG_WARNING  = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`;
+const SVG_WRENCH   = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.292-8.317.086.072 3.3 3.3a.612.612 0 0 1 0 .866l-3.088 3.088-3.3-3.3a.612.612 0 0 1 0-.866l3.088-3.088.086-.072ZM7.5 5.25c0-.966.784-1.75 1.75-1.75a1.75 1.75 0 0 1 0 3.5c-.966 0-1.75-.784-1.75-1.75Z"/></svg>`;
+const ICON_PIPE    = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#13C8EC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 6h18M3 18h18M6 6v12M18 6v12"/></svg>`;
+const ICON_MANHOLE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>`;
 
 // ─── In-memory cache ──────────────────────────────────────────────────────
 const _cache = new Map();
@@ -81,7 +87,6 @@ function cacheKey(url, params) {
 
 // ─── Fetch helper with caching ────────────────────────────────────────────
 async function apiFetch(url, params = {}) {
-    // Strip empty values
     const clean = Object.fromEntries(
         Object.entries(params).filter(([, v]) => v !== '' && v != null)
     );
@@ -89,9 +94,9 @@ async function apiFetch(url, params = {}) {
     const cached = cacheGet(key);
     if (cached) return cached;
 
-    const query = new URLSearchParams(clean).toString();
+    const query   = new URLSearchParams(clean).toString();
     const fullUrl = query ? url + '?' + query : url;
-    const resp = await fetch(fullUrl);
+    const resp    = await fetch(fullUrl);
     if (!resp.ok) throw new Error('API error ' + resp.status + ': ' + fullUrl);
     const data = await resp.json();
     cacheSet(key, data);
@@ -102,7 +107,7 @@ async function apiFetch(url, params = {}) {
 const pipeLayer    = L.layerGroup().addTo(map);
 const manholeLayer = L.layerGroup().addTo(map);
 
-// ─── In-flight feature stores (for search) ────────────────────────────────
+// ─── In-flight feature stores (for search & filter) ───────────────────────
 let currentPipeFeatures    = [];
 let currentManholeFeatures = [];
 
@@ -110,19 +115,18 @@ let currentManholeFeatures = [];
 const pipeLayerMap    = {};
 const manholeLayerMap = {};
 
-// ─── Loading overlay helper ───────────────────────────────────────────────
+// ─── Loading overlay ──────────────────────────────────────────────────────
 function setLoading(active) {
     const el = document.getElementById('map-loading');
     if (el) el.style.display = active ? 'flex' : 'none';
 }
 
-// ─── Color helpers ────────────────────────────────────────────────────────
+// ─── Color helper ─────────────────────────────────────────────────────────
 function statusColor(status) {
     return COLOR[status] || '#64748b';
 }
 
 // ─── Geometry → Leaflet LatLng arrays ────────────────────────────────────
-// Returns array of coordinate arrays (each is [[lat,lng], ...])
 // Handles both LineString and MultiLineString
 function buildPipeCoordSets(geometry) {
     if (!geometry) return [];
@@ -135,40 +139,78 @@ function buildPipeCoordSets(geometry) {
     return [];
 }
 
-// ─── Popup HTML builders ──────────────────────────────────────────────────
-function buildLaporBtn(type, id, kode, coord, wilayah, status) {
-    if (status === 'rusak' || status === 'masalah') {
-        return `<div style="width:100%;padding:9px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Aset Rusak – Sudah Dilaporkan</div>`;
-    }
-    if (status === 'dalam perbaikan' || status === 'perbaikan') {
-        return `<div style="width:100%;padding:9px;background:#fef3c7;color:#a16207;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.292-8.317.086.072 3.3 3.3a.612.612 0 0 1 0 .866l-3.088 3.088-3.3-3.3a.612.612 0 0 1 0-.866l3.088-3.088.086-.072ZM7.5 5.25c0-.966.784-1.75 1.75-1.75a1.75 1.75 0 0 1 0 3.5c-.966 0-1.75-.784-1.75-1.75Z"/></svg>Sedang Dalam Perbaikan</div>`;
-    }
-    const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
-        + '&id=' + encodeURIComponent(id || '')
-        + '&kode=' + encodeURIComponent(kode || '')
-        + '&coord=' + encodeURIComponent(coord || '')
-        + '&wilayah=' + encodeURIComponent(wilayah || '');
-    return `<a href="${url}" style="width:100%;padding:9px;background:#FFE2E2;color:#9F0712;border:none;border-radius:8px;font-size:13px;font-weight:400;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Lapor Masalah</a>`;
+// ─── HTML builder helpers ─────────────────────────────────────────────────
+
+// Status badge span — compact=true uses tighter padding (tooltips)
+function badgeHtml(status, compact = false) {
+    const pad    = compact ? '2px 7px' : '4px 9px';
+    const radius = compact ? '4px'     : '5px';
+    const label  = LABEL[status] || (status ? status.toUpperCase() : '—');
+    return `<span style="font-size:10px;font-weight:700;padding:${pad};border-radius:${radius};background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'};">${label}</span>`;
 }
 
-function buildPipePopup(p, coordStr) {
-    const status = (p.status || '').toLowerCase();
-    return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:260px;">
+// Popup label / value cell
+function fieldHtml(label, value, valStyle = 'font-weight:600;color:#334155;') {
+    return `<div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">${label}</div><div style="${valStyle}">${value}</div></div>`;
+}
+
+// Tooltip label / value cell
+function tooltipFieldHtml(label, value) {
+    return `<div><span style="font-size:10px;color:#94a3b8;font-weight:600;">${label}</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${value}</span></div>`;
+}
+
+// Shared popup outer container + header block (leaves outer <div> open for body)
+function popupHeaderHtml(typeLabel, kode, status, minWidth = '260px') {
+    return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:${minWidth};">
         <div style="background:#f8fafc;padding:20px 16px 14px;border-bottom:1px solid #e2e8f0;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">KODE PIPA</span>
-                <span style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'};">${LABEL[status] || (p.status || '—').toUpperCase()}</span>
+                <span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">${typeLabel}</span>
+                ${badgeHtml(status)}
             </div>
-            <div style="font-size:18px;font-weight:700;color:#1e293b;">${p.kode_pipa || '—'}</div>
+            <div style="font-size:18px;font-weight:700;color:#1e293b;">${kode}</div>
+        </div>`;
+}
+
+// Shared tooltip outer wrapper (self-contained)
+function tooltipWrapHtml(code, status, body, minWidth = '170px') {
+    return `<div style="font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:${minWidth};pointer-events:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;font-weight:700;color:#1e293b;">${code}</span>
+            ${badgeHtml(status, true)}
         </div>
-        <div style="padding:14px 16px;">
+        ${body}
+    </div>`;
+}
+
+// ─── Lapor button ─────────────────────────────────────────────────────────
+function buildLaporBtn(type, id, kode, coord, wilayah, status) {
+    const base = 'width:100%;padding:9px;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;';
+    if (status === 'rusak' || status === 'masalah') {
+        return `<div style="${base}background:#fee2e2;color:#dc2626;">${SVG_WARNING}Aset Rusak – Sudah Dilaporkan</div>`;
+    }
+    if (status === 'dalam perbaikan' || status === 'perbaikan') {
+        return `<div style="${base}background:#fef3c7;color:#a16207;">${SVG_WRENCH}Sedang Dalam Perbaikan</div>`;
+    }
+    const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
+        + '&id='      + encodeURIComponent(id      || '')
+        + '&kode='    + encodeURIComponent(kode    || '')
+        + '&coord='   + encodeURIComponent(coord   || '')
+        + '&wilayah=' + encodeURIComponent(wilayah || '');
+    return `<a href="${url}" style="width:100%;padding:9px;background:#FFE2E2;color:#9F0712;border:none;border-radius:8px;font-size:13px;font-weight:400;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;">${SVG_WARNING}Lapor Masalah</a>`;
+}
+
+// ─── Popup builders ───────────────────────────────────────────────────────
+function buildPipePopup(p, coordStr) {
+    const status = (p.status || '').toLowerCase();
+    return popupHeaderHtml('KODE PIPA', p.kode_pipa || '—', status, '260px') +
+        `<div style="padding:14px 16px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Fungsi</div><div style="font-weight:600;color:#334155;">${p.fungsi || '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Diameter</div><div style="font-weight:600;color:#334155;">${p.pipe_dia != null ? p.pipe_dia + ' mm' : '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Panjang</div><div style="font-weight:600;color:#334155;">${p.length_km != null ? Number(p.length_km).toFixed(3) + ' km' : '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Koordinat</div><div style="font-size:11px;color:#64748b;">${coordStr}</div></div>
+                ${fieldHtml('Fungsi',    p.fungsi   || '—')}
+                ${fieldHtml('Diameter',  p.pipe_dia  != null ? p.pipe_dia + ' mm'                        : '—')}
+                ${fieldHtml('Panjang',   p.length_km != null ? Number(p.length_km).toFixed(3) + ' km'    : '—')}
+                ${fieldHtml('Koordinat', coordStr, 'font-size:11px;color:#64748b;')}
             </div>
-            <div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Wilayah</div><div style="font-weight:500;color:#334155;">${p.wilayah || '—'}</div></div>
+            <div style="margin-bottom:14px;">${fieldHtml('Wilayah', p.wilayah || '—', 'font-weight:500;color:#334155;')}</div>
             ${buildLaporBtn('pipa', p.id, p.kode_pipa, coordStr, p.wilayah, status)}
         </div>
     </div>`;
@@ -177,57 +219,56 @@ function buildPipePopup(p, coordStr) {
 function buildManholePopup(p, lat, lng) {
     const status   = (p.status || '').toLowerCase();
     const coordStr = (lat != null && lng != null) ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}` : '—';
-    return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:250px;">
-        <div style="background:#f8fafc;padding:20px 16px 14px;border-bottom:1px solid #e2e8f0;">
-            <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-                <span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;letter-spacing:.06em;">KODE MANHOLE</span>
-                <span style="font-size:10px;font-weight:700;padding:4px 9px;border-radius:5px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'};">${LABEL[status] || (p.status || '—').toUpperCase()}</span>
-            </div>
-            <div style="font-size:18px;font-weight:700;color:#1e293b;">${p.kode_manhole || '—'}</div>
-        </div>
-        <div style="padding:14px 16px;">
+    return popupHeaderHtml('KODE MANHOLE', p.kode_manhole || '—', status, '250px') +
+        `<div style="padding:14px 16px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Kondisi</div><div style="font-weight:600;color:#334155;">${p.kondisi_mh || '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Klasifikasi</div><div style="font-weight:600;color:#334155;">${p.klasifikasi || '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Desa</div><div style="font-weight:500;color:#334155;">${p.desa || '—'}</div></div>
-                <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Kecamatan</div><div style="font-weight:500;color:#334155;">${p.kecamatan || '—'}</div></div>
+                ${fieldHtml('Kondisi',     p.kondisi_mh || '—')}
+                ${fieldHtml('Klasifikasi', p.klasifikasi || '—')}
+                ${fieldHtml('Desa',        p.desa       || '—', 'font-weight:500;color:#334155;')}
+                ${fieldHtml('Kecamatan',   p.kecamatan  || '—', 'font-weight:500;color:#334155;')}
             </div>
             ${buildLaporBtn('manhole', p.id, p.kode_manhole, coordStr, p.wilayah, status)}
         </div>
     </div>`;
 }
 
-// ─── Hover tooltip builders ─────────────────────────────────────────────
+// ─── Tooltip builders ─────────────────────────────────────────────────────
 function buildPipeTooltip(p) {
     const status = (p.status || '').toLowerCase();
-    return `<div style="font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:170px;pointer-events:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:13px;font-weight:700;color:#1e293b;">${p.kode_pipa || '—'}</span>
-            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'}">${(LABEL[status] || (p.status || '—')).toUpperCase()}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
-            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Fungsi</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.fungsi || '—'}</span></div>
-            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Diameter</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.pipe_dia != null ? p.pipe_dia + ' mm' : '—'}</span></div>
-            <div style="grid-column:1/-1;"><span style="font-size:10px;color:#94a3b8;font-weight:600;">Panjang</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.length_km != null ? Number(p.length_km).toFixed(3) + ' km' : '—'}</span></div>
-        </div>
+    const body   = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
+        ${tooltipFieldHtml('Fungsi',   p.fungsi   || '—')}
+        ${tooltipFieldHtml('Diameter', p.pipe_dia  != null ? p.pipe_dia + ' mm'                        : '—')}
+        <div style="grid-column:1/-1;">${tooltipFieldHtml('Panjang', p.length_km != null ? Number(p.length_km).toFixed(3) + ' km' : '—')}</div>
     </div>`;
+    return tooltipWrapHtml(p.kode_pipa || '—', status, body, '170px');
 }
 
 function buildManholeTooltip(p) {
     const status = (p.status || '').toLowerCase();
-    return `<div style="font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:160px;pointer-events:none;">
-        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
-            <span style="font-size:13px;font-weight:700;color:#1e293b;">${p.kode_manhole || '—'}</span>
-            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'}">${(LABEL[status] || (p.status || '—')).toUpperCase()}</span>
-        </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
-            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Kondisi</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.kondisi_mh || '—'}</span></div>
-            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Kecamatan</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.kecamatan || p.desa || '—'}</span></div>
-        </div>
+    const body   = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
+        ${tooltipFieldHtml('Kondisi',   p.kondisi_mh || '—')}
+        ${tooltipFieldHtml('Kecamatan', p.kecamatan  || p.desa || '—')}
     </div>`;
+    return tooltipWrapHtml(p.kode_manhole || '—', status, body, '160px');
 }
 
-// ─── Shared layer-draw helpers ────────────────────────────────────────────
+// ─── Zoom-responsive manhole scale ────────────────────────────────────────
+const ZOOM_SCALE = [
+    [12, { radius: 2, weight: 0.5 }],
+    [13, { radius: 3, weight: 0.8 }],
+    [14, { radius: 4, weight: 1.0 }],
+    [15, { radius: 5, weight: 1.5 }],
+    [16, { radius: 6, weight: 2.0 }],
+    [17, { radius: 7, weight: 2.5 }],
+];
+
+function getManholeScale() {
+    const z     = map.getZoom();
+    const entry = ZOOM_SCALE.find(([maxZ]) => z <= maxZ);
+    return entry ? entry[1] : { radius: 8, weight: 3 };
+}
+
+// ─── Feature drawing ──────────────────────────────────────────────────────
 function drawPipeFeature(feature, layer) {
     const p      = feature.properties || {};
     const status = (p.status || '').toLowerCase();
@@ -280,29 +321,6 @@ function drawPipeFeature(feature, layer) {
     });
 }
 
-// ─── Zoom-responsive manhole radius ─────────────────────────────────────
-function manholeRadius() {
-    const z = map.getZoom();
-    if (z <= 12) return 2;
-    if (z === 13) return 3;
-    if (z === 14) return 4;
-    if (z === 15) return 5;
-    if (z === 16) return 6;
-    if (z === 17) return 7;
-    return 8; // zoom ≥ 18
-}
-
-function manholeWeight() {
-    const z = map.getZoom();
-    if (z <= 12) return 0.5;
-    if (z === 13) return 0.8;
-    if (z === 14) return 1;
-    if (z === 15) return 1.5;
-    if (z === 16) return 2;
-    if (z === 17) return 2.5;
-    return 3; // zoom ≥ 18
-}
-
 function drawManholeFeature(feature, layer) {
     const p      = feature.properties || {};
     const status = (p.status || '').toLowerCase();
@@ -312,9 +330,10 @@ function drawManholeFeature(feature, layer) {
     if (!geom || geom.type !== 'Point') return;
     const [lng, lat] = geom.coordinates;
 
+    const { radius, weight } = getManholeScale();
     const marker = L.circleMarker([lat, lng], {
-        radius: manholeRadius(), fillColor: color,
-        color: '#ffffff', weight: manholeWeight(),
+        radius, fillColor: color,
+        color: '#ffffff', weight,
         opacity: 1, fillOpacity: 0.9,
     })
     .bindTooltip(buildManholeTooltip(p), {
@@ -327,7 +346,7 @@ function drawManholeFeature(feature, layer) {
         this.bringToFront();
     });
     marker.on('mouseout', function () {
-        if (!this._selected) this.setStyle({ color: '#ffffff', weight: manholeWeight() });
+        if (!this._selected) this.setStyle({ color: '#ffffff', weight: getManholeScale().weight });
     });
     marker.on('popupopen', function () {
         this._selected = true;
@@ -336,13 +355,13 @@ function drawManholeFeature(feature, layer) {
     });
     marker.on('popupclose', function () {
         this._selected = false;
-        this.setStyle({ color: '#ffffff', weight: manholeWeight() });
+        this.setStyle({ color: '#ffffff', weight: getManholeScale().weight });
     });
     marker.addTo(layer);
     if (p.kode_manhole) manholeLayerMap[p.kode_manhole] = marker;
 }
 
-// ─── Render pipes from GeoJSON FeatureCollection ──────────────────────────
+// ─── Render ───────────────────────────────────────────────────────────────
 function renderPipes(geojson) {
     pipeLayer.clearLayers();
     Object.keys(pipeLayerMap).forEach(k => delete pipeLayerMap[k]);
@@ -350,7 +369,6 @@ function renderPipes(geojson) {
     currentPipeFeatures.forEach(f => drawPipeFeature(f, pipeLayer));
 }
 
-// ─── Render manholes from GeoJSON FeatureCollection ───────────────────────
 function renderManholes(geojson) {
     manholeLayer.clearLayers();
     Object.keys(manholeLayerMap).forEach(k => delete manholeLayerMap[k]);
@@ -382,12 +400,9 @@ async function loadManholes(filters = {}) {
 
 async function loadFilters() {
     try {
-        const data = await apiFetch(API_PIPES_FILTERS);
-        const fungsiList = data?.data?.fungsi || [];
-
+        const data     = await apiFetch(API_PIPES_FILTERS);
         const selJenis = document.getElementById('filter-jenis');
-
-        fungsiList.forEach(v => {
+        (data?.data?.fungsi || []).forEach(v => {
             const opt = document.createElement('option');
             opt.value = v; opt.textContent = v;
             selJenis.appendChild(opt);
@@ -399,21 +414,20 @@ async function loadFilters() {
 
 async function loadStats() {
     try {
-        const resp  = await apiFetch(API_STATISTICS);
-        const data  = resp?.data || {};
-        const mh    = data.manhole || {};
-        const pipa  = data.pipa   || {};
+        const resp = await apiFetch(API_STATISTICS);
+        const data = resp?.data || {};
+        const mh   = data.manhole || {};
+        const pipa = data.pipa   || {};
 
         function setText(id, val) {
             const el = document.getElementById(id);
             if (el) el.textContent = val != null ? Number(val).toLocaleString('id-ID') : '—';
         }
 
-        const panjang = pipa.total_panjang_km != null
+        const elPanjang = document.getElementById('stat-total-panjang');
+        if (elPanjang) elPanjang.textContent = pipa.total_panjang_km != null
             ? Number(pipa.total_panjang_km).toLocaleString('id-ID', { minimumFractionDigits: 1, maximumFractionDigits: 1 })
             : '—';
-        const elPanjang = document.getElementById('stat-total-panjang');
-        if (elPanjang) elPanjang.textContent = panjang;
 
         setText('stat-total-manhole', mh.total);
         setText('stat-total-pipa',    pipa.total);
@@ -432,27 +446,24 @@ async function loadStats() {
     }
 }
 
-// ─── Current active filters ───────────────────────────────────────────────
+// ─── Active filters ───────────────────────────────────────────────────────
 const activeStatuses = new Set(['aman', 'perbaikan', 'masalah', 'rusak', 'dalam perbaikan']);
-let activeFungsi  = '';
+let activeFungsi = '';
 
 function buildPipeFilters() {
     return { fungsi: activeFungsi };
 }
 
-// Status filtering is always client-side (no re-fetch). Re-draws using the
-// already-fetched currentPipe/ManholeFeatures filtered by activeStatuses.
+// Status filtering is client-side — re-draws from already-fetched features
 function applyStatusVisibility() {
     pipeLayer.clearLayers();
     currentPipeFeatures.forEach(f => {
-        const status = (f.properties?.status || '').toLowerCase();
-        if (activeStatuses.has(status)) drawPipeFeature(f, pipeLayer);
+        if (activeStatuses.has((f.properties?.status || '').toLowerCase())) drawPipeFeature(f, pipeLayer);
     });
 
     manholeLayer.clearLayers();
     currentManholeFeatures.forEach(f => {
-        const status = (f.properties?.status || '').toLowerCase();
-        if (activeStatuses.has(status)) drawManholeFeature(f, manholeLayer);
+        if (activeStatuses.has((f.properties?.status || '').toLowerCase())) drawManholeFeature(f, manholeLayer);
     });
 }
 
@@ -462,7 +473,6 @@ document.querySelectorAll('.status-btn').forEach(btn => {
         const s = btn.dataset.status;
         if (activeStatuses.has(s)) { activeStatuses.delete(s); btn.classList.add('inactive'); }
         else                        { activeStatuses.add(s);    btn.classList.remove('inactive'); }
-        // Status filtering is client-side (no re-fetch needed)
         applyStatusVisibility();
     });
 });
@@ -481,25 +491,19 @@ function debounce(fn, delay) {
     };
 }
 
-// Icon SVGs for suggestion items
-const ICON_PIPE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#13C8EC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 6h18M3 18h18M6 6v12M18 6v12"/></svg>`;
-const ICON_MANHOLE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>`;
-
 function buildSuggestions(q) {
     if (!q || q.length < 2) return [];
     const results = [];
-    const lower = q.toLowerCase();
+    const lower   = q.toLowerCase();
 
     for (const feature of currentPipeFeatures) {
-        const p = feature.properties || {};
-        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi]
-            .filter(Boolean).join(' ').toLowerCase();
+        const p        = feature.properties || {};
+        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi].filter(Boolean).join(' ').toLowerCase();
         if (!haystack.includes(lower)) continue;
 
         const coordSets = buildPipeCoordSets(feature.geometry);
         if (!coordSets.length) continue;
-        const firstSet = coordSets[0];
-        const mid = firstSet[Math.floor(firstSet.length / 2)];
+        const mid = coordSets[0][Math.floor(coordSets[0].length / 2)];
 
         results.push({
             type: 'pipe',
@@ -512,9 +516,8 @@ function buildSuggestions(q) {
     }
 
     for (const feature of currentManholeFeatures) {
-        const p = feature.properties || {};
-        const haystack = [p.kode_manhole, p.desa, p.kecamatan]
-            .filter(Boolean).join(' ').toLowerCase();
+        const p        = feature.properties || {};
+        const haystack = [p.kode_manhole, p.desa, p.kecamatan].filter(Boolean).join(' ').toLowerCase();
         if (!haystack.includes(lower)) continue;
 
         const geom = feature.geometry;
@@ -539,7 +542,7 @@ function hideSuggestions() {
     if (el) el.style.display = 'none';
 }
 
-function renderSuggestions(results, query) {
+function renderSuggestions(results) {
     const el = document.getElementById('search-suggestions');
     if (!el) return;
 
@@ -550,7 +553,10 @@ function renderSuggestions(results, query) {
     }
 
     el.innerHTML = results.map((r, i) => {
-        const icon = r.type === 'pipe' ? ICON_PIPE : ICON_MANHOLE;
+        const icon      = r.type === 'pipe' ? ICON_PIPE : ICON_MANHOLE;
+        const tagBg     = r.type === 'pipe' ? '#e0f9ff'  : '#ede9fe';
+        const tagColor  = r.type === 'pipe' ? '#0e7490'  : '#6d28d9';
+        const tagLabel  = r.type === 'pipe' ? 'PIPA'     : 'MANHOLE';
         const borderTop = i > 0 ? 'border-top:1px solid #f1f5f9;' : '';
         return `<div class="search-suggestion-item" data-index="${i}"
             style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .12s;${borderTop}">
@@ -559,7 +565,7 @@ function renderSuggestions(results, query) {
                 <div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.label}</div>
                 ${r.sublabel ? `<div style="font-size:11px;color:#94a3b8;margin-top:1px;">${r.sublabel}</div>` : ''}
             </div>
-            <div style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;background:${r.type === 'pipe' ? '#e0f9ff' : '#ede9fe'};color:${r.type === 'pipe' ? '#0e7490' : '#6d28d9'}">${r.type === 'pipe' ? 'PIPA' : 'MANHOLE'}</div>
+            <div style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;background:${tagBg};color:${tagColor}">${tagLabel}</div>
         </div>`;
     }).join('');
 
@@ -581,17 +587,11 @@ function selectSuggestion(result) {
     if (input) input.value = result.label;
     hideSuggestions();
 
-    const openPopup = () => {
-        const layer = result.type === 'pipe'
-            ? pipeLayerMap[result.key]
-            : manholeLayerMap[result.key];
-        if (layer) {
-            layer.openPopup();
-        }
-    };
-
     map.flyTo(result.latlng, result.zoom, { duration: 1.2 });
-    map.once('moveend', openPopup);
+    map.once('moveend', () => {
+        const layer = result.type === 'pipe' ? pipeLayerMap[result.key] : manholeLayerMap[result.key];
+        if (layer) layer.openPopup();
+    });
 }
 
 function handleSearch() {
@@ -599,34 +599,26 @@ function handleSearch() {
     hideSuggestions();
     if (!q) return;
 
-    // Try exact/first match in pipes
     for (const feature of currentPipeFeatures) {
-        const p = feature.properties || {};
-        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi]
-            .filter(Boolean).join(' ').toLowerCase();
-        if (haystack.includes(q)) {
-            const coordSets = buildPipeCoordSets(feature.geometry);
-            if (coordSets.length) {
-                const firstSet = coordSets[0];
-                const mid = firstSet[Math.floor(firstSet.length / 2)];
-                selectSuggestion({ type: 'pipe', label: p.kode_pipa, latlng: mid, zoom: 17, key: p.kode_pipa });
-                return;
-            }
-        }
+        const p        = feature.properties || {};
+        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) continue;
+        const coordSets = buildPipeCoordSets(feature.geometry);
+        if (!coordSets.length) continue;
+        const mid = coordSets[0][Math.floor(coordSets[0].length / 2)];
+        selectSuggestion({ type: 'pipe', label: p.kode_pipa, latlng: mid, zoom: 17, key: p.kode_pipa });
+        return;
     }
 
-    // Try manholes
     for (const feature of currentManholeFeatures) {
-        const p = feature.properties || {};
-        const haystack = [p.kode_manhole, p.desa, p.kecamatan]
-            .filter(Boolean).join(' ').toLowerCase();
-        if (haystack.includes(q)) {
-            const geom = feature.geometry;
-            if (geom && geom.type === 'Point') {
-                const [lng, lat] = geom.coordinates;
-                selectSuggestion({ type: 'manhole', label: p.kode_manhole, latlng: [lat, lng], zoom: 18, key: p.kode_manhole });
-                return;
-            }
+        const p        = feature.properties || {};
+        const haystack = [p.kode_manhole, p.desa, p.kecamatan].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(q)) continue;
+        const geom = feature.geometry;
+        if (geom && geom.type === 'Point') {
+            const [lng, lat] = geom.coordinates;
+            selectSuggestion({ type: 'manhole', label: p.kode_manhole, latlng: [lat, lng], zoom: 18, key: p.kode_manhole });
+            return;
         }
     }
 
@@ -637,18 +629,18 @@ function handleSearch() {
     }
 }
 
-// Debounced input handler
+// ─── Search event listeners ───────────────────────────────────────────────
 const debouncedSuggest = debounce(function () {
     const q = (document.getElementById('search-input').value || '').trim();
     if (q.length < 2) { hideSuggestions(); return; }
-    renderSuggestions(buildSuggestions(q), q);
+    renderSuggestions(buildSuggestions(q));
 }, 300);
 
 document.getElementById('search-input').addEventListener('input', debouncedSuggest);
 
 document.getElementById('search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter')  { handleSearch(); }
-    if (e.key === 'Escape') { hideSuggestions(); }
+    if (e.key === 'Enter')  handleSearch();
+    if (e.key === 'Escape') hideSuggestions();
 });
 
 document.getElementById('search-input').addEventListener('blur', () => {
@@ -666,15 +658,12 @@ document.addEventListener('click', e => {
 
 // ─── Resize manhole markers on zoom ─────────────────────────────────────
 map.on('zoomend', function () {
-    const r = manholeRadius();
-    const w = manholeWeight();
+    const { radius, weight } = getManholeScale();
     manholeLayer.eachLayer(layer => {
         if (layer instanceof L.CircleMarker) {
-            layer.setRadius(r);
+            layer.setRadius(radius);
             // Only update weight when not hovered (avoid overriding black border)
-            if (layer.options.color !== '#000000') {
-                layer.setStyle({ weight: w });
-            }
+            if (layer.options.color !== '#000000') layer.setStyle({ weight });
         }
     });
 });
