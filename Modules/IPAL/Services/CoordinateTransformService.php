@@ -18,6 +18,7 @@ class CoordinateTransformService
     public function __construct()
     {
         $this->proj4 = new Proj4php();
+        $this->proj4->addDef('EPSG:32749', '+proj=utm +zone=49 +south +ellps=WGS84 +datum=WGS84 +units=m +no_defs');
         $this->sourceProj = new Proj('EPSG:32749', $this->proj4);
         $this->targetProj = new Proj('EPSG:4326', $this->proj4);
     }
@@ -31,8 +32,8 @@ class CoordinateTransformService
      */
     public function transform(float $x, float $y): array
     {
-        $point = new Point($x, $y, $this->sourceProj);
-        $result = $this->proj4->transform($this->targetProj, $point);
+        $point = new Point($x, $y);
+        $result = $this->proj4->transform($this->sourceProj, $this->targetProj, $point);
 
         return [
             round($result->x, 8),

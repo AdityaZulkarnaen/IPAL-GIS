@@ -3,6 +3,7 @@
 namespace Modules\IPAL\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\Facades\Route;
 
 class IPALServiceProvider extends ServiceProvider
@@ -21,6 +22,7 @@ class IPALServiceProvider extends ServiceProvider
         $this->registerViews();
         $this->registerMigrations();
         $this->registerConfig();
+        $this->registerComponents();
     }
 
     /**
@@ -64,6 +66,16 @@ class IPALServiceProvider extends ServiceProvider
         ], 'ipal-views');
 
         $this->loadViewsFrom(array_merge($this->getPublishableViewPaths(), [$sourcePath]), 'ipal');
+    }
+
+    /**
+     * Register Blade anonymous components untuk module IPAL.
+     */
+    protected function registerComponents(): void
+    {
+        Blade::anonymousComponentPath(
+            module_path('IPAL', 'Resources/views/components')
+        );
     }
 
     /**
