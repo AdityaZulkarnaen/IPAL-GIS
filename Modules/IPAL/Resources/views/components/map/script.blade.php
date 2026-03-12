@@ -9,6 +9,26 @@
             margin-right: 10px;
         }
     }
+
+    /* Remove browser focus outline on clicked SVG paths (polylines, circles) */
+    .leaflet-pane svg path:focus,
+    .leaflet-pane svg circle:focus,
+    .leaflet-interactive:focus {
+        outline: none !important;
+    }
+
+    /* Pipe & manhole hover tooltips — remove default Leaflet chrome */
+    .leaflet-pipe-tooltip,
+    .leaflet-manhole-tooltip {
+        background: transparent !important;
+        border: none !important;
+        box-shadow: none !important;
+        padding: 0 !important;
+    }
+    .leaflet-pipe-tooltip::before,
+    .leaflet-manhole-tooltip::before {
+        display: none !important;
+    }
 </style>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
@@ -163,6 +183,36 @@ function buildManholePopup(p) {
     </div>`;
 }
 
+// ─── Hover tooltip builders ─────────────────────────────────────────────
+function buildPipeTooltip(p) {
+    const status = (p.status || '').toLowerCase();
+    return `<div style="font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:170px;pointer-events:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;font-weight:700;color:#1e293b;">${p.kode_pipa || '—'}</span>
+            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'}">${(LABEL[status] || (p.status || '—')).toUpperCase()}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
+            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Fungsi</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.fungsi || '—'}</span></div>
+            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Diameter</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.pipe_dia != null ? p.pipe_dia + ' mm' : '—'}</span></div>
+            <div style="grid-column:1/-1;"><span style="font-size:10px;color:#94a3b8;font-weight:600;">Panjang</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.length_km != null ? Number(p.length_km).toFixed(3) + ' km' : '—'}</span></div>
+        </div>
+    </div>`;
+}
+
+function buildManholeTooltip(p) {
+    const status = (p.status || '').toLowerCase();
+    return `<div style="font-family:'Montserrat',sans-serif;font-size:12px;background:#fff;border-radius:8px;padding:10px 13px;box-shadow:0 2px 8px rgba(0,0,0,.15);min-width:160px;pointer-events:none;">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+            <span style="font-size:13px;font-weight:700;color:#1e293b;">${p.kode_manhole || '—'}</span>
+            <span style="font-size:10px;font-weight:700;padding:2px 7px;border-radius:4px;background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'}">${(LABEL[status] || (p.status || '—')).toUpperCase()}</span>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
+            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Kondisi</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.kondisi_mh || '—'}</span></div>
+            <div><span style="font-size:10px;color:#94a3b8;font-weight:600;">Kecamatan</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${p.kecamatan || p.desa || '—'}</span></div>
+        </div>
+    </div>`;
+}
+
 // ─── Shared layer-draw helpers ────────────────────────────────────────────
 function drawPipeFeature(feature, layer) {
     const p      = feature.properties || {};
@@ -177,6 +227,13 @@ function drawPipeFeature(feature, layer) {
     const coordStr = mid ? mid[0].toFixed(6) + ', ' + mid[1].toFixed(6) : '—';
 
     coordSets.forEach((coords, idx) => {
+        // Outline layer (black border effect) — drawn first so it sits behind the main line
+        const outline = L.polyline(coords, {
+            color: '#000000', weight: 9, opacity: 0,
+            lineCap: 'round', lineJoin: 'round',
+            interactive: false,
+        }).addTo(layer);
+
         const line = L.polyline(coords, {
             color, weight: 5, opacity: 0.88,
             lineCap: 'round', lineJoin: 'round',
@@ -185,8 +242,51 @@ function drawPipeFeature(feature, layer) {
             line.bindPopup(buildPipePopup(p, coordStr), { maxWidth: 300, minWidth: 280 });
             if (p.kode_pipa) pipeLayerMap[p.kode_pipa] = line;
         }
+        line.bindTooltip(buildPipeTooltip(p), {
+            sticky: true, direction: 'top', offset: [0, -6],
+            opacity: 1, className: 'leaflet-pipe-tooltip',
+        });
+        line.on('mouseover', function () {
+            outline.setStyle({ opacity: 1 });
+            this.bringToFront();
+        });
+        line.on('mouseout', function () {
+            if (!outline._selected) outline.setStyle({ opacity: 0 });
+        });
+        line.on('popupopen', function () {
+            outline._selected = true;
+            outline.setStyle({ opacity: 1 });
+            this.bringToFront();
+        });
+        line.on('popupclose', function () {
+            outline._selected = false;
+            outline.setStyle({ opacity: 0 });
+        });
         line.addTo(layer);
     });
+}
+
+// ─── Zoom-responsive manhole radius ─────────────────────────────────────
+function manholeRadius() {
+    const z = map.getZoom();
+    if (z <= 12) return 2;
+    if (z === 13) return 3;
+    if (z === 14) return 4;
+    if (z === 15) return 5;
+    if (z === 16) return 6;
+    if (z === 17) return 7;
+    return 8; // zoom ≥ 18
+}
+
+function manholeWeight() {
+    const z = map.getZoom();
+    if (z <= 12) return 0.5;
+    if (z === 13) return 0.8;
+    if (z === 14) return 1;
+    if (z === 15) return 1.5;
+    if (z === 16) return 2;
+    if (z === 17) return 2.5;
+    return 3; // zoom ≥ 18
 }
 
 function drawManholeFeature(feature, layer) {
@@ -199,16 +299,32 @@ function drawManholeFeature(feature, layer) {
     const [lng, lat] = geom.coordinates;
 
     const marker = L.circleMarker([lat, lng], {
-        radius: 7, fillColor: color,
-        color: '#ffffff', weight: 2.5,
+        radius: manholeRadius(), fillColor: color,
+        color: '#ffffff', weight: manholeWeight(),
         opacity: 1, fillOpacity: 0.9,
     })
-    .bindTooltip(
-        `<b>${p.kode_manhole || '—'}</b><br><span style="font-size:11px;">${p.kecamatan || p.desa || ''}</span>`,
-        { direction: 'top', offset: [0, -8] }
-    )
-    .bindPopup(buildManholePopup(p), { maxWidth: 290, minWidth: 270 })
-    .addTo(layer);
+    .bindTooltip(buildManholeTooltip(p), {
+        sticky: true, direction: 'top', offset: [0, -10],
+        opacity: 1, className: 'leaflet-manhole-tooltip',
+    })
+    .bindPopup(buildManholePopup(p), { maxWidth: 290, minWidth: 270 });
+    marker.on('mouseover', function () {
+        this.setStyle({ color: '#000000', weight: 4.5 });
+        this.bringToFront();
+    });
+    marker.on('mouseout', function () {
+        if (!this._selected) this.setStyle({ color: '#ffffff', weight: manholeWeight() });
+    });
+    marker.on('popupopen', function () {
+        this._selected = true;
+        this.setStyle({ color: '#000000', weight: 4.5 });
+        this.bringToFront();
+    });
+    marker.on('popupclose', function () {
+        this._selected = false;
+        this.setStyle({ color: '#ffffff', weight: manholeWeight() });
+    });
+    marker.addTo(layer);
     if (p.kode_manhole) manholeLayerMap[p.kode_manhole] = marker;
 }
 
@@ -532,6 +648,21 @@ document.getElementById('search-btn').addEventListener('click', handleSearch);
 document.addEventListener('click', e => {
     const container = document.getElementById('search-bar-container');
     if (container && !container.contains(e.target)) hideSuggestions();
+});
+
+// ─── Resize manhole markers on zoom ─────────────────────────────────────
+map.on('zoomend', function () {
+    const r = manholeRadius();
+    const w = manholeWeight();
+    manholeLayer.eachLayer(layer => {
+        if (layer instanceof L.CircleMarker) {
+            layer.setRadius(r);
+            // Only update weight when not hovered (avoid overriding black border)
+            if (layer.options.color !== '#000000') {
+                layer.setStyle({ weight: w });
+            }
+        }
+    });
 });
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────
