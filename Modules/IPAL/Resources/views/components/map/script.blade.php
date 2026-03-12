@@ -136,7 +136,14 @@ function buildPipeCoordSets(geometry) {
 }
 
 // ─── Popup HTML builders ──────────────────────────────────────────────────
-const LAPOR_BTN = `<button onclick="return false;" style="width:100%;padding:9px;background:#FFE2E2;color:#9F0712;border:none;border-radius:8px;font-size:13px;font-weight:400;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Lapor Masalah</button>`;
+function buildLaporBtn(type, id, kode, coord, wilayah) {
+    const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
+        + '&id=' + encodeURIComponent(id || '')
+        + '&kode=' + encodeURIComponent(kode || '')
+        + '&coord=' + encodeURIComponent(coord || '')
+        + '&wilayah=' + encodeURIComponent(wilayah || '');
+    return `<a href="${url}" style="width:100%;padding:9px;background:#FFE2E2;color:#9F0712;border:none;border-radius:8px;font-size:13px;font-weight:400;cursor:pointer;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:6px;text-decoration:none;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Lapor Masalah</a>`;
+}
 
 function buildPipePopup(p, coordStr) {
     const status = (p.status || '').toLowerCase();
@@ -156,13 +163,14 @@ function buildPipePopup(p, coordStr) {
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Koordinat</div><div style="font-size:11px;color:#64748b;">${coordStr}</div></div>
             </div>
             <div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Wilayah</div><div style="font-weight:500;color:#334155;">${p.wilayah || '—'}</div></div>
-            ${LAPOR_BTN}
+            ${buildLaporBtn('pipa', p.id, p.kode_pipa, coordStr, p.wilayah)}
         </div>
     </div>`;
 }
 
-function buildManholePopup(p) {
-    const status = (p.status || '').toLowerCase();
+function buildManholePopup(p, lat, lng) {
+    const status   = (p.status || '').toLowerCase();
+    const coordStr = (lat != null && lng != null) ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}` : '—';
     return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:250px;">
         <div style="background:#f8fafc;padding:20px 16px 14px;border-bottom:1px solid #e2e8f0;">
             <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
@@ -178,7 +186,7 @@ function buildManholePopup(p) {
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Desa</div><div style="font-weight:500;color:#334155;">${p.desa || '—'}</div></div>
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Kecamatan</div><div style="font-weight:500;color:#334155;">${p.kecamatan || '—'}</div></div>
             </div>
-            ${LAPOR_BTN}
+            ${buildLaporBtn('manhole', p.id, p.kode_manhole, coordStr, p.wilayah)}
         </div>
     </div>`;
 }
@@ -307,7 +315,7 @@ function drawManholeFeature(feature, layer) {
         sticky: true, direction: 'top', offset: [0, -10],
         opacity: 1, className: 'leaflet-manhole-tooltip',
     })
-    .bindPopup(buildManholePopup(p), { maxWidth: 290, minWidth: 270 });
+    .bindPopup(buildManholePopup(p, lat, lng), { maxWidth: 290, minWidth: 270 });
     marker.on('mouseover', function () {
         this.setStyle({ color: '#000000', weight: 4.5 });
         this.bringToFront();
