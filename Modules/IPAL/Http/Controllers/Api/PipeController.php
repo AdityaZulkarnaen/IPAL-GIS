@@ -36,12 +36,17 @@ class PipeController extends Controller
             $query->where('material', $request->material);
         }
 
+        if ($request->filled('wilayah')) {
+            $query->where('wilayah', 'like', '%' . $request->wilayah . '%');
+        }
+
         if ($request->filled('search')) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->where('kode_pipa', 'like', '%' . $search . '%')
                   ->orWhere('id_jalur', 'like', '%' . $search . '%')
-                  ->orWhere('fungsi', 'like', '%' . $search . '%');
+                  ->orWhere('fungsi', 'like', '%' . $search . '%')
+                  ->orWhere('wilayah', 'like', '%' . $search . '%');
             });
         }
 
@@ -169,6 +174,10 @@ class PipeController extends Controller
             $query->where('status', $request->status);
         }
 
+        if ($request->filled('wilayah')) {
+            $query->where('wilayah', 'like', '%' . $request->wilayah . '%');
+        }
+
         $pipes = $query->get();
 
         $features = $pipes->map(function ($pipe) {
@@ -207,6 +216,7 @@ class PipeController extends Controller
                 'tahun' => IpalJaringanPipa::distinct()->whereNotNull('tahun')->orderBy('tahun')->pluck('tahun'),
                 'status' => IpalJaringanPipa::distinct()->whereNotNull('status')->pluck('status'),
                 'material' => IpalJaringanPipa::distinct()->whereNotNull('material')->pluck('material'),
+                'wilayah' => IpalJaringanPipa::distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
             ],
         ]);
     }

@@ -160,7 +160,7 @@ class GeoJsonImportService
                     'klasifikasi' => $props['Klasifikas'] ?? null,
                     'pengendali' => $props['Pengendali'] ?? null,
                     'sektor' => $this->intOrNull($props['Sektor'] ?? null),
-                    'status' => $props['STATUS'] ?? 'aman',
+                    'status' => strtolower($props['STATUS'] ?? 'aman'),
                     'wilayah' => $props['KECAMATAN'] ?? null,
                 ]
             );
@@ -200,7 +200,7 @@ class GeoJsonImportService
                     'upload_id' => $upload->id,
                     'id_jalur' => $idJalur,
                     'pipe_dia' => $this->numericOrNull($props['PIPE_DIA'] ?? null),
-                    'fungsi' => $props['FUNGSI'] ?? null,
+                    'fungsi' => isset($props['FUNGSI']) ? ucfirst(strtolower($props['FUNGSI'])) : null,
                     'length_km' => $this->numericOrNull($props['LENGTH_KM'] ?? null),
                     'tahun' => $this->intOrNull($props['YEAR'] ?? null),
                     'source' => $props['SOURCE'] ?? null,

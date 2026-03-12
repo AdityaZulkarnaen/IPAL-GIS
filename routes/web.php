@@ -45,6 +45,9 @@ Route::post('/resend-wa', [WaGatewayController::class, 'resend_wa'])->name('rese
 Route::get('/', [LandingController::class, 'index'])->name('home');
 Route::get('lacak/{kode_sampel}', [LandingController::class, 'lacak']);
 
+/** Form aduan publik (IPAL)*/
+Route::get('/aduan-form', [\App\Http\Controllers\IpalAduanPublicController::class, 'index'])->name('aduan.form.public');
+
 //dashboard
 Route::resource('dashboard', DashboardController::class)->middleware(['checkRole:Super Admin,Admin,Pengguna', 'auth', 'verified']);
 Route::resource('ekspor', EksporController::class)->middleware(['checkRole:Super Admin,Admin', 'auth', 'verified']);

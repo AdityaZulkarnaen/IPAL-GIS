@@ -3,6 +3,7 @@
 namespace Modules\IPAL\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class IpalManhole extends Model
 {
@@ -74,5 +75,10 @@ class IpalManhole extends Model
     public function logs()
     {
         return $this->hasMany(IpalManholeLog::class, 'manhole_id');
+    }
+
+    public function aduan(): HasMany
+    {
+        return $this->hasMany(Aduan::class, 'manhole_id');
     }
 }

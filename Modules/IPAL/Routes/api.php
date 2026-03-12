@@ -12,6 +12,23 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+/** Statistics endpoint — public read access */
+Route::get('/statistics', [\Modules\IPAL\Http\Controllers\Api\StatisticsController::class, 'index'])->name('statistics.index');
+
+/** Manhole endpoints — public read access */
+Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
+Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
+Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['index', 'show']);
+
+/** Pipe endpoints — public read access */
+Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'filters'])->name('pipes.filters');
+Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
+Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show']);
+
+/** Aduan submission — public access */
+Route::get('/aduan/captcha', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'captcha'])->name('aduan.captcha');
+Route::post('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'store'])->middleware('throttle:aduan-submission')->name('aduan.store');
+
 Route::middleware('auth:sanctum')->group(function () {
 
     /** Upload endpoints */
@@ -20,13 +37,14 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('/upload', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'store'])->name('uploads.store');
     Route::delete('/uploads/{id}', [\Modules\IPAL\Http\Controllers\Api\UploadController::class, 'destroy'])->name('uploads.destroy');
 
-    /** Manhole endpoints */
-    Route::get('/manholes/filters', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'filters'])->name('manholes.filters');
-    Route::get('/manholes/geojson', [\Modules\IPAL\Http\Controllers\Api\ManholeController::class, 'geojson'])->name('manholes.geojson');
-    Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['index', 'show', 'update']);
+    /** Manhole update — protected write access */
+    Route::apiResource('manholes', \Modules\IPAL\Http\Controllers\Api\ManholeController::class)->only(['update']);
 
-    /** Pipe endpoints */
-    Route::get('/pipes/filters', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'filters'])->name('pipes.filters');
-    Route::get('/pipes/geojson', [\Modules\IPAL\Http\Controllers\Api\PipeController::class, 'geojson'])->name('pipes.geojson');
-    Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['index', 'show', 'update']);
+    /** Pipe update — protected write access */
+    Route::apiResource('pipes', \Modules\IPAL\Http\Controllers\Api\PipeController::class)->only(['update']);
+
+    /** Aduan management — admin access */
+    Route::get('/aduan', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'index'])->name('aduan.index');
+    Route::get('/aduan/{id}', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'show'])->name('aduan.show');
+    Route::put('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\Api\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
 });
