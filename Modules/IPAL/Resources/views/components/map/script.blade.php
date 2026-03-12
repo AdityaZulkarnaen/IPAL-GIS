@@ -54,10 +54,10 @@ const API_PIPES_FILTERS  = API_BASE + '/pipes/filters';
 const API_STATISTICS     = API_BASE + '/statistics';
 const CACHE_TTL          = 5 * 60 * 1000; // 5 minutes
 
-const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444' };
-const LABEL      = { aman:'AMAN',    perbaikan:'PERBAIKAN', masalah:'MASALAH' };
-const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2' };
-const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626' };
+const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
+const LABEL      = { aman:'AMAN',    perbaikan:'PERBAIKAN', masalah:'MASALAH', rusak:'RUSAK', 'dalam perbaikan':'PERBAIKAN' };
+const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
+const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
 
 // ─── In-memory cache ──────────────────────────────────────────────────────
 const _cache = new Map();
@@ -136,7 +136,13 @@ function buildPipeCoordSets(geometry) {
 }
 
 // ─── Popup HTML builders ──────────────────────────────────────────────────
-function buildLaporBtn(type, id, kode, coord, wilayah) {
+function buildLaporBtn(type, id, kode, coord, wilayah, status) {
+    if (status === 'rusak' || status === 'masalah') {
+        return `<div style="width:100%;padding:9px;background:#fee2e2;color:#dc2626;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>Aset Rusak – Sudah Dilaporkan</div>`;
+    }
+    if (status === 'dalam perbaikan' || status === 'perbaikan') {
+        return `<div style="width:100%;padding:9px;background:#fef3c7;color:#a16207;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M11.42 15.17 17.25 21A2.652 2.652 0 0 0 21 17.25l-5.877-5.877M11.42 15.17l2.496-3.03c.317-.384.74-.626 1.208-.766M11.42 15.17l-4.655 5.653a2.548 2.548 0 1 1-3.586-3.586l5.654-4.654m5.292-8.317.086.072 3.3 3.3a.612.612 0 0 1 0 .866l-3.088 3.088-3.3-3.3a.612.612 0 0 1 0-.866l3.088-3.088.086-.072ZM7.5 5.25c0-.966.784-1.75 1.75-1.75a1.75 1.75 0 0 1 0 3.5c-.966 0-1.75-.784-1.75-1.75Z"/></svg>Sedang Dalam Perbaikan</div>`;
+    }
     const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
         + '&id=' + encodeURIComponent(id || '')
         + '&kode=' + encodeURIComponent(kode || '')
@@ -163,7 +169,7 @@ function buildPipePopup(p, coordStr) {
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Koordinat</div><div style="font-size:11px;color:#64748b;">${coordStr}</div></div>
             </div>
             <div style="margin-bottom:14px;"><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Wilayah</div><div style="font-weight:500;color:#334155;">${p.wilayah || '—'}</div></div>
-            ${buildLaporBtn('pipa', p.id, p.kode_pipa, coordStr, p.wilayah)}
+            ${buildLaporBtn('pipa', p.id, p.kode_pipa, coordStr, p.wilayah, status)}
         </div>
     </div>`;
 }
@@ -186,7 +192,7 @@ function buildManholePopup(p, lat, lng) {
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Desa</div><div style="font-weight:500;color:#334155;">${p.desa || '—'}</div></div>
                 <div><div style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;margin-bottom:3px;">Kecamatan</div><div style="font-weight:500;color:#334155;">${p.kecamatan || '—'}</div></div>
             </div>
-            ${buildLaporBtn('manhole', p.id, p.kode_manhole, coordStr, p.wilayah)}
+            ${buildLaporBtn('manhole', p.id, p.kode_manhole, coordStr, p.wilayah, status)}
         </div>
     </div>`;
 }
@@ -427,7 +433,7 @@ async function loadStats() {
 }
 
 // ─── Current active filters ───────────────────────────────────────────────
-const activeStatuses = new Set(['aman', 'perbaikan', 'masalah']);
+const activeStatuses = new Set(['aman', 'perbaikan', 'masalah', 'rusak', 'dalam perbaikan']);
 let activeFungsi  = '';
 
 function buildPipeFilters() {

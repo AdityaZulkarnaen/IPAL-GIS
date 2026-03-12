@@ -13,10 +13,10 @@
     const MAX_FOTO   = {{ config('ipal.aduan_max_foto', 5) }};
     const DRAFT_KEY  = 'ipal_lapor_draft';
 
-    const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444' };
-    const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2' };
-    const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626' };
-    const LABEL      = { aman:'AMAN',      perbaikan:'PERBAIKAN', masalah:'MASALAH' };
+    const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
+    const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
+    const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
+    const LABEL      = { aman:'AMAN',      perbaikan:'PERBAIKAN', masalah:'MASALAH', rusak:'RUSAK', 'dalam perbaikan':'PERBAIKAN' };
 
     /* ── Draft helpers (localStorage) ──────────────────────── */
     function getDraft() {
