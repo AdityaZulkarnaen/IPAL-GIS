@@ -86,6 +86,10 @@ const manholeLayer = L.layerGroup().addTo(map);
 let currentPipeFeatures    = [];
 let currentManholeFeatures = [];
 
+// ─── Layer lookup maps (kode → Leaflet layer, for popup-on-select) ────────
+const pipeLayerMap    = {};
+const manholeLayerMap = {};
+
 // ─── Loading overlay helper ───────────────────────────────────────────────
 function setLoading(active) {
     const el = document.getElementById('map-loading');
@@ -177,7 +181,10 @@ function drawPipeFeature(feature, layer) {
             color, weight: 5, opacity: 0.88,
             lineCap: 'round', lineJoin: 'round',
         });
-        if (idx === 0) line.bindPopup(buildPipePopup(p, coordStr), { maxWidth: 300, minWidth: 280 });
+        if (idx === 0) {
+            line.bindPopup(buildPipePopup(p, coordStr), { maxWidth: 300, minWidth: 280 });
+            if (p.kode_pipa) pipeLayerMap[p.kode_pipa] = line;
+        }
         line.addTo(layer);
     });
 }
@@ -191,7 +198,7 @@ function drawManholeFeature(feature, layer) {
     if (!geom || geom.type !== 'Point') return;
     const [lng, lat] = geom.coordinates;
 
-    L.circleMarker([lat, lng], {
+    const marker = L.circleMarker([lat, lng], {
         radius: 7, fillColor: color,
         color: '#ffffff', weight: 2.5,
         opacity: 1, fillOpacity: 0.9,
@@ -202,11 +209,13 @@ function drawManholeFeature(feature, layer) {
     )
     .bindPopup(buildManholePopup(p), { maxWidth: 290, minWidth: 270 })
     .addTo(layer);
+    if (p.kode_manhole) manholeLayerMap[p.kode_manhole] = marker;
 }
 
 // ─── Render pipes from GeoJSON FeatureCollection ──────────────────────────
 function renderPipes(geojson) {
     pipeLayer.clearLayers();
+    Object.keys(pipeLayerMap).forEach(k => delete pipeLayerMap[k]);
     currentPipeFeatures = geojson.features || [];
     currentPipeFeatures.forEach(f => drawPipeFeature(f, pipeLayer));
 }
@@ -214,6 +223,7 @@ function renderPipes(geojson) {
 // ─── Render manholes from GeoJSON FeatureCollection ───────────────────────
 function renderManholes(geojson) {
     manholeLayer.clearLayers();
+    Object.keys(manholeLayerMap).forEach(k => delete manholeLayerMap[k]);
     currentManholeFeatures = geojson.features || [];
     currentManholeFeatures.forEach(f => drawManholeFeature(f, manholeLayer));
 }
@@ -332,52 +342,196 @@ document.getElementById('filter-jenis').addEventListener('change', function () {
     loadPipes(buildPipeFilters());
 });
 
-// ─── Search ───────────────────────────────────────────────────────────────
-function handleSearch() {
-    const q = document.getElementById('search-input').value.trim().toLowerCase();
-    if (!q) return;
+// ─── Search & Suggestions ────────────────────────────────────────────────
+function debounce(fn, delay) {
+    let timer;
+    return function (...args) {
+        clearTimeout(timer);
+        timer = setTimeout(() => fn.apply(this, args), delay);
+    };
+}
 
-    // Search in pipes
+// Icon SVGs for suggestion items
+const ICON_PIPE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#13C8EC" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><path d="M3 6h18M3 18h18M6 6v12M18 6v12"/></svg>`;
+const ICON_MANHOLE = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6366f1" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="4"/></svg>`;
+
+function buildSuggestions(q) {
+    if (!q || q.length < 2) return [];
+    const results = [];
+    const lower = q.toLowerCase();
+
     for (const feature of currentPipeFeatures) {
         const p = feature.properties || {};
-        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi, p.wilayah]
+        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi]
+            .filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(lower)) continue;
+
+        const coordSets = buildPipeCoordSets(feature.geometry);
+        if (!coordSets.length) continue;
+        const firstSet = coordSets[0];
+        const mid = firstSet[Math.floor(firstSet.length / 2)];
+
+        results.push({
+            type: 'pipe',
+            label: p.kode_pipa || p.id_jalur || '—',
+            sublabel: [p.fungsi, p.status ? p.status.toUpperCase() : null].filter(Boolean).join(' · '),
+            latlng: mid,
+            zoom: 17,
+            key: p.kode_pipa,
+        });
+    }
+
+    for (const feature of currentManholeFeatures) {
+        const p = feature.properties || {};
+        const haystack = [p.kode_manhole, p.desa, p.kecamatan]
+            .filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(lower)) continue;
+
+        const geom = feature.geometry;
+        if (!geom || geom.type !== 'Point') continue;
+        const [lng, lat] = geom.coordinates;
+
+        results.push({
+            type: 'manhole',
+            label: p.kode_manhole || '—',
+            sublabel: [p.desa, p.kecamatan].filter(Boolean).join(', '),
+            latlng: [lat, lng],
+            zoom: 18,
+            key: p.kode_manhole,
+        });
+    }
+
+    return results;
+}
+
+function hideSuggestions() {
+    const el = document.getElementById('search-suggestions');
+    if (el) el.style.display = 'none';
+}
+
+function renderSuggestions(results, query) {
+    const el = document.getElementById('search-suggestions');
+    if (!el) return;
+
+    if (!results.length) {
+        el.innerHTML = `<div style="padding:14px 16px;font-size:13px;color:#94a3b8;text-align:center;">Tidak menemukan hasil berdasarkan pencarian Anda.</div>`;
+        el.style.display = 'block';
+        return;
+    }
+
+    el.innerHTML = results.map((r, i) => {
+        const icon = r.type === 'pipe' ? ICON_PIPE : ICON_MANHOLE;
+        const borderTop = i > 0 ? 'border-top:1px solid #f1f5f9;' : '';
+        return `<div class="search-suggestion-item" data-index="${i}"
+            style="display:flex;align-items:center;gap:10px;padding:10px 14px;cursor:pointer;transition:background .12s;${borderTop}">
+            ${icon}
+            <div style="min-width:0;">
+                <div style="font-size:13px;font-weight:600;color:#1e293b;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${r.label}</div>
+                ${r.sublabel ? `<div style="font-size:11px;color:#94a3b8;margin-top:1px;">${r.sublabel}</div>` : ''}
+            </div>
+            <div style="margin-left:auto;font-size:10px;font-weight:700;padding:3px 7px;border-radius:5px;background:${r.type === 'pipe' ? '#e0f9ff' : '#ede9fe'};color:${r.type === 'pipe' ? '#0e7490' : '#6d28d9'}">${r.type === 'pipe' ? 'PIPA' : 'MANHOLE'}</div>
+        </div>`;
+    }).join('');
+
+    // Hover styles via JS (no stylesheet dependency)
+    el.querySelectorAll('.search-suggestion-item').forEach((item, i) => {
+        item.addEventListener('mouseenter', () => item.style.background = '#f8fafc');
+        item.addEventListener('mouseleave', () => item.style.background = '');
+        item.addEventListener('mousedown', e => {
+            e.preventDefault(); // prevent input blur before click fires
+            selectSuggestion(results[i]);
+        });
+    });
+
+    el.style.display = 'block';
+}
+
+function selectSuggestion(result) {
+    const input = document.getElementById('search-input');
+    if (input) input.value = result.label;
+    hideSuggestions();
+
+    const openPopup = () => {
+        const layer = result.type === 'pipe'
+            ? pipeLayerMap[result.key]
+            : manholeLayerMap[result.key];
+        if (layer) {
+            layer.openPopup();
+        }
+    };
+
+    map.flyTo(result.latlng, result.zoom, { duration: 1.2 });
+    map.once('moveend', openPopup);
+}
+
+function handleSearch() {
+    const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
+    hideSuggestions();
+    if (!q) return;
+
+    // Try exact/first match in pipes
+    for (const feature of currentPipeFeatures) {
+        const p = feature.properties || {};
+        const haystack = [p.kode_pipa, p.id_jalur, p.fungsi]
             .filter(Boolean).join(' ').toLowerCase();
         if (haystack.includes(q)) {
             const coordSets = buildPipeCoordSets(feature.geometry);
             if (coordSets.length) {
                 const firstSet = coordSets[0];
                 const mid = firstSet[Math.floor(firstSet.length / 2)];
-                map.flyTo(mid, 16, { duration: 1.2 });
+                selectSuggestion({ type: 'pipe', label: p.kode_pipa, latlng: mid, zoom: 17, key: p.kode_pipa });
                 return;
             }
         }
     }
 
-    // Search in manholes
+    // Try manholes
     for (const feature of currentManholeFeatures) {
         const p = feature.properties || {};
-        const haystack = [p.kode_manhole, p.desa, p.kecamatan, p.wilayah]
+        const haystack = [p.kode_manhole, p.desa, p.kecamatan]
             .filter(Boolean).join(' ').toLowerCase();
         if (haystack.includes(q)) {
             const geom = feature.geometry;
             if (geom && geom.type === 'Point') {
                 const [lng, lat] = geom.coordinates;
-                map.flyTo([lat, lng], 17, { duration: 1.2 });
+                selectSuggestion({ type: 'manhole', label: p.kode_manhole, latlng: [lat, lng], zoom: 18, key: p.kode_manhole });
                 return;
             }
         }
     }
 
     // Coordinate fallback: "lat, lng"
-    const parts = q.split(',').map(p => parseFloat(p.trim()));
+    const parts = q.split(',').map(s => parseFloat(s.trim()));
     if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
         map.flyTo([parts[0], parts[1]], 16, { duration: 1.2 });
     }
 }
 
-document.getElementById('search-btn').addEventListener('click', handleSearch);
+// Debounced input handler
+const debouncedSuggest = debounce(function () {
+    const q = (document.getElementById('search-input').value || '').trim();
+    if (q.length < 2) { hideSuggestions(); return; }
+    renderSuggestions(buildSuggestions(q), q);
+}, 300);
+
+document.getElementById('search-input').addEventListener('input', debouncedSuggest);
+
 document.getElementById('search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') handleSearch();
+    if (e.key === 'Enter')  { handleSearch(); }
+    if (e.key === 'Escape') { hideSuggestions(); }
+});
+
+document.getElementById('search-input').addEventListener('blur', () => {
+    // Slight delay so mousedown on suggestion fires first
+    setTimeout(hideSuggestions, 150);
+});
+
+document.getElementById('search-btn').addEventListener('click', handleSearch);
+
+// Close suggestions when clicking anywhere outside the container
+document.addEventListener('click', e => {
+    const container = document.getElementById('search-bar-container');
+    if (container && !container.contains(e.target)) hideSuggestions();
 });
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────
