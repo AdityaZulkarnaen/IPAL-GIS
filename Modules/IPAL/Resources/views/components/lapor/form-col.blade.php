@@ -29,6 +29,29 @@
         </div>
     </div>
 
+    {{-- ── Draft restore banner (hidden by default) ── --}}
+    {{-- <div id="draft-banner"
+         style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;
+                padding:12px 16px;margin-bottom:16px;align-items:center;gap:10px;justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:10px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                 fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                 style="flex-shrink:0;">
+                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </svg>
+            <div>
+                <div style="font-weight:700;color:#92400e;font-size:12px;">Draft dipulihkan</div>
+                <div class="draft-time" style="font-size:11px;color:#b45309;"></div>
+            </div>
+        </div>
+        <button type="button" id="draft-discard"
+                onclick="(function(){localStorage.removeItem('ipal_lapor_draft');document.getElementById('draft-banner').style.display='none';document.getElementById('field-deskripsi').value='';})();"
+                style="font-size:11px;color:#b45309;background:none;border:1px solid #fcd34d;
+                       border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
+            Buang draft
+        </button>
+    </div> --}}
+
     {{-- ── Form card ── --}}
     <form id="lapor-form" autocomplete="off">
 

@@ -11,11 +11,34 @@
     const BASE_URL   = '{{ url('/') }}';
     const API_BASE   = BASE_URL + '/api/ipal';
     const MAX_FOTO   = {{ config('ipal.aduan_max_foto', 5) }};
+    const DRAFT_KEY  = 'ipal_lapor_draft';
 
     const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444' };
     const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2' };
     const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626' };
     const LABEL      = { aman:'AMAN',      perbaikan:'PERBAIKAN', masalah:'MASALAH' };
+
+    /* ── Draft helpers (localStorage) ──────────────────────── */
+    function getDraft() {
+        try { return JSON.parse(localStorage.getItem(DRAFT_KEY) || 'null'); }
+        catch { return null; }
+    }
+    function saveDraft(patch) {
+        try {
+            const d = getDraft() || {};
+            localStorage.setItem(DRAFT_KEY, JSON.stringify({ ...d, ...patch, savedAt: Date.now() }));
+        } catch (e) { /* quota exceeded */ }
+    }
+    function clearDraft() { localStorage.removeItem(DRAFT_KEY); }
+
+    function showDraftBanner(savedAt) {
+        const el = document.getElementById('draft-banner');
+        if (!el) return;
+        const diff    = savedAt ? Math.round((Date.now() - savedAt) / 60000) : -1;
+        const timeStr = diff < 1 ? 'baru saja' : diff < 60 ? `${diff} mnt lalu` : 'beberapa waktu lalu';
+        el.querySelector('.draft-time').textContent = savedAt ? `Terakhir disimpan ${timeStr}` : '';
+        el.style.display = 'flex';
+    }
 
     /* ── Parse URL params ───────────────────────────────────── */
     const params   = new URLSearchParams(window.location.search);
@@ -28,6 +51,22 @@
     /* ── Pre-fill fields immediately from URL params ────────── */
     if (aKode)  document.getElementById('field-id-ipal').value   = aKode;
     if (aCoord) document.getElementById('field-koordinat').value = aCoord;
+
+    /* ── Draft: restore deskripsi if returning to same asset ── */
+    if (aType && aId) {
+        const draft = getDraft();
+        if (draft && draft.type === aType && String(draft.id) === String(aId)) {
+            if (draft.deskripsi) {
+                document.getElementById('field-deskripsi').value = draft.deskripsi;
+            }
+            if (draft.deskripsi || draft.savedAt) {
+                showDraftBanner(draft.savedAt);
+            }
+        } else if (draft && (draft.type !== aType || String(draft.id) !== String(aId))) {
+            clearDraft();
+        }
+        saveDraft({ type: aType, id: aId, kode: aKode || '', coord: aCoord || '', wilayah: aWilayah });
+    }
 
     /* ── State ──────────────────────────────────────────────── */
     let pipaId    = null;
@@ -112,6 +151,18 @@
     /* ── Load asset and draw on mini-map ────────────────────── */
     async function loadAndRender() {
         if (!aType || !aId) {
+            const draft = getDraft();
+            if (draft && draft.type && draft.id) {
+                // Redirect to reopen the page with the saved asset params
+                const u = new URL(window.location.href);
+                u.searchParams.set('type',    draft.type);
+                u.searchParams.set('id',      draft.id);
+                u.searchParams.set('kode',    draft.kode    || '');
+                u.searchParams.set('coord',   draft.coord   || '');
+                u.searchParams.set('wilayah', draft.wilayah || '');
+                window.location.replace(u.toString());
+                return;
+            }
             setOverlay('Tidak ada aset dipilih', 'Klik "Lapor Masalah" dari peta utama');
             miniMap.setView([-7.757, 110.375], 13);
             return;
@@ -338,6 +389,7 @@
             const json = await res.json();
 
             if (res.ok && json.success) {
+                clearDraft();
                 const banner = document.getElementById('success-banner');
                 document.getElementById('nomor-tiket').textContent = json.data.nomor_tiket || '';
                 banner.style.display = 'flex';
@@ -360,6 +412,13 @@
             spinner.style.display = 'none';
             label.textContent     = 'Kirim Laporan';
         }
+    });
+
+    /* ── Auto-save deskripsi to draft ──────────────────────── */
+    let _draftTimer = null;
+    document.getElementById('field-deskripsi').addEventListener('input', function () {
+        clearTimeout(_draftTimer);
+        _draftTimer = setTimeout(() => saveDraft({ deskripsi: this.value.trim() }), 800);
     });
 
     /* ── Drag-and-drop on the dropzone ──────────────────────── */
