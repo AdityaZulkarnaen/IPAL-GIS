@@ -29,28 +29,6 @@
         </div>
     </div>
 
-    {{-- ── Draft restore banner (hidden by default) ── --}}
-    {{-- <div id="draft-banner"
-         style="display:none;background:#fffbeb;border:1px solid #fde68a;border-radius:12px;
-                padding:12px 16px;margin-bottom:16px;align-items:center;gap:10px;justify-content:space-between;">
-        <div style="display:flex;align-items:center;gap:10px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
-                 fill="none" stroke="#d97706" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
-                 style="flex-shrink:0;">
-                <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
-            </svg>
-            <div>
-                <div style="font-weight:700;color:#92400e;font-size:12px;">Draft dipulihkan</div>
-                <div class="draft-time" style="font-size:11px;color:#b45309;"></div>
-            </div>
-        </div>
-        <button type="button" id="draft-discard"
-                onclick="(function(){localStorage.removeItem('ipal_lapor_draft');document.getElementById('draft-banner').style.display='none';document.getElementById('field-deskripsi').value='';})();"
-                style="font-size:11px;color:#b45309;background:none;border:1px solid #fcd34d;
-                       border-radius:6px;padding:3px 9px;cursor:pointer;white-space:nowrap;flex-shrink:0;">
-            Buang draft
-        </button>
-    </div> --}}
 
     {{-- ── Form card ── --}}
     <form id="lapor-form" autocomplete="off">
@@ -119,6 +97,67 @@
                    multiple style="display:none;" onchange="handleFotoChange(this)" />
             <div id="foto-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
         </div>
+
+        @if(config('ipal.aduan_captcha_enabled'))
+        {{-- ── Captcha ── --}}
+        <div style="margin-bottom:18px;">
+            <label class="lapor-label">Verifikasi</label>
+            <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:14px 16px;">
+
+                {{-- Loading state --}}
+                <div id="captcha-loading"
+                     style="display:flex;align-items:center;gap:10px;color:#94a3b8;font-size:13px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" style="animation:spin .8s linear infinite;flex-shrink:0;">
+                        <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                    </svg>
+                    Memuat soal verifikasi…
+                </div>
+
+                {{-- Question row --}}
+                <div id="captcha-ready"
+                     style="display:none;align-items:center;gap:10px;flex-wrap:wrap;">
+                    <span style="font-size:13px;color:#475569;">Berapa hasil dari</span>
+                    <span id="captcha-question"
+                          style="font-size:18px;font-weight:800;color:#0f172a;font-family:monospace;
+                                 background:#fff;border:1px solid #e2e8f0;border-radius:8px;
+                                 padding:4px 14px;letter-spacing:1px;"></span>
+                    <span style="font-size:16px;color:#475569;font-weight:700;">= ?</span>
+                    <input id="field-captcha-answer" type="number" inputmode="numeric"
+                           min="0" max="99" placeholder="jawaban"
+                           style="width:90px;padding:7px 12px;border:1.5px solid #e2e8f0;
+                                  border-radius:8px;font-size:15px;font-weight:700;text-align:center;
+                                  color:#0f172a;outline:none;-moz-appearance:textfield;background:#fff;" />
+                    <button type="button" id="captcha-refresh" title="Ganti soal"
+                            style="padding:6px 10px;background:none;border:1px solid #e2e8f0;
+                                   border-radius:7px;cursor:pointer;color:#64748b;display:flex;
+                                   align-items:center;gap:5px;font-size:12px;line-height:1;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                             fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                             stroke-linejoin="round">
+                            <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/>
+                            <path d="M21 3v5h-5"/>
+                            <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/>
+                            <path d="M8 16H3v5"/>
+                        </svg>
+                        Ganti
+                    </button>
+                </div>
+
+                <div id="captcha-error"
+                     style="display:none;font-size:12px;color:#dc2626;margin-top:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24"
+                         fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"
+                         stroke-linejoin="round" style="vertical-align:middle;margin-right:3px;">
+                        <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+                        <line x1="12" y1="16" x2="12.01" y2="16"/>
+                    </svg>
+                    <span id="captcha-error-text"></span>
+                </div>
+            </div>
+        </div>
+        @endif
 
         {{-- Global error --}}
         <div id="global-error"

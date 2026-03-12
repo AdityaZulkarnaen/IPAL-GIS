@@ -69,10 +69,11 @@
     }
 
     /* ── State ──────────────────────────────────────────────── */
-    let pipaId    = null;
-    let manholeId = null;
-    let assetData = null;
+    let pipaId       = null;
+    let manholeId    = null;
+    let assetData    = null;
     let selectedFiles = [];
+    let captchaToken  = null;
 
     /* ── Init mini-map ──────────────────────────────────────── */
     const miniMap = L.map('lapor-map', {
@@ -285,6 +286,42 @@
         document.getElementById('overlay-subtitle').textContent = subtitle;
     }
 
+    /* ── Captcha ────────────────────────────────────────────── */
+    async function loadCaptcha() {
+        const loading  = document.getElementById('captcha-loading');
+        const ready    = document.getElementById('captcha-ready');
+        const errDiv   = document.getElementById('captcha-error');
+        if (!loading) return;
+
+        loading.style.display = 'flex';
+        ready.style.display   = 'none';
+        if (errDiv) errDiv.style.display = 'none';
+        captchaToken = null;
+
+        try {
+            const res  = await fetch(`${API_BASE}/aduan/captcha`);
+            const json = await res.json();
+            if (!json.success) throw new Error('captcha fetch failed');
+
+            captchaToken = json.data.token;
+            document.getElementById('captcha-question').textContent = json.data.question;
+            document.getElementById('field-captcha-answer').value   = '';
+
+            loading.style.display = 'none';
+            ready.style.display   = 'flex';
+        } catch {
+            loading.style.display = 'none';
+            if (errDiv) {
+                document.getElementById('captcha-error-text').textContent =
+                    'Gagal memuat captcha. Klik "Ganti" untuk mencoba lagi.';
+                errDiv.style.display = 'block';
+            }
+        }
+    }
+
+    const _captchaRefresh = document.getElementById('captcha-refresh');
+    if (_captchaRefresh) _captchaRefresh.addEventListener('click', loadCaptcha);
+
     /* ── Photo handling ─────────────────────────────────────── */
     window.handleFotoChange = function (input) {
         const files = Array.from(input.files);
@@ -360,11 +397,33 @@
             return;
         }
 
+        // ── Captcha (only when widget is rendered) ──────────
+        const captchaAnswerEl = document.getElementById('field-captcha-answer');
+        const captchaErrDiv   = document.getElementById('captcha-error');
+        if (captchaAnswerEl) {
+            const answer = captchaAnswerEl.value.trim();
+            if (!answer) {
+                if (captchaErrDiv) {
+                    document.getElementById('captcha-error-text').textContent = 'Jawaban captcha wajib diisi.';
+                    captchaErrDiv.style.display = 'block';
+                }
+                captchaAnswerEl.focus();
+                return;
+            }
+            if (captchaErrDiv) captchaErrDiv.style.display = 'none';
+        }
+
         const formData = new FormData();
         if (pipaId)    formData.append('pipa_id',    pipaId);
         if (manholeId) formData.append('manhole_id', manholeId);
         formData.append('deskripsi', deskripsi);
         if (aCoord) formData.append('titik_koordinat', aCoord);
+
+        // Captcha fields
+        if (captchaToken && captchaAnswerEl) {
+            formData.append('captcha_token',  captchaToken);
+            formData.append('captcha_answer', captchaAnswerEl.value.trim());
+        }
 
         const fotoInput = document.getElementById('foto-input');
         Array.from(fotoInput.files).forEach((file, i) => {
@@ -397,6 +456,7 @@
                 document.getElementById('lapor-form').style.opacity      = '.45';
                 document.getElementById('lapor-form').style.pointerEvents = 'none';
             } else {
+                loadCaptcha(); // refresh soal setelah jawaban salah / error
                 const errors = json.data;
                 if (errors && typeof errors === 'object') {
                     showError(Object.values(errors).flat().join(' '));
@@ -436,6 +496,7 @@
     });
 
     /* ── Boot ───────────────────────────────────────────────── */
+    loadCaptcha();
     loadAndRender();
 
 })();
