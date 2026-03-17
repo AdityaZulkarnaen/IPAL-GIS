@@ -3,10 +3,170 @@
         margin-bottom: 50px;
         margin-right: 15px;
     }
+
+    .leaflet-bottom.leaflet-right .map-basemap-control {
+        margin-bottom: 112px;
+        margin-right: 15px;
+        box-shadow: none;
+        border: none;
+        background: transparent;
+    }
+
+    .map-basemap-wrap {
+        position: relative;
+        pointer-events: auto;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .map-basemap-btn {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #334155;
+        position: absolute;
+        right: -3px;
+        bottom: -105px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+    }
+ 
+
+    .map-basemap-btn:hover {
+        background: #f8fafc;
+    }
+
+    .map-basemap-btn:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+
+    .map-basemap-panel {
+        position: absolute;
+        right: 0;
+        bottom: -60px;
+        width: fit-content;
+        border: 1px solid #e2e8f0;
+        border-radius: 14px;
+        background: #ffffff;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.22);
+        padding: 10px;
+        display: none;
+    }
+
+    @media (max-width: 767px) {
+        .map-basemap-btn {
+            bottom: -167px;
+        }
+        .map-basemap-panel {
+            bottom: -122px;
+        }
+    }  
+
+    .map-basemap-panel.is-open {
+        display: block;
+        width: max-content;
+    }
+
+    .map-basemap-title {
+        font-size: 10px;
+        font-weight: 700;
+        color: #64748b;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 4px 6px 4px;
+    }
+
+    .map-basemap-option {
+        width: 100%;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 8px 9px;
+        margin-top: 6px;
+        cursor: pointer;
+        text-align: middle;
+        transition: all 0.16s ease;
+        display: block;
+    }
+
+    .map-basemap-option:hover {
+        border-color: #cbd5e1;
+        background: #f8fafc;
+    }
+
+    .map-basemap-option.is-active {
+        background: #f0f9ff;
+        border: 1px solid #38bdf8;
+    }
+
+    .map-basemap-option:disabled,
+    .map-basemap-option.is-disabled {
+        cursor: not-allowed;
+        opacity: 0.55;
+        background: #f8fafc;
+    }
+
+    .map-basemap-option-main {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .map-basemap-option-name {
+        font-size: 12px;
+        font-weight: 600;
+        color: #1e293b;
+    }
+
+    .map-basemap-option-tag {
+        font-size: 10px;
+        font-weight: 700;
+        color: #0284c7;
+        background: #e0f2fe;
+        border-radius: 999px;
+        padding: 1px 7px;
+        display: none;
+    }
+
+    .map-basemap-option.is-active .map-basemap-option-tag {
+        display: inline-flex;
+    }
+
+    .map-basemap-option-note {
+        margin-top: 3px;
+        font-size: 10px;
+        color: #64748b;
+        line-height: 1.3;
+    }
+
+    .map-basemap-status {
+        margin-top: 8px;
+        padding: 7px 8px;
+        border-radius: 8px;
+        font-size: 10px;
+        color: #0369a1;
+        background: #f0f9ff;
+        line-height: 1.35;
+    }
+
     @media (max-width: 767px) {
         .leaflet-bottom.leaflet-right .leaflet-control-zoom {
             margin-bottom: 110px;
             margin-right: 10px;
+        }
+
+        .leaflet-bottom.leaflet-right .map-basemap-control {
+            margin-bottom: 172px;
+            margin-right: 10px;
+        }
+
+        .map-basemap-panel {
+            width: min(220px, calc(100vw - 24px));
         }
     }
 
@@ -31,20 +191,218 @@
     }
 </style>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.3.0/maptiler-sdk.umd.js"></script>
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.3.0/maptiler-sdk.css" rel="stylesheet" />
+<script src="https://cdn.maptiler.com/leaflet-maptilersdk/v2.0.0/leaflet-maptilersdk.js"></script>
 <script>
 // ─── Map init ─────────────────────────────────────────────────────────────
 const map = L.map('map', {
-    center: [-7.757, 110.375],
+    center: [-7.757, 110.375], // Koordinat awal
     zoom: 13,
     zoomControl: false,
 });
 
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-    maxZoom: 19,
-}).addTo(map);
-
 L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+const BASEMAP_STORAGE_KEY = 'ipal.map.basemap';
+const BASEMAP_DEFAULT_ID = 'maptiler_custom_osm'; 
+
+// ─── Konfigurasi Provider ─────────────────────────────────────────────────
+const BASEMAP_PROVIDERS = {
+    osm: {
+        id: 'osm',
+        type: 'raster', 
+        label: 'Peta Detail',
+        note: 'Style OSM bawaan (lebih kontras).',
+        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        options: { maxZoom: 19 },
+        enabled: true,
+    },
+    maptiler_custom_osm: {
+        id: 'maptiler_custom_osm',
+        type: 'maptiler', 
+        label: 'Peta Simpel',
+        note: 'Tampilan bersih tanpa layer bangunan.',
+        styleId: '{{ env("VITE_MAPTILER_STYLE_ID") }}', 
+        apiKey: '{{ env("VITE_MAPTILER_API_KEY") }}',
+        enabled: true,
+    },
+};
+
+const basemapState = {
+    currentId: null,
+    currentLayer: null,
+    controlEl: null,
+    panelEl: null,
+    buttonEl: null,
+    statusEl: null,
+};
+
+function getProvider(id) {
+    return BASEMAP_PROVIDERS[id] || null;
+}
+
+function getPreferredBasemapId() {
+    const saved = localStorage.getItem(BASEMAP_STORAGE_KEY);
+    return getProvider(saved) ? saved : BASEMAP_DEFAULT_ID;
+}
+
+function savePreferredBasemapId(id) {
+    localStorage.setItem(BASEMAP_STORAGE_KEY, id);
+}
+
+function createTileLayerByProvider(provider) {
+    // Jika tipenya maptiler, gunakan plugin L.maptilerLayer (Vector)
+    if (provider.type === 'maptiler') {
+        return L.maptilerLayer({
+            apiKey: provider.apiKey,
+            style: provider.styleId
+        });
+    } 
+    // Jika tipenya raster biasa, gunakan L.tileLayer standar
+    else {
+        const url = provider.buildUrl ? provider.buildUrl() : provider.url;
+        if (!url) return null;
+        const opts = Object.assign({ attribution: provider.attribution || '', maxZoom: 19 }, provider.options || {});
+        return L.tileLayer(url, opts);
+    }
+}
+
+function updateBasemapUiState() {
+    if (!basemapState.panelEl) return;
+
+    basemapState.panelEl.querySelectorAll('[data-basemap-id]').forEach(el => {
+        const id = el.getAttribute('data-basemap-id');
+        const provider = getProvider(id);
+        const isActive = id === basemapState.currentId;
+        const isEnabled = provider && provider.enabled;
+        el.classList.toggle('is-active', isActive);
+        el.classList.toggle('is-disabled', !isEnabled);
+        el.disabled = !isEnabled;
+    });
+
+    if (basemapState.statusEl) {
+        const activeProvider = getProvider(basemapState.currentId);
+        basemapState.statusEl.textContent = activeProvider
+            ? 'Peta aktif: ' + activeProvider.label
+            : 'Peta aktif: tidak tersedia';
+    }
+}
+
+function closeBasemapPanel() {
+    if (!basemapState.panelEl) return;
+    basemapState.panelEl.classList.remove('is-open');
+    if (basemapState.buttonEl) basemapState.buttonEl.setAttribute('aria-expanded', 'false');
+}
+
+function toggleBasemapPanel() {
+    if (!basemapState.panelEl) return;
+    const isOpen = basemapState.panelEl.classList.toggle('is-open');
+    if (basemapState.buttonEl) basemapState.buttonEl.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+}
+
+function applyBasemap(providerId, persist = true) {
+    const provider = getProvider(providerId);
+    if (!provider || !provider.enabled) {
+        return false;
+    }
+
+    const nextLayer = createTileLayerByProvider(provider);
+    if (!nextLayer) return false;
+
+    if (basemapState.currentLayer) {
+        map.removeLayer(basemapState.currentLayer);
+    }
+
+    nextLayer.addTo(map);
+    basemapState.currentLayer = nextLayer;
+    basemapState.currentId = providerId;
+    if (persist) savePreferredBasemapId(providerId);
+    updateBasemapUiState();
+    return true;
+}
+
+function buildBasemapControl() {
+    const BasemapControl = L.Control.extend({
+        options: { position: 'bottomright' },
+        onAdd: function () {
+            const container = L.DomUtil.create('div', 'map-basemap-control leaflet-control');
+            const wrap = L.DomUtil.create('div', 'map-basemap-wrap', container);
+
+            wrap.innerHTML = `
+                <button type="button" class="map-basemap-btn" aria-label="Konfigurasi peta" aria-expanded="false">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M21 14L12 20L3 14M21 10L12 16L3 10L12 4L21 10Z" stroke="#1E293B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+                <div class="map-basemap-panel" role="dialog" aria-label="Pilih peta dasar">
+                    <div class="map-basemap-title">Konfigurasi Peta</div>
+                    ${Object.values(BASEMAP_PROVIDERS).map(provider => `
+                        <button type="button" class="map-basemap-option" data-basemap-id="${provider.id}">
+                            <div class="map-basemap-option-main">
+                                <span class="map-basemap-option-name">${provider.label}</span>
+                            </div>
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+
+            L.DomEvent.disableClickPropagation(container);
+            L.DomEvent.disableScrollPropagation(container);
+
+            basemapState.controlEl = container;
+            basemapState.buttonEl = wrap.querySelector('.map-basemap-btn');
+            basemapState.panelEl = wrap.querySelector('.map-basemap-panel');
+            // basemapState.statusEl = wrap.querySelector('.map-basemap-status');
+
+            basemapState.buttonEl.addEventListener('click', function () {
+                toggleBasemapPanel();
+            });
+
+            basemapState.panelEl.querySelectorAll('[data-basemap-id]').forEach(el => {
+                el.addEventListener('click', function () {
+                    const targetId = this.getAttribute('data-basemap-id');
+                    if (!applyBasemap(targetId, true)) {
+                        updateBasemapUiState();
+                    }
+                    closeBasemapPanel();
+                });
+            });
+
+            return container;
+        },
+    });
+
+    const control = new BasemapControl();
+    map.addControl(control);
+    updateBasemapUiState();
+}
+
+function setupBasemap() {
+    const requested = getPreferredBasemapId();
+    if (!applyBasemap(requested, false)) {
+        applyBasemap(BASEMAP_DEFAULT_ID, false);
+    }
+
+    savePreferredBasemapId(basemapState.currentId || BASEMAP_DEFAULT_ID);
+    buildBasemapControl();
+
+    map.on('click', closeBasemapPanel);
+
+    document.addEventListener('keydown', function (e) {
+        if (e.key === 'Escape') closeBasemapPanel();
+    });
+
+    document.addEventListener('click', function (e) {
+        if (!basemapState.controlEl) return;
+        if (!basemapState.controlEl.contains(e.target)) {
+            closeBasemapPanel();
+        }
+    });
+}
+
+setupBasemap();
 
 // ─── Constants ────────────────────────────────────────────────────────────
 const API_BASE          = '/api/ipal';
