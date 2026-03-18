@@ -27,7 +27,7 @@
         color: #334155;
         position: absolute;
         right: -3px;
-        bottom: -105px;
+        bottom: -60px;
         display: flex;
         align-items: center;
         justify-content: center;
@@ -48,7 +48,7 @@
     .map-basemap-panel {
         position: absolute;
         right: 0;
-        bottom: -60px;
+        bottom: -15px;
         width: fit-content;
         border: 1px solid #e2e8f0;
         border-radius: 14px;
@@ -60,12 +60,52 @@
 
     @media (max-width: 767px) {
         .map-basemap-btn {
-            bottom: -167px;
-        }
-        .map-basemap-panel {
             bottom: -122px;
         }
+        .map-basemap-panel {
+            bottom: -77px;
+        }
     }  
+
+    .map-geolocate-btn {
+        width: 38px;
+        height: 38px;
+        border: 1px solid #cbd5e1;
+        border-radius: 12px;
+        background: #ffffff;
+        color: #334155;
+        position: absolute;
+        right: -3px;
+        bottom: -105px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 8px 24px rgba(15, 23, 42, 0.15);
+    }
+
+    .map-geolocate-btn:hover {
+        background: #f8fafc;
+    }
+
+    .map-geolocate-btn:focus-visible {
+        outline: 2px solid #3b82f6;
+        outline-offset: 2px;
+    }
+
+    .map-geolocate-btn.is-loading {
+        cursor: wait;
+        opacity: 0.85;
+    }
+
+    .map-geolocate-btn.is-loading svg {
+        animation: map-geolocate-spin 0.9s linear infinite;
+    }
+
+    @keyframes map-geolocate-spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
 
     .map-basemap-panel.is-open {
         display: block;
@@ -168,6 +208,10 @@
         .map-basemap-panel {
             width: min(220px, calc(100vw - 24px));
         }
+
+        .map-geolocate-btn {
+            bottom: -167px;
+        }
     }
 
     /* Remove browser focus outline on clicked SVG paths (polylines, circles) */
@@ -206,6 +250,7 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 
 const BASEMAP_STORAGE_KEY = 'ipal.map.basemap';
 const BASEMAP_DEFAULT_ID = 'maptiler_custom_osm'; 
+const USER_LOCATION_ZOOM = 18;
 
 // ─── Konfigurasi Provider ─────────────────────────────────────────────────
 const BASEMAP_PROVIDERS = {
@@ -238,6 +283,86 @@ const basemapState = {
     buttonEl: null,
     statusEl: null,
 };
+
+const geolocateState = {
+    buttonEl: null,
+    marker: null,
+    accuracyCircle: null,
+    isLoading: false,
+};
+
+function setGeolocateLoading(isLoading) {
+    geolocateState.isLoading = isLoading;
+    if (!geolocateState.buttonEl) return;
+    geolocateState.buttonEl.classList.toggle('is-loading', isLoading);
+    geolocateState.buttonEl.disabled = isLoading;
+    geolocateState.buttonEl.setAttribute('aria-busy', isLoading ? 'true' : 'false');
+}
+
+function ensureUserLocationLayers(latlng, accuracyMeters) {
+    if (!geolocateState.marker) {
+        geolocateState.marker = L.circleMarker(latlng, {
+            radius: 7,
+            fillColor: '#2563eb',
+            color: '#ffffff',
+            weight: 2,
+            fillOpacity: 0.95,
+        }).addTo(map);
+    } else {
+        geolocateState.marker.setLatLng(latlng);
+    }
+
+    const accuracyRadius = Math.max(accuracyMeters || 0, 20);
+    if (!geolocateState.accuracyCircle) {
+        geolocateState.accuracyCircle = L.circle(latlng, {
+            radius: accuracyRadius,
+            color: '#2563eb',
+            weight: 1,
+            fillColor: '#3b82f6',
+            fillOpacity: 0.12,
+            interactive: false,
+        }).addTo(map);
+    } else {
+        geolocateState.accuracyCircle.setLatLng(latlng);
+        geolocateState.accuracyCircle.setRadius(accuracyRadius);
+    }
+}
+
+function getLocationErrorMessage(code) {
+    if (code === 1) return 'Izin lokasi ditolak. Mohon aktifkan izin lokasi di browser Anda.';
+    if (code === 2) return 'Lokasi tidak tersedia. Coba lagi di area dengan sinyal lebih baik.';
+    if (code === 3) return 'Waktu permintaan lokasi habis. Silakan coba lagi.';
+    return 'Gagal mengambil lokasi Anda.';
+}
+
+function locateUserAndFocusMap() {
+    if (geolocateState.isLoading) return;
+
+    if (!navigator.geolocation) {
+        alert('Browser Anda tidak mendukung fitur lokasi.');
+        return;
+    }
+
+    setGeolocateLoading(true);
+
+    navigator.geolocation.getCurrentPosition(
+        function (position) {
+            const latlng = [position.coords.latitude, position.coords.longitude];
+            ensureUserLocationLayers(latlng, position.coords.accuracy);
+            map.flyTo(latlng, USER_LOCATION_ZOOM, { duration: 1.1 });
+            setGeolocateLoading(false);
+        },
+        function (error) {
+            setGeolocateLoading(false);
+            alert(getLocationErrorMessage(error.code));
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 12000,
+            maximumAge: 0,
+        }
+    );
+}
 
 function getProvider(id) {
     return BASEMAP_PROVIDERS[id] || null;
@@ -336,6 +461,11 @@ function buildBasemapControl() {
                         <path d="M21 14L12 20L3 14M21 10L12 16L3 10L12 4L21 10Z" stroke="#1E293B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
                     </svg>
                 </button>
+                <button type="button" class="map-geolocate-btn" aria-label="Ambil lokasi saya" title="Lokasi saya">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M12 8C9.79 8 8 9.79 8 12C8 14.21 9.79 16 12 16C14.21 16 16 14.21 16 12C16 9.79 14.21 8 12 8ZM20.94 11C20.7135 8.97212 19.8042 7.08154 18.3613 5.63869C16.9185 4.19585 15.0279 3.28651 13 3.06V2C13 1.45 12.55 1 12 1C11.45 1 11 1.45 11 2V3.06C8.97212 3.28651 7.08154 4.19585 5.63869 5.63869C4.19585 7.08154 3.28651 8.97212 3.06 11H2C1.45 11 1 11.45 1 12C1 12.55 1.45 13 2 13H3.06C3.28651 15.0279 4.19585 16.9185 5.63869 18.3613C7.08154 19.8042 8.97212 20.7135 11 20.94V22C11 22.55 11.45 23 12 23C12.55 23 13 22.55 13 22V20.94C15.0279 20.7135 16.9185 19.8042 18.3613 18.3613C19.8042 16.9185 20.7135 15.0279 20.94 13H22C22.55 13 23 12.55 23 12C23 11.45 22.55 11 22 11H20.94ZM12 19C8.13 19 5 15.87 5 12C5 8.13 8.13 5 12 5C15.87 5 19 8.13 19 12C19 15.87 15.87 19 12 19Z" fill="#1E293B"/>
+                    </svg>
+                </button>
                 <div class="map-basemap-panel" role="dialog" aria-label="Pilih peta dasar">
                     <div class="map-basemap-title">Konfigurasi Peta</div>
                     ${Object.values(BASEMAP_PROVIDERS).map(provider => `
@@ -354,6 +484,7 @@ function buildBasemapControl() {
             basemapState.controlEl = container;
             basemapState.buttonEl = wrap.querySelector('.map-basemap-btn');
             basemapState.panelEl = wrap.querySelector('.map-basemap-panel');
+            geolocateState.buttonEl = wrap.querySelector('.map-geolocate-btn');
             // basemapState.statusEl = wrap.querySelector('.map-basemap-status');
 
             basemapState.buttonEl.addEventListener('click', function () {
@@ -368,6 +499,10 @@ function buildBasemapControl() {
                     }
                     closeBasemapPanel();
                 });
+            });
+
+            geolocateState.buttonEl.addEventListener('click', function () {
+                locateUserAndFocusMap();
             });
 
             return container;
