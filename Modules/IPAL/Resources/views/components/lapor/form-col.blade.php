@@ -3,6 +3,19 @@
 ══════════════════════════════════════════════════════════════════════ --}}
 <div class="lapor-form-col">
 
+    {{-- ── Success banner (hidden by default) ── --}}
+    <div id="success-banner" class="lapor-success-toast" style="display:none;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+             fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 6 9 17l-5-5"/>
+        </svg>
+        <div>
+            <div style="font-weight:700;color:#166534;font-size:13px;">Laporan berhasil terkirim</div>
+            <div style="font-size:12px;color:#15803d;">Nomor tiket: <span id="nomor-tiket"
+                 style="font-family:monospace;font-weight:700;"></span></div>
+        </div>
+    </div>
+
     {{-- Header --}}
     <div style="text-align:center;margin-bottom:24px;">
         <h1 style="font-size:22px;font-weight:800;color:#0F172A;margin:0 0 6px;">
@@ -14,20 +27,6 @@
         </p>
     </div>
 
-    {{-- ── Success banner (hidden by default) ── --}}
-    <div id="success-banner"
-         style="display:none;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:12px;
-                padding:14px 16px;margin-bottom:18px;align-items:center;gap:10px;">
-        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-             fill="none" stroke="#22c55e" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M20 6 9 17l-5-5"/>
-        </svg>
-        <div>
-            <div style="font-weight:700;color:#166534;font-size:13px;">Laporan berhasil terkirim</div>
-            <div style="font-size:12px;color:#15803d;">Nomor tiket: <span id="nomor-tiket"
-                 style="font-family:monospace;font-weight:700;"></span></div>
-        </div>
-    </div>
 
 
     {{-- ── Form card ── --}}

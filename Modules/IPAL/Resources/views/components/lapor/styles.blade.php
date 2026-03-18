@@ -30,6 +30,7 @@ body { font-family: 'Montserrat', sans-serif; background: #f8fafc; margin: 0; }
 
 /* ── Form column ── */
 .lapor-form-col {
+    position: relative;
     flex: 0 0 45%;
     height: 100%;
     min-height: 0;
@@ -38,6 +39,33 @@ body { font-family: 'Montserrat', sans-serif; background: #f8fafc; margin: 0; }
     padding: 32px 36px;
     background: #fff;
     border-left: 1px solid #e2e8f0;
+}
+
+.lapor-success-toast {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    z-index: 20;
+    max-width: min(360px, calc(100% - 32px));
+    background: #f0fdf4;
+    border: 1px solid #bbf7d0;
+    border-radius: 12px;
+    padding: 14px 16px;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 12px 30px rgba(15, 23, 42, 0.12);
+    animation: toast-slide-in .25s ease-out;
+}
+
+@keyframes toast-slide-in {
+    from {
+        opacity: 0;
+        transform: translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 /* ── Form typography helpers ── */
@@ -148,5 +176,6 @@ body { font-family: 'Montserrat', sans-serif; background: #f8fafc; margin: 0; }
     .lapor-page-wrap { flex-direction: column; height: auto; overflow: visible; }
     .lapor-map-col   { flex: none; height: 42vh; min-height: 260px; }
     .lapor-form-col  { flex: none; width: 100%; height: auto; min-height: 0; border-left: none; border-top: 1px solid #e2e8f0; padding: 24px 18px 40px; overflow-y: visible; }
+    .lapor-success-toast { top: 12px; right: 12px; max-width: calc(100% - 24px); }
 }
 </style>

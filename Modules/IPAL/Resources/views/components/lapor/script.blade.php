@@ -74,6 +74,7 @@
     let assetData    = null;
     let selectedFiles = [];
     let captchaToken  = null;
+    let successToastTimer = null;
 
     /* ── Init mini-map ──────────────────────────────────────── */
     const miniMap = L.map('lapor-map', {
@@ -459,8 +460,11 @@
                 clearDraft();
                 const banner = document.getElementById('success-banner');
                 document.getElementById('nomor-tiket').textContent = json.data.nomor_tiket || '';
+                if (successToastTimer) clearTimeout(successToastTimer);
                 banner.style.display = 'flex';
-                banner.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                successToastTimer = setTimeout(() => {
+                    banner.style.display = 'none';
+                }, 3000);
                 document.getElementById('lapor-form').style.opacity      = '.45';
                 document.getElementById('lapor-form').style.pointerEvents = 'none';
             } else {
