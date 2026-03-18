@@ -160,7 +160,7 @@ class GeoJsonImportService
                     'klasifikasi' => $props['Klasifikas'] ?? null,
                     'pengendali' => $props['Pengendali'] ?? null,
                     'sektor' => $this->intOrNull($props['Sektor'] ?? null),
-                    'status' => strtolower($props['STATUS'] ?? 'aman'),
+                    'status' => $this->normalizeStatus($props['STATUS'] ?? 'baik'),
                     'wilayah' => $props['KECAMATAN'] ?? null,
                 ]
             );
@@ -206,7 +206,7 @@ class GeoJsonImportService
                     'source' => $props['SOURCE'] ?? null,
                     'material' => $props['MATERIAL'] ?? null,
                     'geometry' => $geometry,
-                    'status' => 'aman',
+                    'status' => $this->normalizeStatus($props['STATUS'] ?? 'baik'),
                     'wilayah' => null,
                 ]
             );
@@ -245,5 +245,24 @@ class GeoJsonImportService
         }
 
         return is_numeric($value) ? (int) $value : null;
+    }
+
+    private function normalizeStatus(?string $status): string
+    {
+        $raw = strtolower(trim((string) $status));
+
+        if ($raw === 'aman' || $raw === 'baik') {
+            return 'baik';
+        }
+
+        if ($raw === 'dalam perbaikan' || $raw === 'perbaikan') {
+            return 'perbaikan';
+        }
+
+        if ($raw === 'bermasalah' || $raw === 'masalah' || $raw === 'rusak') {
+            return 'rusak';
+        }
+
+        return 'baik';
     }
 }

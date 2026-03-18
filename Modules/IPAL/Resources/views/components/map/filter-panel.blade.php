@@ -1,11 +1,10 @@
-<div id="filter-panel" class="bg-white rounded-2xl shadow-lg p-4">
+<div id="filter-panel" class="bg-white rounded-2xl drop-shadow-lg p-4">
 
     {{-- Header row (clickable to toggle) --}}
     <div class="panel-header flex items-center justify-between" id="filter-toggle" title="Filter Jaringan">
         <div class="flex items-center gap-2">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"
-                 stroke-linecap="round" stroke-linejoin="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            <svg width="15" height="14" viewBox="0 0 18 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 12V10H11V12H7ZM3 7V5H15V7H3ZM0 2V0H18V2H0Z" fill="#00D3F3"/>
             </svg>
             <span class="panel-label text-[13px] font-bold text-slate-800">Filter Jaringan</span>
         </div>
@@ -26,11 +25,11 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Status Jaringan</p>
                 <div class="flex gap-1 flex-wrap">
                     <button class="status-btn btn-aman inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
-                            data-status="aman"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Aman</button>
+                        data-status="baik"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Baik</button>
                     <button class="status-btn btn-perbaikan inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
                             data-status="perbaikan"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Perbaikan</button>
                     <button class="status-btn btn-masalah inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
-                            data-status="masalah"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Bermasalah</button>
+                        data-status="rusak"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Rusak</button>
                 </div>
             </div>
 

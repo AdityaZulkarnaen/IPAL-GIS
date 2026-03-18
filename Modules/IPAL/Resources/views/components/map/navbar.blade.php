@@ -16,8 +16,16 @@
 
         {{-- Desktop nav links --}}
         <div class="hidden md:flex items-center gap-6 shrink-0">
-            <a href="/" class="text-red-600 font-semibold text-sm border-b-2 border-red-600 pb-0.5 no-underline">Beranda</a>
-            <a href="#" class="text-slate-500 font-medium text-sm hover:text-slate-800 transition-colors no-underline">Lapor Masalah</a>
+            <a href="{{ route('ipal.map.index') }}"
+               class="text-sm font-semibold pb-0.5 no-underline transition-colors
+                      {{ request()->routeIs('ipal.map.*') ? 'text-red-600 border-b-2 border-red-600' : 'text-slate-500 hover:text-slate-800' }}">
+                Beranda
+            </a>
+            <a href="{{ route('ipal.lapor-masalah.index') }}"
+               class="text-sm font-medium no-underline transition-colors
+                      {{ request()->routeIs('ipal.lapor-masalah.*') ? 'text-red-600 font-semibold border-b-2 border-red-600 pb-0.5' : 'text-slate-500 hover:text-slate-800' }}">
+                Lapor Masalah
+            </a>
             <a href="{{ route('login') }}" class="bg-blue-600 text-white font-semibold text-[13px] px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors no-underline">Admin Login</a>
         </div>
 
@@ -41,8 +49,14 @@
 
     {{-- Mobile dropdown menu (hidden by default) --}}
     <div id="mobile-menu" class="hidden flex-col border-t border-slate-100 px-5 py-3 gap-3">
-        <a href="/" class="text-red-600 font-semibold text-sm no-underline py-1">Beranda</a>
-        <a href="#" class="text-slate-600 font-medium text-sm no-underline py-1">Lapor Masalah</a>
+        <a href="{{ route('ipal.map.index') }}"
+           class="text-sm no-underline py-1 {{ request()->routeIs('ipal.map.*') ? 'text-red-600 font-semibold' : 'text-slate-600 font-medium' }}">
+            Beranda
+        </a>
+        <a href="{{ route('ipal.lapor-masalah.index') }}"
+           class="text-sm no-underline py-1 {{ request()->routeIs('ipal.lapor-masalah.*') ? 'text-red-600 font-semibold' : 'text-slate-600 font-medium' }}">
+            Lapor Masalah
+        </a>
         <a href="{{ route('login') }}"
            class="block text-center bg-blue-600 text-white font-semibold text-[13px] px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors no-underline mt-1">Admin Login</a>
     </div>

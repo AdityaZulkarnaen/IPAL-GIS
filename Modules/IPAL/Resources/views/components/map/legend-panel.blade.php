@@ -1,4 +1,4 @@
-<div id="legend-panel" class="fixed top-[72px] right-4 z-[500] bg-white rounded-2xl shadow-lg p-4 w-40 max-w-[calc(100vw-2rem)]">
+<div id="legend-panel" class="fixed bottom-32 left-4 md:left-auto md:bottom-auto md:top-[72px] md:right-4 z-[500] bg-white rounded-2xl shadow-lg p-4 w-40 max-w-[calc(100vw-2rem)]">
 
     {{-- Header row (clickable to toggle) --}}
     <div class="panel-header flex items-center justify-between gap-2" id="legend-toggle">
@@ -13,13 +13,13 @@
     <div id="legend-body" class="collapsible-body">
         <div class="pt-2.5">
             <div class="flex items-center gap-2 text-[12px] text-slate-500 mb-2">
-                <span class="w-7 h-1 rounded-sm shrink-0 bg-green-400"></span>Beroperasi Baik
+                <span class="w-7 h-1 rounded-sm shrink-0 bg-green-400"></span>Baik
             </div>
             <div class="flex items-center gap-2 text-[12px] text-slate-500 mb-2">
-                <span class="w-7 h-1 rounded-sm shrink-0 bg-yellow-400"></span>Pemeliharaan
+                <span class="w-7 h-1 rounded-sm shrink-0 bg-yellow-400"></span>Perbaikan
             </div>
             <div class="flex items-center gap-2 text-[12px] text-slate-500 mb-2">
-                <span class="w-7 h-1 rounded-sm shrink-0 bg-red-400"></span>Bermasalah
+                <span class="w-7 h-1 rounded-sm shrink-0 bg-red-400"></span>Rusak
             </div>
             <div class="flex items-center gap-2 text-[12px] text-slate-500">
                 <span class="w-3 h-3 rounded-full bg-cyan-400 border-2 border-white shadow-sm shrink-0 ml-2 mr-2"></span>Manhole
