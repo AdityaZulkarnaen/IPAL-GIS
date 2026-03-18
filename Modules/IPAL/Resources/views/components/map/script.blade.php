@@ -667,9 +667,18 @@ function setLoading(active) {
     if (el) el.style.display = active ? 'flex' : 'none';
 }
 
+function normalizeStatus(status) {
+    const raw = (status || '').toString().trim().toLowerCase();
+    if (raw === 'baik') return 'aman';
+    if (raw === 'bermasalah' || raw === 'rusak') return 'masalah';
+    if (raw === 'dalam perbaikan') return 'perbaikan';
+    return raw;
+}
+
 // ─── Color helper ─────────────────────────────────────────────────────────
 function statusColor(status) {
-    return COLOR[status] || '#64748b';
+    const key = normalizeStatus(status);
+    return COLOR[key] || '#64748b';
 }
 
 // ─── Geometry → Leaflet LatLng arrays ────────────────────────────────────
@@ -689,10 +698,11 @@ function buildPipeCoordSets(geometry) {
 
 // Status badge span — compact=true uses tighter padding (tooltips)
 function badgeHtml(status, compact = false) {
+    const key    = normalizeStatus(status);
     const pad    = compact ? '2px 7px' : '4px 9px';
     const radius = compact ? '4px'     : '5px';
-    const label  = LABEL[status] || (status ? status.toUpperCase() : '—');
-    return `<span style="font-size:10px;font-weight:700;padding:${pad};border-radius:${radius};background:${BADGE_BG[status] || '#f1f5f9'};color:${BADGE_TEXT[status] || '#64748b'};">${label}</span>`;
+    const label  = LABEL[key] || (key ? key.toUpperCase() : '—');
+    return `<span style="font-size:10px;font-weight:700;padding:${pad};border-radius:${radius};background:${BADGE_BG[key] || '#f1f5f9'};color:${BADGE_TEXT[key] || '#64748b'};">${label}</span>`;
 }
 
 // Popup label / value cell
@@ -730,12 +740,9 @@ function tooltipWrapHtml(code, status, body, minWidth = '170px') {
 
 // ─── Lapor button ─────────────────────────────────────────────────────────
 function buildLaporBtn(type, id, kode, coord, wilayah, status) {
-    const base = 'width:100%;padding:9px;border-radius:8px;font-size:13px;font-weight:500;display:flex;align-items:center;justify-content:center;gap:6px;cursor:not-allowed;';
-    if (status === 'rusak' || status === 'masalah') {
-        return `<div style="${base}background:#fee2e2;color:#dc2626;">${SVG_WARNING}Aset Rusak – Sudah Dilaporkan</div>`;
-    }
-    if (status === 'dalam perbaikan' || status === 'perbaikan') {
-        return `<div style="${base}background:#fef3c7;color:#a16207;">${SVG_WRENCH}Sedang Dalam Perbaikan</div>`;
+    const normalizedStatus = normalizeStatus(status);
+    if (normalizedStatus === 'masalah' || normalizedStatus === 'perbaikan') {
+        return null;
     }
     const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
         + '&id='      + encodeURIComponent(id      || '')
@@ -747,7 +754,7 @@ function buildLaporBtn(type, id, kode, coord, wilayah, status) {
 
 // ─── Popup builders ───────────────────────────────────────────────────────
 function buildPipePopup(p, coordStr) {
-    const status = (p.status || '').toLowerCase();
+    const status = normalizeStatus(p.status);
     return popupHeaderHtml('KODE PIPA', p.kode_pipa || '—', status, '260px') +
         `<div style="padding:14px 16px;">
             <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
@@ -763,7 +770,7 @@ function buildPipePopup(p, coordStr) {
 }
 
 function buildManholePopup(p, lat, lng) {
-    const status   = (p.status || '').toLowerCase();
+    const status   = normalizeStatus(p.status);
     const coordStr = (lat != null && lng != null) ? `${Number(lat).toFixed(6)}, ${Number(lng).toFixed(6)}` : '—';
     return popupHeaderHtml('KODE MANHOLE', p.kode_manhole || '—', status, '250px') +
         `<div style="padding:14px 16px;">
@@ -780,7 +787,7 @@ function buildManholePopup(p, lat, lng) {
 
 // ─── Tooltip builders ─────────────────────────────────────────────────────
 function buildPipeTooltip(p) {
-    const status = (p.status || '').toLowerCase();
+    const status = normalizeStatus(p.status);
     const body   = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
         ${tooltipFieldHtml('Fungsi',   p.fungsi   || '—')}
         ${tooltipFieldHtml('Diameter', p.pipe_dia  != null ? p.pipe_dia + ' mm'                        : '—')}
@@ -790,7 +797,7 @@ function buildPipeTooltip(p) {
 }
 
 function buildManholeTooltip(p) {
-    const status = (p.status || '').toLowerCase();
+    const status = normalizeStatus(p.status);
     const body   = `<div style="display:grid;grid-template-columns:1fr 1fr;gap:4px 10px;">
         ${tooltipFieldHtml('Kondisi',   p.kondisi_mh || '—')}
         ${tooltipFieldHtml('Kecamatan', p.kecamatan  || p.desa || '—')}
@@ -937,6 +944,7 @@ async function loadPipes(filters = {}) {
         setLoading(true);
         const data = await apiFetch(API_PIPES_GEOJSON, filters);
         renderPipes(data);
+        applyStatusVisibility();
     } catch (e) {
         console.error('loadPipes:', e);
     } finally {
@@ -948,6 +956,7 @@ async function loadManholes(filters = {}) {
     try {
         const data = await apiFetch(API_MHOLE_GEOJSON, filters);
         renderManholes(data);
+        applyStatusVisibility();
     } catch (e) {
         console.error('loadManholes:', e);
     }
@@ -1002,8 +1011,19 @@ async function loadStats() {
 }
 
 // ─── Active filters ───────────────────────────────────────────────────────
-const activeStatuses = new Set(['aman', 'perbaikan', 'masalah', 'rusak', 'dalam perbaikan']);
+const activeStatuses = new Set();
 let activeFungsi = '';
+
+function hydrateActiveStatusesFromUi() {
+    activeStatuses.clear();
+    document.querySelectorAll('.status-btn').forEach(btn => {
+        const status = normalizeStatus(btn.dataset.status);
+        if (!status) return;
+        if (!btn.classList.contains('inactive')) {
+            activeStatuses.add(status);
+        }
+    });
+}
 
 function buildPipeFilters() {
     return { fungsi: activeFungsi };
@@ -1013,19 +1033,23 @@ function buildPipeFilters() {
 function applyStatusVisibility() {
     pipeLayer.clearLayers();
     currentPipeFeatures.forEach(f => {
-        if (activeStatuses.has((f.properties?.status || '').toLowerCase())) drawPipeFeature(f, pipeLayer);
+        const status = normalizeStatus(f.properties?.status);
+        if (activeStatuses.has(status)) drawPipeFeature(f, pipeLayer);
     });
 
     manholeLayer.clearLayers();
     currentManholeFeatures.forEach(f => {
-        if (activeStatuses.has((f.properties?.status || '').toLowerCase())) drawManholeFeature(f, manholeLayer);
+        const status = normalizeStatus(f.properties?.status);
+        if (activeStatuses.has(status)) drawManholeFeature(f, manholeLayer);
     });
 }
 
 // ─── Filter event listeners ───────────────────────────────────────────────
+hydrateActiveStatusesFromUi();
+
 document.querySelectorAll('.status-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-        const s = btn.dataset.status;
+        const s = normalizeStatus(btn.dataset.status);
         if (activeStatuses.has(s)) { activeStatuses.delete(s); btn.classList.add('inactive'); }
         else                        { activeStatuses.add(s);    btn.classList.remove('inactive'); }
         applyStatusVisibility();
