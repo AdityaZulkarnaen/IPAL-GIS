@@ -236,7 +236,7 @@ class AduanController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'status_aduan'          => 'required|in:masuk,verifikasi,proses,selesai',
-            'status_aset'           => 'nullable|in:aman,rusak,dalam perbaikan',
+            'status_aset'           => 'nullable|in:baik,perbaikan,rusak',
             'catatan_tindak_lanjut' => 'nullable|string|max:5000',
             'foto'                  => 'nullable|file|mimes:jpg,jpeg,png,webp',
         ]);

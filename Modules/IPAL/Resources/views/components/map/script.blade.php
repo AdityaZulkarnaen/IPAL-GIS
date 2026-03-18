@@ -547,10 +547,10 @@ const API_PIPES_FILTERS = API_BASE + '/pipes/filters';
 const API_STATISTICS    = API_BASE + '/statistics';
 const CACHE_TTL         = 5 * 60 * 1000; // 5 minutes
 
-const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
-const LABEL      = { aman:'AMAN',    perbaikan:'PERBAIKAN', masalah:'MASALAH', rusak:'RUSAK', 'dalam perbaikan':'PERBAIKAN' };
-const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
-const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
+const COLOR      = { baik:'#22c55e', perbaikan:'#eab308', rusak:'#ef4444' };
+const LABEL      = { baik:'BAIK',    perbaikan:'PERBAIKAN', rusak:'RUSAK' };
+const BADGE_BG   = { baik:'#22C55E1A', perbaikan:'#fef3c7', rusak:'#fee2e2' };
+const BADGE_TEXT = { baik:'#22c55e',   perbaikan:'#a16207', rusak:'#dc2626' };
 
 // SVG icons
 const SVG_WARNING  = `<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" width="16" height="16" style="flex-shrink:0;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126ZM12 15.75h.007v.008H12v-.008Z"/></svg>`;
@@ -669,8 +669,8 @@ function setLoading(active) {
 
 function normalizeStatus(status) {
     const raw = (status || '').toString().trim().toLowerCase();
-    if (raw === 'baik') return 'aman';
-    if (raw === 'bermasalah' || raw === 'rusak') return 'masalah';
+    if (raw === 'aman' || raw === 'baik') return 'baik';
+    if (raw === 'bermasalah' || raw === 'masalah' || raw === 'rusak') return 'rusak';
     if (raw === 'dalam perbaikan') return 'perbaikan';
     return raw;
 }
@@ -741,7 +741,7 @@ function tooltipWrapHtml(code, status, body, minWidth = '170px') {
 // ─── Lapor button ─────────────────────────────────────────────────────────
 function buildLaporBtn(type, id, kode, coord, wilayah, status) {
     const normalizedStatus = normalizeStatus(status);
-    if (normalizedStatus === 'masalah' || normalizedStatus === 'perbaikan') {
+    if (normalizedStatus === 'rusak' || normalizedStatus === 'perbaikan') {
         return null;
     }
     const url = '/ipal/lapor-masalah?type=' + encodeURIComponent(type)
@@ -997,9 +997,9 @@ async function loadStats() {
         setText('stat-total-pipa',    pipa.total);
 
         const byStatus = mh.by_status || {};
-        setText('stat-status-aman',      byStatus['aman']      || 0);
+        setText('stat-status-baik',      byStatus['baik']      || 0);
         setText('stat-status-perbaikan', byStatus['perbaikan'] || 0);
-        setText('stat-status-masalah',   byStatus['masalah']   || 0);
+        setText('stat-status-rusak',     byStatus['rusak']     || 0);
 
         const byFungsi = pipa.by_fungsi || {};
         setText('stat-fungsi-glontor', byFungsi['Glontor'] || 0);

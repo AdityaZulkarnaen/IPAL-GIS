@@ -25,11 +25,11 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Status Jaringan</p>
                 <div class="flex gap-1 flex-wrap">
                     <button class="status-btn btn-aman inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
-                            data-status="aman"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Aman</button>
+                        data-status="baik"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Baik</button>
                     <button class="status-btn btn-perbaikan inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
                             data-status="perbaikan"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Perbaikan</button>
                     <button class="status-btn btn-masalah inline-flex items-center gap-1.5 text-[11px] font-semibold rounded-lg px-2.5 py-1 border-2 cursor-pointer transition-opacity"
-                            data-status="masalah"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Bermasalah</button>
+                        data-status="rusak"><span class="dot w-2 h-2 rounded-full shrink-0"></span>Rusak</button>
                 </div>
             </div>
 

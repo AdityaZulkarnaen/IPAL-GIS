@@ -42,7 +42,7 @@
                 <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2 border-t border-slate-200 pt-3">Status Manhole</p>
                 <div class="grid grid-cols-3 gap-1.5">
                     <div class="bg-green-50 border border-green-300 rounded-xl p-2 text-center">
-                        <p id="stat-status-aman" class="text-[16px] font-semibold text-green-500 leading-none mb-0.5">—</p>
+                        <p id="stat-status-baik" class="text-[16px] font-semibold text-green-500 leading-none mb-0.5">—</p>
                         <p class="text-[9px] font-regular text-green-500 uppercase tracking-wider">Baik</p>
                     </div>
                     <div class="bg-yellow-50 border border-yellow-300 rounded-xl p-2 text-center">
@@ -50,8 +50,8 @@
                         <p class="text-[9px] font-regular text-yellow-500 uppercase tracking-wider">Perbaikan</p>
                     </div>
                     <div class="bg-red-50 border border-red-300 rounded-xl p-2 text-center">
-                        <p id="stat-status-masalah" class="text-[16px] font-semibold text-red-500 leading-none mb-0.5">—</p>
-                        <p class="text-[9px] font-regular text-red-500 uppercase tracking-wider">Bermasalah</p>
+                        <p id="stat-status-rusak" class="text-[16px] font-semibold text-red-500 leading-none mb-0.5">—</p>
+                        <p class="text-[9px] font-regular text-red-500 uppercase tracking-wider">Rusak</p>
                     </div>
                 </div>
             </div>
