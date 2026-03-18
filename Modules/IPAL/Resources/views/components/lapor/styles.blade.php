@@ -127,6 +127,16 @@ body { font-family: 'Montserrat', sans-serif; background: #f8fafc; margin: 0; }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 
+/* ── Leaflet popup override (lapor page only) ── */
+#lapor-map .leaflet-popup.ipal-lapor-popup .leaflet-popup-content-wrapper {
+    padding: 0;
+    border-radius: 12px;
+    overflow: hidden;
+}
+#lapor-map .leaflet-popup.ipal-lapor-popup .leaflet-popup-content {
+    margin: 0;
+}
+
 /* ── Tablet layout (768 – 1023 px): still side-by-side but tighter padding ── */
 @media (min-width: 768px) and (max-width: 1023px) {
     .lapor-map-col  { flex: 0 0 50%; }

@@ -1,4 +1,4 @@
-<div id="stats-panel" class="bg-white rounded-2xl shadow-lg p-4 z-999">
+<div id="stats-panel" class="bg-white rounded-2xl drop-shadow-lg p-4 z-999">
 
     {{-- Header row (clickable to toggle) --}}
     <div class="panel-header flex items-center justify-between" id="stats-toggle" title="Statistik Jaringan">

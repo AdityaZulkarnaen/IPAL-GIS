@@ -107,7 +107,7 @@
     /* ── Popup HTML builders ────────────────────────────────── */
     function buildPipePopupHtml(p, coordStr) {
         const status = (p.status || '').toLowerCase();
-        return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:240px;">
+        return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:240px;margin:0px;">
             <div style="background:#f8fafc;padding:16px 14px 12px;border-bottom:1px solid #e2e8f0;">
                 <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
                     <span style="font-size:10px;font-weight:700;color:#94a3b8;text-transform:uppercase;">KODE PIPA</span>
@@ -217,7 +217,11 @@
             const coordStr = mid ? `${mid[0].toFixed(6)}, ${mid[1].toFixed(6)}` : '—';
 
             if (idx === 0) {
-                line.bindPopup(buildPipePopupHtml(p, coordStr), { maxWidth: 290, minWidth: 260 }).addTo(miniMap);
+                line.bindPopup(buildPipePopupHtml(p, coordStr), {
+                    maxWidth: 290,
+                    minWidth: 260,
+                    className: 'ipal-lapor-popup',
+                }).addTo(miniMap);
                 line.openPopup();
             } else {
                 line.addTo(miniMap);
@@ -266,7 +270,11 @@
             opacity: 1, fillOpacity: 0.95,
         });
 
-        marker.bindPopup(buildManholePopupHtml(p, lat, lng), { maxWidth: 290, minWidth: 260 })
+        marker.bindPopup(buildManholePopupHtml(p, lat, lng), {
+            maxWidth: 290,
+            minWidth: 260,
+            className: 'ipal-lapor-popup',
+        })
               .addTo(miniMap);
         marker.openPopup();
 
