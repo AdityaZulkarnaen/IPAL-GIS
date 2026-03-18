@@ -600,6 +600,59 @@ async function apiFetch(url, params = {}) {
 const pipeLayer    = L.layerGroup().addTo(map);
 const manholeLayer = L.layerGroup().addTo(map);
 
+const hoverState = {
+    suspended: false,
+    resumeTimer: null,
+};
+
+function resetFeatureHoverState() {
+    const { weight } = getManholeScale();
+
+    pipeLayer.eachLayer(layer => {
+        if (typeof layer.closeTooltip === 'function') {
+            layer.closeTooltip();
+        }
+        if (layer._hoverOutline && !layer._hoverOutline._selected) {
+            layer._hoverOutline.setStyle({ opacity: 0 });
+        }
+    });
+
+    manholeLayer.eachLayer(layer => {
+        if (typeof layer.closeTooltip === 'function') {
+            layer.closeTooltip();
+        }
+        if (layer instanceof L.CircleMarker && !layer._selected) {
+            layer.setStyle({ color: '#ffffff', weight });
+        }
+    });
+}
+
+function suspendHoverDuringMapTransform() {
+    hoverState.suspended = true;
+    if (hoverState.resumeTimer) {
+        clearTimeout(hoverState.resumeTimer);
+        hoverState.resumeTimer = null;
+    }
+    resetFeatureHoverState();
+}
+
+function resumeHoverAfterMapTransform() {
+    if (hoverState.resumeTimer) {
+        clearTimeout(hoverState.resumeTimer);
+    }
+    // Small delay avoids immediate re-hover while wheel zoom is still settling.
+    hoverState.resumeTimer = setTimeout(() => {
+        hoverState.suspended = false;
+        hoverState.resumeTimer = null;
+    }, 120);
+}
+
+map.on('zoomstart movestart', suspendHoverDuringMapTransform);
+map.on('zoomend moveend', function () {
+    resetFeatureHoverState();
+    resumeHoverAfterMapTransform();
+});
+
 // ─── In-flight feature stores (for search & filter) ───────────────────────
 let currentPipeFeatures    = [];
 let currentManholeFeatures = [];
@@ -786,6 +839,7 @@ function drawPipeFeature(feature, layer) {
             color, weight: 5, opacity: 0.88,
             lineCap: 'round', lineJoin: 'round',
         });
+        line._hoverOutline = outline;
         if (idx === 0) {
             line.bindPopup(buildPipePopup(p, coordStr), { maxWidth: 300, minWidth: 280 });
             if (p.kode_pipa) pipeLayerMap[p.kode_pipa] = line;
@@ -795,6 +849,10 @@ function drawPipeFeature(feature, layer) {
             opacity: 1, className: 'leaflet-pipe-tooltip',
         });
         line.on('mouseover', function () {
+            if (hoverState.suspended) {
+                this.closeTooltip();
+                return;
+            }
             outline.setStyle({ opacity: 1 });
             this.bringToFront();
         });
@@ -835,6 +893,10 @@ function drawManholeFeature(feature, layer) {
     })
     .bindPopup(buildManholePopup(p, lat, lng), { maxWidth: 290, minWidth: 270 });
     marker.on('mouseover', function () {
+        if (hoverState.suspended) {
+            this.closeTooltip();
+            return;
+        }
         this.setStyle({ color: '#000000', weight: 4.5 });
         this.bringToFront();
     });
