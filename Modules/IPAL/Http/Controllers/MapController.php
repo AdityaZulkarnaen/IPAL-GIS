@@ -10,4 +10,9 @@ class MapController extends Controller
     {
         return view('ipal::map.index');
     }
+
+    public function laporMasalah(Request $request)
+    {
+        return view('ipal::lapor-masalah.index');
+    }
 }

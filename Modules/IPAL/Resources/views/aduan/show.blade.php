@@ -69,8 +69,14 @@
                             <tr>
                                 <td class="text-muted fw-semibold py-2">Status Pipa Saat Ini</td>
                                 <td class="py-2">
-                                    <span class="badge badge-light-{{ $aduan->pipa->status === 'aman' ? 'success' : ($aduan->pipa->status === 'rusak' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst($aduan->pipa->status) }}
+                                    @php
+                                        $statusPipa = strtolower(trim((string) $aduan->pipa->status));
+                                        $statusPipa = $statusPipa === 'aman' ? 'baik' : $statusPipa;
+                                        $statusPipa = in_array($statusPipa, ['masalah', 'bermasalah']) ? 'rusak' : $statusPipa;
+                                        $statusPipa = $statusPipa === 'dalam perbaikan' ? 'perbaikan' : $statusPipa;
+                                    @endphp
+                                    <span class="badge badge-light-{{ $statusPipa === 'baik' ? 'success' : ($statusPipa === 'rusak' ? 'danger' : 'warning') }}">
+                                        {{ ucfirst($statusPipa) }}
                                     </span>
                                 </td>
                             </tr>
@@ -83,8 +89,14 @@
                             <tr>
                                 <td class="text-muted fw-semibold py-2">Status Manhole Saat Ini</td>
                                 <td class="py-2">
-                                    <span class="badge badge-light-{{ $aduan->manhole->status === 'aman' ? 'success' : ($aduan->manhole->status === 'rusak' ? 'danger' : 'warning') }}">
-                                        {{ ucfirst($aduan->manhole->status) }}
+                                    @php
+                                        $statusManhole = strtolower(trim((string) $aduan->manhole->status));
+                                        $statusManhole = $statusManhole === 'aman' ? 'baik' : $statusManhole;
+                                        $statusManhole = in_array($statusManhole, ['masalah', 'bermasalah']) ? 'rusak' : $statusManhole;
+                                        $statusManhole = $statusManhole === 'dalam perbaikan' ? 'perbaikan' : $statusManhole;
+                                    @endphp
+                                    <span class="badge badge-light-{{ $statusManhole === 'baik' ? 'success' : ($statusManhole === 'rusak' ? 'danger' : 'warning') }}">
+                                        {{ ucfirst($statusManhole) }}
                                     </span>
                                 </td>
                             </tr>
@@ -205,9 +217,9 @@
                                 </label>
                                 <select name="status_aset" class="form-select form-select-sm">
                                     <option value="">-- Tidak diubah --</option>
-                                    <option value="aman" @selected(old('status_aset') === 'aman')>Aman</option>
+                                    <option value="baik" @selected(old('status_aset') === 'baik')>Baik</option>
+                                    <option value="perbaikan" @selected(old('status_aset') === 'perbaikan')>Perbaikan</option>
                                     <option value="rusak" @selected(old('status_aset') === 'rusak')>Rusak</option>
-                                    <option value="dalam perbaikan" @selected(old('status_aset') === 'dalam perbaikan')>Dalam Perbaikan</option>
                                 </select>
                                 <div class="text-muted fs-8 mt-1">
                                     Jika dipilih, status {{ $aduan->pipa_id ? 'pipa' : 'manhole' }} akan diperbarui.

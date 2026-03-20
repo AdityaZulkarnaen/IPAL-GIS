@@ -74,12 +74,14 @@ class StatisticsController extends Controller
 
         $total = (clone $query)->count();
 
-        $byStatus = (clone $query)
+        $rawByStatus = (clone $query)
             ->selectRaw('LOWER(status) as status, COUNT(*) as total')
             ->whereNotNull('status')
             ->groupBy(DB::raw('LOWER(status)'))
             ->pluck('total', 'status')
             ->toArray();
+
+        $byStatus = $this->normalizeStatusTotals($rawByStatus);
 
         $byKondisi = (clone $query)
             ->selectRaw('kondisi_mh, COUNT(*) as total')
@@ -110,12 +112,14 @@ class StatisticsController extends Controller
             2
         );
 
-        $byStatus = (clone $query)
-            ->selectRaw('status, COUNT(*) as total')
+        $rawByStatus = (clone $query)
+            ->selectRaw('LOWER(status) as status, COUNT(*) as total')
             ->whereNotNull('status')
-            ->groupBy('status')
+            ->groupBy(DB::raw('LOWER(status)'))
             ->pluck('total', 'status')
             ->toArray();
+
+        $byStatus = $this->normalizeStatusTotals($rawByStatus);
 
         $byFungsi = collect((clone $query)
             ->selectRaw('fungsi, COUNT(*) as total')
@@ -132,5 +136,43 @@ class StatisticsController extends Controller
             'by_status'        => $byStatus,
             'by_fungsi'        => $byFungsi,
         ];
+    }
+
+    private function normalizeStatusTotals(array $rawTotals): array
+    {
+        $normalized = [
+            'baik' => 0,
+            'perbaikan' => 0,
+            'rusak' => 0,
+        ];
+
+        foreach ($rawTotals as $status => $total) {
+            $key = $this->normalizeStatusKey($status);
+            if (!array_key_exists($key, $normalized)) {
+                continue;
+            }
+            $normalized[$key] += (int) $total;
+        }
+
+        return $normalized;
+    }
+
+    private function normalizeStatusKey(?string $status): string
+    {
+        $raw = strtolower(trim((string) $status));
+
+        if ($raw === 'aman' || $raw === 'baik') {
+            return 'baik';
+        }
+
+        if ($raw === 'dalam perbaikan' || $raw === 'perbaikan') {
+            return 'perbaikan';
+        }
+
+        if ($raw === 'masalah' || $raw === 'bermasalah' || $raw === 'rusak') {
+            return 'rusak';
+        }
+
+        return $raw;
     }
 }

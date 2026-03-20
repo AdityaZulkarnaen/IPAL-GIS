@@ -19,6 +19,7 @@ use Modules\IPAL\Http\Controllers\UploadController;
 
 // Peta publik — dapat diakses tanpa login
 Route::get('/map', [MapController::class, 'index'])->name('map.index');
+Route::get('/lapor-masalah', [MapController::class, 'laporMasalah'])->name('lapor-masalah.index');
 
 Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(function () {
     // Dashboard IPAL
