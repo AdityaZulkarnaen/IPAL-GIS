@@ -36,6 +36,17 @@ class IpalJaringanPipa extends Model
         return $this->belongsTo(IpalUpload::class, 'upload_id');
     }
 
+    public function scopeFromActiveUpload($query)
+    {
+        $activeUploadId = IpalUpload::activeCompletedUploadId('pipe');
+
+        if ($activeUploadId === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('upload_id', $activeUploadId);
+    }
+
     public function aduan(): HasMany
     {
         return $this->hasMany(Aduan::class, 'pipa_id');

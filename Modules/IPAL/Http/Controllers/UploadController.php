@@ -27,14 +27,45 @@ class UploadController extends Controller
         $service = ['data_konfig' => $data_konfig];
 
         $toptitle = 'IPAL';
-        $title = 'Upload Data Jaringan';
-        $subtitle = 'Upload GeoJSON';
+        $title = 'Data Jaringan';
+        $subtitle = 'Data Jaringan';
 
         $uploads = IpalUpload::with('user:id,name')
             ->orderBy('created_at', 'desc')
             ->paginate(15);
 
         return view('ipal::upload.index', compact('service', 'toptitle', 'title', 'subtitle', 'uploads'));
+    }
+
+    public function history(Request $request)
+    {
+        $data_konfig = KonfigurasiModel::first();
+        $service = ['data_konfig' => $data_konfig];
+
+        $toptitle = 'IPAL';
+        $title = 'Data Jaringan';
+        $subtitle = 'Riwayat Upload';
+
+        $search = trim((string) $request->query('q', ''));
+
+        $perPage = $request->query('per_page', 10);
+
+        $allowedPerPage = [5, 10, 15, 25];
+        if (!in_array($perPage, $allowedPerPage)) {
+            $perPage = 10;
+        }
+
+        $uploads = IpalUpload::with('user:id,name')
+            ->when($search !== '', function ($query) use ($search) {
+                $query->where('nama_file_asli', 'like', "%{$search}%")
+                    ->orWhere('tipe', 'like', "%{$search}%")
+                    ->orWhere('status', 'like', "%{$search}%");
+            })
+            ->orderByDesc('created_at')
+            ->paginate($perPage) 
+            ->withQueryString(); 
+
+        return view('ipal::upload.history', compact('service', 'toptitle', 'title', 'subtitle', 'uploads', 'search'));
     }
 
     public function store(Request $request)
@@ -85,6 +116,7 @@ class UploadController extends Controller
     public function destroy(int $id)
     {
         $upload = IpalUpload::findOrFail($id);
+        $tipe = $upload->tipe;
 
         if ($upload->tipe === 'manhole') {
             $upload->manholes()->delete();
@@ -93,6 +125,8 @@ class UploadController extends Controller
         }
 
         $upload->delete();
+
+        IpalUpload::setLatestAsActive($tipe);
 
         return back()->with('success', 'Upload and associated data deleted.');
     }

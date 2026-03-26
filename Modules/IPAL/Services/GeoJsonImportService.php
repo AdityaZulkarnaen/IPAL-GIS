@@ -68,6 +68,8 @@ class GeoJsonImportService
                 ]),
             ]);
 
+            IpalUpload::setLatestAsActive($upload->tipe);
+
             DB::commit();
 
             return $count;

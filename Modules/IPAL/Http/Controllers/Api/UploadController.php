@@ -128,6 +128,7 @@ class UploadController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $upload = IpalUpload::findOrFail($id);
+        $tipe = $upload->tipe;
 
         if ($upload->tipe === 'manhole') {
             $upload->manholes()->delete();
@@ -136,6 +137,8 @@ class UploadController extends Controller
         }
 
         $upload->delete();
+
+        IpalUpload::setLatestAsActive($tipe);
 
         return response()->json([
             'success' => true,

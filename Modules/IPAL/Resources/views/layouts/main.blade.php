@@ -141,7 +141,7 @@
             <div class="app-wrapper flex-column flex-row-fluid" id="kt_app_wrapper">
 
                 <!--begin::Sidebar-->
-                <div id="kt_app_sidebar" class="app-sidebar flex-column" data-kt-drawer="true"
+                <div id="kt_app_sidebar" class="app-sidebar flex-column bg-[#0B0C10]" data-kt-drawer="true"
                     data-kt-drawer-name="app-sidebar" data-kt-drawer-activate="{default: true, lg: false}"
                     data-kt-drawer-overlay="true" data-kt-drawer-width="265px"
                     data-kt-drawer-direction="start"
@@ -152,7 +152,7 @@
                         <a href="{{ route('ipal.dashboard') }}">
                             <img alt="Logo" src="{{ asset($service['data_konfig']->logo) }}" class="h-25px"
                                 style="margin-right:8px;" />
-                            <strong class="text-light app-sidebar-logo-default">IPAL</strong>
+                            <strong class="text-light app-sidebar-logo-default">BPALPJK IPAL</strong>
                         </a>
                         <div id="kt_app_sidebar_toggle"
                             class="app-sidebar-toggle btn btn-icon btn-shadow btn-sm btn-color-muted btn-active-color-primary body-bg h-30px w-30px position-absolute top-50 start-100 translate-middle rotate"
@@ -195,7 +195,7 @@
                 <div class="app-main flex-column flex-row-fluid" id="kt_app_main">
                     <div class="d-flex flex-column flex-column-fluid">
                         <!--begin::Toolbar-->
-                        <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
+                        {{-- <div id="kt_app_toolbar" class="app-toolbar py-3 py-lg-6">
                             <div id="kt_app_toolbar_container"
                                 class="app-container container-fluid d-flex flex-stack">
                                 <div
@@ -217,7 +217,7 @@
                                     </ul>
                                 </div>
                             </div>
-                        </div>
+                        </div> --}}
                         <!--end::Toolbar-->
 
                         @yield('content')

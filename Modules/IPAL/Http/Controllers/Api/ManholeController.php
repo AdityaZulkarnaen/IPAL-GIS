@@ -14,7 +14,7 @@ class ManholeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = IpalManhole::query();
+        $query = IpalManhole::fromActiveUpload();
 
         if ($request->filled('desa')) {
             $query->where('desa', 'like', '%' . $request->desa . '%');
@@ -88,7 +88,7 @@ class ManholeController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $manhole = IpalManhole::with('logs')->findOrFail($id);
+        $manhole = IpalManhole::fromActiveUpload()->with('logs')->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -235,7 +235,7 @@ class ManholeController extends Controller
      */
     public function geojson(Request $request): JsonResponse
     {
-        $query = IpalManhole::query();
+        $query = IpalManhole::fromActiveUpload();
 
         if ($request->filled('kecamatan')) {
             $query->where('kecamatan', $request->kecamatan);
@@ -297,15 +297,15 @@ class ManholeController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'kondisi_mh' => IpalManhole::distinct()->whereNotNull('kondisi_mh')->pluck('kondisi_mh'),
-                'risiko' => IpalManhole::distinct()->whereNotNull('risiko')->pluck('risiko'),
-                'klasifikasi' => IpalManhole::distinct()->whereNotNull('klasifikasi')->pluck('klasifikasi'),
-                'kecamatan' => IpalManhole::distinct()->whereNotNull('kecamatan')->pluck('kecamatan'),
-                'bentuk' => IpalManhole::distinct()->whereNotNull('bentuk')->pluck('bentuk'),
-                'material_mh' => IpalManhole::distinct()->whereNotNull('material_mh')->pluck('material_mh'),
-                'status' => IpalManhole::distinct()->whereNotNull('status')->pluck('status'),
-                'sektor' => IpalManhole::distinct()->whereNotNull('sektor')->pluck('sektor'),
-                'wilayah' => IpalManhole::distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
+                'kondisi_mh' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('kondisi_mh')->pluck('kondisi_mh'),
+                'risiko' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('risiko')->pluck('risiko'),
+                'klasifikasi' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('klasifikasi')->pluck('klasifikasi'),
+                'kecamatan' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('kecamatan')->pluck('kecamatan'),
+                'bentuk' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('bentuk')->pluck('bentuk'),
+                'material_mh' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('material_mh')->pluck('material_mh'),
+                'status' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('status')->pluck('status'),
+                'sektor' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('sektor')->pluck('sektor'),
+                'wilayah' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
             ],
         ]);
     }

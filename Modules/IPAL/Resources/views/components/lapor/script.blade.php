@@ -12,7 +12,7 @@
     const API_BASE   = BASE_URL + '/api/ipal';
     const MAX_FOTO   = {{ config('ipal.aduan_max_foto', 5) }};
     const DRAFT_KEY  = 'ipal_lapor_draft';
-
+    const MAP_URL    = '{{ route('ipal.map.index') }}';
     const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
     const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
     const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
@@ -454,26 +454,33 @@
                 headers: { 'X-Requested-With': 'XMLHttpRequest' },
                 body: formData,
             });
-            const json = await res.json();
+            const rawBody = await res.text();
+            let json = null;
 
-            if (res.ok && json.success) {
+            try {
+                json = rawBody ? JSON.parse(rawBody) : null;
+            } catch (parseErr) {
+                json = null;
+            }
+
+            // Treat 2xx as success even when body is empty/non-JSON, because data may already be persisted.
+            if (res.ok && (!json || json.success !== false)) {
                 clearDraft();
                 const banner = document.getElementById('success-banner');
-                document.getElementById('nomor-tiket').textContent = json.data.nomor_tiket || '';
+                const nomorTiket = json?.data?.nomor_tiket || '';
+                document.getElementById('nomor-tiket').textContent = nomorTiket;
                 if (successToastTimer) clearTimeout(successToastTimer);
                 banner.style.display = 'flex';
                 successToastTimer = setTimeout(() => {
-                    banner.style.display = 'none';
-                }, 3000);
-                document.getElementById('lapor-form').style.opacity      = '.45';
-                document.getElementById('lapor-form').style.pointerEvents = 'none';
+                    window.location.href = MAP_URL;
+                }, 1200);
             } else {
                 loadCaptcha(); // refresh soal setelah jawaban salah / error
-                const errors = json.data;
+                const errors = json?.data;
                 if (errors && typeof errors === 'object') {
                     showError(Object.values(errors).flat().join(' '));
                 } else {
-                    showError(json.message ?? 'Terjadi kesalahan. Silakan coba lagi.');
+                    showError(json?.message ?? 'Terjadi kesalahan. Silakan coba lagi.');
                 }
             }
         } catch (err) {

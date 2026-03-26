@@ -77,6 +77,17 @@ class IpalManhole extends Model
         return $this->hasMany(IpalManholeLog::class, 'manhole_id');
     }
 
+    public function scopeFromActiveUpload($query)
+    {
+        $activeUploadId = IpalUpload::activeCompletedUploadId('manhole');
+
+        if ($activeUploadId === null) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        return $query->where('upload_id', $activeUploadId);
+    }
+
     public function aduan(): HasMany
     {
         return $this->hasMany(Aduan::class, 'manhole_id');
