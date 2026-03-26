@@ -62,7 +62,7 @@ class StatisticsController extends Controller
 
     private function manholeStatistics(?string $wilayah, ?string $kecamatan): array
     {
-        $query = IpalManhole::query();
+        $query = IpalManhole::fromActiveUpload();
 
         if ($wilayah !== null) {
             $query->where('wilayah', 'like', '%' . $wilayah . '%');
@@ -99,7 +99,7 @@ class StatisticsController extends Controller
 
     private function pipaStatistics(?string $wilayah): array
     {
-        $query = IpalJaringanPipa::query();
+        $query = IpalJaringanPipa::fromActiveUpload();
 
         if ($wilayah !== null) {
             $query->where('wilayah', 'like', '%' . $wilayah . '%');

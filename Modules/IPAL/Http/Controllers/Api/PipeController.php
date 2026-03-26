@@ -14,7 +14,7 @@ class PipeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = IpalJaringanPipa::query();
+        $query = IpalJaringanPipa::fromActiveUpload();
 
         if ($request->filled('fungsi')) {
             $query->where('fungsi', $request->fungsi);
@@ -71,7 +71,7 @@ class PipeController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $pipe = IpalJaringanPipa::findOrFail($id);
+        $pipe = IpalJaringanPipa::fromActiveUpload()->findOrFail($id);
 
         return response()->json([
             'success' => true,
@@ -160,7 +160,7 @@ class PipeController extends Controller
      */
     public function geojson(Request $request): JsonResponse
     {
-        $query = IpalJaringanPipa::query();
+        $query = IpalJaringanPipa::fromActiveUpload();
 
         if ($request->filled('fungsi')) {
             $query->where('fungsi', $request->fungsi);
@@ -211,12 +211,12 @@ class PipeController extends Controller
         return response()->json([
             'success' => true,
             'data' => [
-                'fungsi' => IpalJaringanPipa::distinct()->whereNotNull('fungsi')->pluck('fungsi'),
-                'pipe_dia' => IpalJaringanPipa::distinct()->whereNotNull('pipe_dia')->orderBy('pipe_dia')->pluck('pipe_dia'),
-                'tahun' => IpalJaringanPipa::distinct()->whereNotNull('tahun')->orderBy('tahun')->pluck('tahun'),
-                'status' => IpalJaringanPipa::distinct()->whereNotNull('status')->pluck('status'),
-                'material' => IpalJaringanPipa::distinct()->whereNotNull('material')->pluck('material'),
-                'wilayah' => IpalJaringanPipa::distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
+                'fungsi' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('fungsi')->pluck('fungsi'),
+                'pipe_dia' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('pipe_dia')->orderBy('pipe_dia')->pluck('pipe_dia'),
+                'tahun' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('tahun')->orderBy('tahun')->pluck('tahun'),
+                'status' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('status')->pluck('status'),
+                'material' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('material')->pluck('material'),
+                'wilayah' => IpalJaringanPipa::fromActiveUpload()->distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
             ],
         ]);
     }
