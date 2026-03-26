@@ -27,8 +27,8 @@ class UploadController extends Controller
         $service = ['data_konfig' => $data_konfig];
 
         $toptitle = 'IPAL';
-        $title = 'Upload Data Jaringan';
-        $subtitle = 'Upload GeoJSON';
+        $title = 'Data Jaringan';
+        $subtitle = 'Data Jaringan';
 
         $uploads = IpalUpload::with('user:id,name')
             ->orderBy('created_at', 'desc')

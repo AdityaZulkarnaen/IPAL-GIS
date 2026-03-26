@@ -26,7 +26,7 @@ Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(fu
     Route::get('/', [DashboardController::class, 'index'])->name('dashboard.index');
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    /** Upload Data Jaringan */
+    /** Data Jaringan */
     Route::get('/upload', [UploadController::class, 'index'])->name('upload.index');
     Route::post('/upload', [UploadController::class, 'store'])->name('upload.store');
     Route::delete('/upload/{id}', [UploadController::class, 'destroy'])->name('upload.destroy');

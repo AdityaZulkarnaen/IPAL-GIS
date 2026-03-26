@@ -47,9 +47,9 @@
     {{-- </a>                                                                    --}}
     {{-- ====================================================================== --}}
 
-    <!--begin:Menu item - Upload Data Jaringan-->
+    <!--begin:Menu item - Data Jaringan-->
     <a href="{{ route('ipal.upload.index') }}"
-        class="menu-item @if(isset($title) && $title == 'Upload Data Jaringan') show @endif">
+        class="menu-item @if(isset($title) && $title == 'Data Jaringan') show @endif">
         <span class="menu-link">
             <span class="menu-icon">
                 <span class="svg-icon svg-icon-2">
@@ -67,7 +67,7 @@
                     </svg>
                 </span>
             </span>
-            <span class="menu-title">Upload Data Jaringan</span>
+            <span class="menu-title">Data Jaringan</span>
         </span>
     </a>
     <!--end:Menu item-->
