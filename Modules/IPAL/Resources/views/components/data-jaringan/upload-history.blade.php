@@ -1,42 +1,47 @@
-<div class="bg-white border border-slate-200 rounded-xl shadow-panel h-full">
-    <div class="px-6 pt-6 pb-2">
-        <h3 class="text-lg font-bold text-slate-800">Riwayat Upload</h3>
+<div class="bg-white border-2 border-[#e4e7ee] rounded-2xl shadow-panel h-fit overflow-hidden">
+    <div class="px-6 py-5 border-b border-[#e8ebf1]">
+        <h3 class="text-[18px] leading-[1.1] font-bold text-[#1a2744] tracking-[-0.02em]">Riwayat Upload</h3>
     </div>
-    <div class="px-6 pb-6 pt-0">
+
+    <div class="px-6 py-3">
         <ul class="list-none m-0 p-0">
-            @forelse($uploads->getCollection()->take(6) as $upload)
-            <li class="py-3 border-b border-slate-100 last:border-b-0">
-                <div class="flex items-start justify-between gap-3">
-                    <div>
-                        <div class="font-semibold text-slate-800 break-all">{{ $upload->nama_file_asli }}</div>
-                        <div class="text-xs text-slate-500">
-                            {{ strtoupper($upload->tipe) }}
-                            @if(!is_null($upload->total_fitur)) • {{ $upload->total_fitur }} fitur @endif
-                            • {{ $upload->created_at->diffForHumans() }}
-                        </div>
+            @forelse($uploads->getCollection()->take(7) as $upload)
+                @php
+                    $createdAt = $upload->created_at;
+                    $tanggalLabel = $createdAt->isToday()
+                        ? 'Hari ini'
+                        : $createdAt->locale('id')->translatedFormat('j M Y');
+                    $jamLabel = $createdAt->format('g:i A');
+                    $jumlahAset = number_format((int) ($upload->total_fitur ?? 0), 0, ',', '.');
+                @endphp
+                <li class="relative py-3 pl-12 last:pb-1">
+                    @if(!$loop->last)
+                        <span class="absolute left-[16px] top-[46px] h-[calc(100%-20px)] w-px bg-[#d5dbe7]" aria-hidden="true"></span>
+                    @endif
+
+                    <span class="absolute left-0 top-3 inline-flex h-8 w-8 items-center justify-center rounded-full border-2 border-[#c9d1e2] bg-white text-[#7f8ca6]" aria-hidden="true">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <circle cx="8" cy="8" r="6.5" stroke="currentColor" stroke-width="1.2"/>
+                            <path d="M4.9 8.2L7.1 10.2L11.1 6.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </span>
+
+                    <div class="text-[#1d2a46] text-[14px] leading-[1.3] font-semibold break-all">
+                        Sukses upload <a href="javascript:void(0)" class="text-[#2474ea] hover:text-[#1f66cc]">{{ $upload->nama_file_asli }}</a>
                     </div>
-                    <div>
-                        @if($upload->status === 'completed')
-                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700">Completed</span>
-                        @elseif($upload->status === 'failed')
-                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-rose-100 text-rose-700" title="{{ $upload->pesan_error }}">Failed</span>
-                        @elseif($upload->status === 'processing')
-                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-amber-100 text-amber-700">Processing</span>
-                        @else
-                        <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-semibold bg-slate-100 text-slate-700">Pending</span>
-                        @endif
+                    <div class="mt-0.5 text-[12px] text-[#7e8ba5] leading-[1.35]">
+                        {{ $tanggalLabel }}, {{ $jamLabel }} • {{ $jumlahAset }} Assets
                     </div>
-                </div>
-            </li>
+                </li>
             @empty
-            <li class="text-sm text-slate-500">Belum ada riwayat upload.</li>
+                <li class="py-3 text-sm text-slate-500">Belum ada riwayat upload.</li>
             @endforelse
         </ul>
+    </div>
 
-        @if($uploads->total() > 6)
-        <div class="text-right mt-5">
-            <span class="text-xs text-slate-500">Menampilkan 6 upload terbaru.</span>
-        </div>
-        @endif
+    <div class="px-6 py-4 border-t border-[#e8ebf1] bg-white text-center">
+        <a href="{{ route('ipal.upload.history') }}" class="inline-block text-[#2474ea] text-[16px] font-medium border-b border-dotted border-[#7eb1ff] leading-none pb-1 hover:text-[#1f66cc] hover:border-[#1f66cc]">
+            Lihat Seluruh Riwayat
+        </a>
     </div>
 </div>

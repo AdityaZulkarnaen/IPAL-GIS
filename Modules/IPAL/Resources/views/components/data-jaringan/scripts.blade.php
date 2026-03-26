@@ -10,7 +10,7 @@
         per_page: 10,
         search: '',
         status: '',
-        wilayah: ''
+        fungsi: ''
     };
 
     const manholeState = {
@@ -194,7 +194,7 @@
         if (!meta || meta.total === 0) {
             return 'Tidak ada data.';
         }
-        return 'Menampilkan ' + meta.from + '-' + meta.to + ' dari ' + meta.total + ' data';
+        return null;
     }
 
     function tableError(colspan, message) {
@@ -228,7 +228,7 @@
             const res = await fetchJson('/pipes/filters', {});
             const filters = res.data || {};
             setSelectOptions(document.getElementById('pipe-status'), filters.status, 'Status Semua');
-            setSelectOptions(document.getElementById('pipe-wilayah'), filters.wilayah, 'Wilayah Semua');
+            setSelectOptions(document.getElementById('pipe-fungsi'), filters.fungsi, 'Fungsi Semua');
         } catch (error) {
             console.error('loadPipeFilters', error);
         }
@@ -247,28 +247,25 @@
     }
 
     async function loadPipeTable() {
-        pipeTbody.innerHTML = tableEmpty(7, 'Memuat data pipa...');
+        pipeTbody.innerHTML = tableEmpty(5, 'Memuat data pipa...');
         try {
             const res = await fetchJson('/pipes', pipeState);
             const pageData = res.data;
             const rows = pageData.data || [];
 
             if (!rows.length) {
-                pipeTbody.innerHTML = tableEmpty(7, 'Data pipa tidak ditemukan.');
+                pipeTbody.innerHTML = tableEmpty(5, 'Data pipa tidak ditemukan.');
             } else {
                 pipeTbody.innerHTML = rows.map(function(item) {
-                    const lokasi = [item.wilayah, item.fungsi].filter(Boolean).join(', ');
                     const diameter = item.pipe_dia ? item.pipe_dia + ' mm' : '-';
                     const panjang = item.length_km ? item.length_km + ' km' : '-';
 
                     return '<tr class="border-b border-slate-100">' +
                         '<td class="px-4 py-3"><div class="font-semibold text-slate-800">' + escapeHtml(item.kode_pipa || '-') + '</div><div class="text-xs text-slate-500">' + escapeHtml(item.id_jalur || '-') + '</div></td>' +
-                        '<td class="px-4 py-3 text-sm text-slate-600">' + escapeHtml(lokasi || '-') + '</td>' +
                         '<td class="px-4 py-3">' + statusBadge(item.status) + '</td>' +
                         '<td class="px-4 py-3 text-sm text-slate-700">' + escapeHtml(item.fungsi || '-') + '</td>' +
                         '<td class="px-4 py-3 text-sm text-slate-700">' + escapeHtml(diameter) + '</td>' +
                         '<td class="px-4 py-3 text-sm text-slate-700">' + escapeHtml(panjang) + '</td>' +
-                        '<td class="px-4 py-3 text-sm text-slate-500">' + formatActivity(item) + '</td>' +
                     '</tr>';
                 }).join('');
             }
@@ -279,21 +276,21 @@
                 loadPipeTable();
             });
         } catch (error) {
-            pipeTbody.innerHTML = tableError(7, 'Gagal memuat data pipa.');
+            pipeTbody.innerHTML = tableError(5, 'Gagal memuat data pipa.');
             pipePaginationInfo.textContent = 'Terjadi kesalahan saat memuat data.';
             pipePagination.innerHTML = '';
         }
     }
 
     async function loadManholeTable() {
-        manholeTbody.innerHTML = tableEmpty(6, 'Memuat data manhole...');
+        manholeTbody.innerHTML = tableEmpty(5, 'Memuat data manhole...');
         try {
             const res = await fetchJson('/manholes', manholeState);
             const pageData = res.data;
             const rows = pageData.data || [];
 
             if (!rows.length) {
-                manholeTbody.innerHTML = tableEmpty(6, 'Data manhole tidak ditemukan.');
+                manholeTbody.innerHTML = tableEmpty(5, 'Data manhole tidak ditemukan.');
             } else {
                 manholeTbody.innerHTML = rows.map(function(item) {
                     const lokasi = [item.desa, item.kecamatan, item.wilayah].filter(Boolean).join(', ');
@@ -303,7 +300,6 @@
                         '<td class="px-4 py-3">' + statusBadge(item.status) + '</td>' +
                         '<td class="px-4 py-3 text-sm text-slate-700">' + escapeHtml(item.kondisi_mh || '-') + '</td>' +
                         '<td class="px-4 py-3 text-sm text-slate-700">' + escapeHtml(item.risiko || '-') + '</td>' +
-                        '<td class="px-4 py-3 text-sm text-slate-500">' + formatActivity(item) + '</td>' +
                     '</tr>';
                 }).join('');
             }
@@ -314,7 +310,7 @@
                 loadManholeTable();
             });
         } catch (error) {
-            manholeTbody.innerHTML = tableError(6, 'Gagal memuat data manhole.');
+            manholeTbody.innerHTML = tableError(5, 'Gagal memuat data manhole.');
             manholePaginationInfo.textContent = 'Terjadi kesalahan saat memuat data.';
             manholePagination.innerHTML = '';
         }
@@ -344,8 +340,8 @@
             loadPipeTable();
         });
 
-        document.getElementById('pipe-wilayah').addEventListener('change', function(event) {
-            pipeState.wilayah = event.target.value;
+        document.getElementById('pipe-fungsi').addEventListener('change', function(event) {
+            pipeState.fungsi = event.target.value;
             pipeState.page = 1;
             loadPipeTable();
         });
@@ -361,11 +357,11 @@
             pipeState.per_page = 10;
             pipeState.search = '';
             pipeState.status = '';
-            pipeState.wilayah = '';
+            pipeState.fungsi = '';
 
             document.getElementById('pipe-search').value = '';
             document.getElementById('pipe-status').value = '';
-            document.getElementById('pipe-wilayah').value = '';
+            document.getElementById('pipe-fungsi').value = '';
             document.getElementById('pipe-per-page').value = '10';
 
             loadPipeTable();

@@ -1,146 +1,84 @@
-{{-- Sidebar Menu untuk Module IPAL --}}
-{{-- Developer IPAL bisa menambahkan menu di sini --}}
+@php
+    $isDashboard = request()->routeIs('ipal.dashboard');
+    $isDataJaringan = request()->routeIs('ipal.upload.*');
+    $isAduan = request()->routeIs('ipal.aduan.*');
+@endphp
 
-<div class="menu menu-column menu-rounded menu-sub-indention px-3" id="#kt_app_sidebar_menu"
-    data-kt-menu="true" data-kt-menu-expand="false">
-
-    <!--begin:Menu item - Dashboard IPAL-->
-    <a href="{{ route('ipal.dashboard') }}"
-        class="menu-item here @if(isset($title) && $title == 'Dashboard IPAL') show @endif menu-accordion">
-        <span class="menu-link">
+<div class="menu menu-column menu-rounded px-3 h-100 d-flex flex-column" id="kt_app_sidebar_menu" data-kt-menu="true" data-kt-menu-expand="false">
+    <div class="menu-item mb-1">
+        <a href="{{ route('ipal.dashboard') }}" class="menu-link {{ $isDashboard ? 'active' : '' }}">
             <span class="menu-icon">
                 <span class="svg-icon svg-icon-2">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <rect x="2" y="2" width="9" height="9" rx="2" fill="currentColor" />
-                        <rect opacity="0.3" x="13" y="2" width="9" height="9" rx="2" fill="currentColor" />
-                        <rect opacity="0.3" x="13" y="13" width="9" height="9" rx="2" fill="currentColor" />
-                        <rect opacity="0.3" x="2" y="13" width="9" height="9" rx="2" fill="currentColor" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="3" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/>
+                        <rect x="14" y="3" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/>
+                        <rect x="3" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/>
+                        <rect x="14" y="14" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/>
                     </svg>
                 </span>
             </span>
-            <span class="menu-title">Dashboard IPAL</span>
-        </span>
-    </a>
-    <!--end:Menu item-->
-
-    <!--begin:Section Header - Fitur IPAL-->
-    <div class="menu-item pt-5">
-        <div class="menu-content">
-            <span class="menu-heading fw-bold text-uppercase fs-7">Fitur IPAL</span>
-        </div>
+            <span class="menu-title">Dashboard</span>
+        </a>
     </div>
-    <!--end:Section Header-->
 
-    {{-- ====================================================================== --}}
-    {{-- Developer IPAL: Tambahkan menu fitur IPAL di bawah ini                --}}
-    {{-- Contoh:                                                                 --}}
-    {{--                                                                         --}}
-    {{-- <a href="{{ route('ipal.pengolahan.index') }}"                          --}}
-    {{--     class="menu-item @if($title == 'Pengolahan') show @endif">          --}}
-    {{--     <span class="menu-link">                                            --}}
-    {{--         <span class="menu-icon">                                        --}}
-    {{--             <span class="svg-icon svg-icon-2">...</span>                --}}
-    {{--         </span>                                                         --}}
-    {{--         <span class="menu-title">Data Pengolahan</span>                 --}}
-    {{--     </span>                                                             --}}
-    {{-- </a>                                                                    --}}
-    {{-- ====================================================================== --}}
-
-    <!--begin:Menu item - Data Jaringan-->
-    <a href="{{ route('ipal.upload.index') }}"
-        class="menu-item @if(isset($title) && $title == 'Data Jaringan') show @endif">
-        <span class="menu-link">
+    <div class="menu-item mb-1">
+        <a href="{{ route('ipal.upload.index') }}" class="menu-link {{ $isDataJaringan ? 'active' : '' }}">
             <span class="menu-icon">
                 <span class="svg-icon svg-icon-2">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path opacity="0.3"
-                            d="M10 4H21C21.6 4 22 4.4 22 5V7H10V4Z" fill="currentColor" />
-                        <path
-                            d="M9.2 3H3C2.4 3 2 3.4 2 4V19C2 19.6 2.4 20 3 20H21C21.6 20 22 19.6 22 19V7C22 6.4 21.6 6 21 6H12L10.4 3.6C10.2 3.2 9.7 3 9.2 3Z"
-                            fill="currentColor" />
-                        <path
-                            d="M12 16C12 16 11.2 15.2 10.4 14.4C9.6 13.6 12 11 12 11C12 11 14.4 13.6 13.6 14.4C12.8 15.2 12 16 12 16Z"
-                            fill="white" opacity="0.6" />
-                        <path d="M11.5 16V12.5L12.5 12.5V16H11.5Z" fill="white" opacity="0.6" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M3.5 6.5C3.5 5.67 4.17 5 5 5H9.18C9.68 5 10.15 5.25 10.43 5.67L11.2 6.8C11.39 7.07 11.69 7.23 12.02 7.23H19C19.83 7.23 20.5 7.9 20.5 8.73V17.5C20.5 18.33 19.83 19 19 19H5C4.17 19 3.5 18.33 3.5 17.5V6.5Z" stroke="currentColor" stroke-width="1.7"/>
                     </svg>
                 </span>
             </span>
             <span class="menu-title">Data Jaringan</span>
-        </span>
-    </a>
-    <!--end:Menu item-->
-
-    <!--begin:Menu item - Manajemen Aduan-->
-    <a href="{{ route('ipal.aduan.index') }}"
-        class="menu-item @if(isset($title) && $title == 'Manajemen Aduan') show @endif">
-        <span class="menu-link">
-            <span class="menu-icon">
-                <span class="svg-icon svg-icon-2">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path opacity="0.3" d="M2 4C1.4 4 1 4.4 1 5V21C1 21.6 1.4 22 2 22H20C20.6 22 21 21.6 21 21V5C21 4.4 20.6 4 20 4H2Z" fill="currentColor"/>
-                        <path d="M21 7H1V5C1 4.4 1.4 4 2 4H20C20.6 4 21 4.4 21 5V7ZM5 12H19C19.6 12 20 11.6 20 11C20 10.4 19.6 10 19 10H5C4.4 10 4 10.4 4 11C4 11.6 4.4 12 5 12ZM5 17H11C11.6 17 12 16.6 12 16C12 15.4 11.6 15 11 15H5C4.4 15 4 15.4 4 16C4 16.6 4.4 17 5 17Z" fill="currentColor"/>
-                    </svg>
-                </span>
-            </span>
-            <span class="menu-title">Manajemen Aduan</span>
-        </span>
-    </a>
-    <!--end:Menu item-->
-
-    <!--begin:Section Header - Navigasi-->
-    <div class="menu-item pt-5">
-        <div class="menu-content">
-            <span class="menu-heading fw-bold text-uppercase fs-7">Navigasi</span>
-        </div>
+        </a>
     </div>
-    <!--end:Section Header-->
 
-    <!--begin:Menu item - Kembali ke Menu Utama-->
-    <a href="{{ route('dashboard.index') }}" class="menu-item menu-accordion">
-        <span class="menu-link">
+    <div class="menu-item mb-1">
+        <a href="{{ route('ipal.aduan.index') }}" class="menu-link {{ $isAduan ? 'active' : '' }}">
             <span class="menu-icon">
                 <span class="svg-icon svg-icon-2">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                        xmlns="http://www.w3.org/2000/svg">
-                        <path
-                            d="M9.60001 11H21C21.6 11 22 11.4 22 12C22 12.6 21.6 13 21 13H9.60001V11Z"
-                            fill="currentColor" />
-                        <path opacity="0.3"
-                            d="M9.6 20V4L2.3 11.3C1.9 11.7 1.9 12.3 2.3 12.7L9.6 20Z"
-                            fill="currentColor" />
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="5" y="4" width="14" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/>
+                        <path d="M8.5 9H15.5M8.5 13H15.5" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
                     </svg>
                 </span>
             </span>
-            <span class="menu-title">Kembali ke Menu Utama</span>
-        </span>
-    </a>
-    <!--end:Menu item-->
+            <span class="menu-title">Aduan</span>
+        </a>
+    </div>
 
-    <!--begin:Menu item - Logout-->
-    <div class="menu-item">
-        <form method="POST" action="{{ route('logout') }}" class="m-0">
-            @csrf
-            <button type="submit" class="menu-link w-100">
+    <div class="mt-auto pt-4">
+        <div class="menu-item mb-1">
+            <a href="{{ route('dashboard.index') }}" class="menu-link">
                 <span class="menu-icon">
                     <span class="svg-icon svg-icon-2">
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none"
-                            xmlns="http://www.w3.org/2000/svg">
-                            <rect opacity="0.3" width="12" height="2" rx="1"
-                                transform="matrix(0 -1 -1 0 15.5 19.5)" fill="currentColor" />
-                            <rect width="12" height="2" rx="1"
-                                transform="matrix(0 -1 -1 0 12.5 16.5)" fill="currentColor" />
-                            <path d="M17.5 13L9 5.5V3H6V5.5L10.5 10L4.5 16H11.5L17.5 10V13Z"
-                                fill="currentColor" />
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M10.25 7.5L5.75 12L10.25 16.5" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M6.5 12H18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/>
                         </svg>
                     </span>
                 </span>
-                <span class="menu-title">Logout</span>
-            </button>
-        </form>
-    </div>
-    <!--end:Menu item - Logout-->
+                <span class="menu-title">Kembali ke Menu Utama</span>
+            </a>
+        </div>
 
+        <div class="menu-item">
+            <form method="POST" action="{{ route('logout') }}" class="m-0">
+                @csrf
+                <button type="submit" class="menu-link w-100 border-0 bg-transparent text-start">
+                    <span class="menu-icon">
+                        <span class="svg-icon svg-icon-2">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M9 7V5.5C9 4.67 9.67 4 10.5 4H18.5C19.33 4 20 4.67 20 5.5V18.5C20 19.33 19.33 20 18.5 20H10.5C9.67 20 9 19.33 9 18.5V17" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                                <path d="M13 12H4" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/>
+                                <path d="M6.75 9.25L4 12L6.75 14.75" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg>
+                        </span>
+                    </span>
+                    <span class="menu-title">Logout</span>
+                </button>
+            </form>
+        </div>
+    </div>
 </div>

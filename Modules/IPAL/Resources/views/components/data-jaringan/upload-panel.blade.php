@@ -1,4 +1,4 @@
-<div class="bg-[#f7f8fa] border-2 border-[#e6e8ec] rounded-[14px] shadow-panel p-6 md:p-8 h-full">
+<div class="bg-white border-2 border-[#e6e8ec] rounded-[14px] shadow-panel p-6 md:p-8 h-full">
     <h3 class="text-ipalText text-[16px] md:text-[24px] font-bold tracking-[-0.01em] text-center mb-5">Upload GeoJSON Jaringan</h3>
 
     <form action="{{ route('ipal.upload.store') }}" method="POST" enctype="multipart/form-data">
@@ -36,7 +36,7 @@
             </label>
         </div>
 
-        <div id="geojson-dropzone" class="border-2 border-dashed border-[#a8b9d0] rounded-[10px] min-h-[280px] px-5 py-7 bg-[#f7f8fa] flex flex-col items-center justify-center gap-3 text-center">
+        <div id="geojson-dropzone" class="border-2 border-dashed border-[#a8b9d0] rounded-[10px] min-h-[280px] px-5 py-7 bg-white flex flex-col items-center justify-center gap-3 text-center">
             <div class="w-[46px] h-[46px] text-[#8b99b4]" aria-hidden="true">
                 <svg width="46" height="46" viewBox="0 0 30 30" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path opacity="0.3" d="M28.4378 15H22.0819C21.2048 14.9777 20.341 14.7806 19.541 14.4204C18.7409 14.0602 18.0208 13.544 17.4227 12.9021C16.8246 12.2602 16.3605 11.5055 16.0576 10.682C15.7548 9.8586 15.6191 8.98304 15.6587 8.10656V1.5625H9.06093C7.05079 1.59083 5.13363 2.41386 3.72857 3.85166C2.32351 5.28945 1.54485 7.22506 1.5628 9.23531V20.7647C1.54485 22.7749 2.32351 24.7105 3.72857 26.1483C5.13363 27.5861 7.05079 28.4092 9.06093 28.4375H20.9128C22.9265 28.4127 24.8485 27.5916 26.2586 26.1539C27.6687 24.7161 28.4522 22.7785 28.4378 20.7647V15Z" fill="#78829D"/>
@@ -60,7 +60,7 @@
         </div>
 
         <div class="mt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
-            <button id="btn-upload-cancel" type="button" class="min-w-[108px] rounded-[10px] border border-[#b8c3d9] text-[#5a6786] bg-[#f9fafc] px-4 py-2.5 sm:mr-auto">Cancel</button>
+            <button id="btn-upload-cancel" type="button" class="min-w-[108px] rounded-[10px] border border-[#b8c3d9] text-[#5a6786] bg-white px-4 py-2.5 sm:mr-auto">Cancel</button>
             <button type="submit" class="min-w-[136px] rounded-[10px] bg-[#1B84FF] text-white font-semibold px-4 py-2.5 sm:ml-auto">Unggah</button>
         </div>
     </form>

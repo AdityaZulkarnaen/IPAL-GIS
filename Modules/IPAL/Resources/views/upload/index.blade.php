@@ -3,7 +3,7 @@
 @include('ipal::components.data-jaringan.tailwind-assets')
 
 @section('content')
-<div id="kt_app_content" class="app-content flex-column-fluid">
+<div id="kt_app_content" class="app-content flex-column-fluid pt-4 bg-white">
     <div id="kt_app_content_container" class="app-container container-fluid">
 
         @include('ipal::components.data-jaringan.page-header')
