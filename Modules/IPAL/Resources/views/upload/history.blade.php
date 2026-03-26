@@ -6,14 +6,14 @@
 <div id="kt_app_content" class="app-content flex-column-fluid">
     <div id="kt_app_content_container" class="app-container container-fluid bg-white pt-4">
         <div class="mb-6">
-            <div class="mb-2 text-[14px] text-[#6d7a94]">
+            <div class="mb-2 text-[12px] md:text-[14px] text-[#6d7a94]">
                 <span>IPAL</span>
                 <span class="mx-1">&gt;</span>
                 <span>Data Jaringan</span>
                 <span class="mx-1">&gt;</span>
                 <span class="font-semibold text-[#1d2a46]">Riwayat Upload</span>
             </div>
-            <h2 class="text-[22px] md:text-[20px] font-bold text-[#1a2744] tracking-[-0.01em]">Riwayat Upload Data Jaringan</h2>
+            <h2 class="text-[18px] md:text-[22px] font-bold text-[#1a2744] tracking-[-0.01em]">Riwayat Upload Data Jaringan</h2>
         </div>
 
         <div class="rounded-xl border border-[#e3e7ef] bg-white shadow-panel overflow-hidden">
@@ -40,7 +40,7 @@
             </div>
 
             <div class="overflow-x-auto">
-                <table class="min-w-full border border-[#e3e7ef] border-collapse text-[13px] text-[#344054]">
+                <table class="min-w-[860px] w-full border border-[#e3e7ef] border-collapse text-[13px] text-[#344054]">
                     <thead class="bg-white text-[#7b879f]">
                         <tr>
                             <th class="px-5 py-3 text-left font-medium border border-[#edf0f5]">Tipe</th>
@@ -96,10 +96,10 @@
                     </tbody>
                 </table>
             </div>
-            <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3 px-5 py-3 border-t border-[#edf0f5] text-[12px] text-[#7b879f]">
+            <div class="flex flex-col lg:flex-row lg:items-center gap-3 px-5 py-3 border-t border-[#edf0f5] text-[12px] text-[#7b879f]">
                 <div class="flex flex-row gap-2 items-center">
                     <div>Menampilkan</div>
-                        <select id="manhole-per-page" class="h-10 w-full md:w-fit rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 md:ml-auto focus:outline-none focus:ring-2 focus:ring-blue-200">
+                        <select id="manhole-per-page" class="h-10 w-[96px] rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200">
                             <option value="5">5</option>
                             <option value="10" selected>10</option>
                             <option value="15">15</option>
@@ -108,7 +108,7 @@
                     <div>per halaman</div>
                 </div>
                 {{-- <div>Menampilkan {{ $uploads->firstItem() ?? 0 }}-{{ $uploads->lastItem() ?? 0 }} dari {{ $uploads->total() }} data</div> --}}
-                <div>{{ $uploads->withQueryString()->links() }}</div>
+                <div class="overflow-x-auto">{{ $uploads->withQueryString()->links() }}</div>
             </div>
         </div>
     </div>

@@ -4,7 +4,7 @@
     <form action="{{ route('ipal.upload.store') }}" method="POST" enctype="multipart/form-data">
         @csrf
 
-        <div class="mx-auto mb-4 w-[60%] max-w-[620px] bg-[#eceff3] border border-[#e1e4ea] rounded-[10px] p-1.5 flex flex-wrap md:flex-nowrap gap-2">
+        <div class="mx-auto mb-4 w-full md:w-[60%] max-w-[620px] bg-[#eceff3] border border-[#e1e4ea] rounded-[10px] p-1.5 flex flex-wrap md:flex-nowrap gap-2">
             <label class="relative flex-1 mb-0 min-w-[140px]">
                 <input id="upload-type-pipe" type="radio" name="tipe" value="pipe" class="peer sr-only" checked>
                 <span class="w-full min-h-[44px] rounded-lg border border-transparent bg-transparent text-[#7a859d] text-[15px] font-medium cursor-pointer flex items-center justify-center gap-2 transition-all duration-200 peer-checked:!bg-white peer-checked:border-[#d8ddea] peer-checked:text-[#4a5672] peer-checked:shadow-[0_1px_3px_rgba(16,24,40,0.12)]">
