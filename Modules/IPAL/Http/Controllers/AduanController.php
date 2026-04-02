@@ -15,7 +15,7 @@ use Modules\IPAL\Services\ImageCompressionService;
 
 class AduanController extends Controller
 {
-    private const WORKFLOW_ACTIONS = ['terima', 'tolak', 'mulai_perbaikan', 'tandai_selesai'];
+    private const WORKFLOW_ACTIONS = ['terima', 'tolak', 'mulai_perbaikan', 'tandai_selesai', 'simpan_catatan'];
     private const VERIFICATION_STATUSES = ['masuk', 'verifikasi', 'ditolak'];
 
     public function __construct(private ImageCompressionService $imageService) {}
@@ -90,24 +90,43 @@ class AduanController extends Controller
 
         try {
             $transition = $this->resolveWorkflowTransition($aduan, (string) $request->workflow_action);
+            $noteLines = $this->extractProgressNoteLines((string) $request->catatan_tindak_lanjut);
 
-            DB::transaction(function () use ($aduan, $request, $transition) {
+            if (($transition['requires_note'] ?? false) && $noteLines->isEmpty()) {
+                throw new \DomainException('Tambahkan minimal satu catatan progress sebelum menyimpan.');
+            }
+
+            DB::transaction(function () use ($aduan, $request, $transition, $noteLines) {
                 $statusSebelumnya = $aduan->status_aduan;
 
-                $aduan->update(['status_aduan' => $transition['status_aduan']]);
+                if (($transition['update_status'] ?? true) === true) {
+                    $aduan->update(['status_aduan' => $transition['status_aduan']]);
+                }
 
                 if ($transition['status_aset'] !== null) {
                     $this->updateRelatedAssetStatus($aduan, $transition['status_aset']);
                 }
 
-                AduanHistory::create([
-                    'aduan_id'              => $aduan->id,
-                    'admin_id'              => $request->user()->id,
-                    'status_sebelumnya'     => $statusSebelumnya,
-                    'status_sesudah'        => $transition['status_aduan'],
-                    'catatan_tindak_lanjut' => $request->catatan_tindak_lanjut,
-                    'created_at'            => now(),
-                ]);
+                if (($transition['record_status_history'] ?? true) === true) {
+                    AduanHistory::create([
+                        'aduan_id'              => $aduan->id,
+                        'admin_id'              => $request->user()->id,
+                        'status_sebelumnya'     => $statusSebelumnya,
+                        'status_sesudah'        => $transition['status_aduan'],
+                        'catatan_tindak_lanjut' => null,
+                        'created_at'            => now(),
+                    ]);
+                }
+
+                if ($noteLines->isNotEmpty()) {
+                    $statusCatatan = $statusSebelumnya === 'proses' ? 'proses' : $aduan->status_aduan;
+                    $this->persistProgressNotes(
+                        $aduan,
+                        (int) $request->user()->id,
+                        $statusCatatan,
+                        $noteLines
+                    );
+                }
 
                 if ($request->hasFile('foto')) {
                     $file = $request->file('foto');
@@ -143,6 +162,7 @@ class AduanController extends Controller
             'tolak' => $this->transitionTolak($aduan),
             'mulai_perbaikan' => $this->transitionMulaiPerbaikan($aduan),
             'tandai_selesai' => $this->transitionTandaiSelesai($aduan),
+            'simpan_catatan' => $this->transitionSimpanCatatan($aduan),
             default => throw new \DomainException('Aksi workflow tidak dikenal.'),
         };
     }
@@ -156,6 +176,9 @@ class AduanController extends Controller
         return [
             'status_aduan' => 'proses',
             'status_aset' => 'rusak',
+            'update_status' => true,
+            'record_status_history' => true,
+            'requires_note' => false,
             'success_message' => 'Laporan diterima. Status aduan menjadi Diproses dan status aset menjadi Rusak.',
         ];
     }
@@ -169,6 +192,9 @@ class AduanController extends Controller
         return [
             'status_aduan' => 'ditolak',
             'status_aset' => null,
+            'update_status' => true,
+            'record_status_history' => true,
+            'requires_note' => false,
             'success_message' => 'Laporan ditolak. Status aduan menjadi Ditolak.',
         ];
     }
@@ -182,6 +208,9 @@ class AduanController extends Controller
         return [
             'status_aduan' => 'proses',
             'status_aset' => 'perbaikan',
+            'update_status' => true,
+            'record_status_history' => true,
+            'requires_note' => false,
             'success_message' => 'Perbaikan dimulai. Status aset diperbarui menjadi Perbaikan.',
         ];
     }
@@ -195,8 +224,61 @@ class AduanController extends Controller
         return [
             'status_aduan' => 'selesai',
             'status_aset' => 'baik',
+            'update_status' => true,
+            'record_status_history' => true,
+            'requires_note' => false,
             'success_message' => 'Aduan selesai. Status aset dikembalikan menjadi Baik.',
         ];
+    }
+
+    private function transitionSimpanCatatan(Aduan $aduan): array
+    {
+        if ($aduan->status_aduan !== 'proses') {
+            throw new \DomainException('Simpan Catatan hanya tersedia untuk aduan berstatus Diproses.');
+        }
+
+        return [
+            'status_aduan' => $aduan->status_aduan,
+            'status_aset' => null,
+            'update_status' => false,
+            'record_status_history' => false,
+            'requires_note' => true,
+            'success_message' => 'Catatan progress berhasil disimpan.',
+        ];
+    }
+
+    private function extractProgressNoteLines(string $rawNotes)
+    {
+        return collect(preg_split('/\r\n|\r|\n/', $rawNotes))
+            ->map(static fn (string $line): string => trim($line))
+            ->filter(static fn (string $line): bool => $line !== '')
+            ->values();
+    }
+
+    private function persistProgressNotes(Aduan $aduan, int $adminId, string $status, $noteLines): void
+    {
+        $existingNotes = AduanHistory::query()
+            ->where('aduan_id', $aduan->id)
+            ->whereNotNull('catatan_tindak_lanjut')
+            ->pluck('catatan_tindak_lanjut')
+            ->map(static fn (?string $note): string => trim((string) $note))
+            ->filter(static fn (string $note): bool => $note !== '')
+            ->all();
+
+        $newNotes = $noteLines
+            ->reject(static fn (string $line): bool => in_array($line, $existingNotes, true))
+            ->values();
+
+        foreach ($newNotes as $index => $line) {
+            AduanHistory::create([
+                'aduan_id'              => $aduan->id,
+                'admin_id'              => $adminId,
+                'status_sebelumnya'     => $status,
+                'status_sesudah'        => $status,
+                'catatan_tindak_lanjut' => $line,
+                'created_at'            => now()->addSeconds($index + 1),
+            ]);
+        }
     }
 
     private function updateRelatedAssetStatus(Aduan $aduan, string $statusAset): void

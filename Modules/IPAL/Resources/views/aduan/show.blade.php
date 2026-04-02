@@ -84,6 +84,17 @@
                 ->filter(static fn (string $line): bool => $line !== '')
                 ->values();
 
+            $savedProgressLogs = $aduan->history
+                ->filter(static fn ($history): bool => trim((string) $history->catatan_tindak_lanjut) !== '')
+                ->sortByDesc('created_at')
+                ->values();
+
+            $initialProgressPayload = $oldProgressLogs->isNotEmpty()
+                ? $oldProgressLogs
+                : $savedProgressLogs
+                    ->map(static fn ($history): string => trim((string) $history->catatan_tindak_lanjut))
+                    ->values();
+
             $historyItems = collect([
                 [
                     'time' => $aduan->created_at,
@@ -340,11 +351,19 @@
                                         @endif
 
                                         <div class="wf-progress-title">CATATAN PROGRESS</div>
-                                        <div id="progressLogList" class="wf-progress-list"></div>
+                                        <div id="progressLogList" class="wf-progress-list">
+                                            @foreach($savedProgressLogs as $savedLog)
+                                                <div class="wf-progress-item" data-log-text="{{ $savedLog->catatan_tindak_lanjut }}">
+                                                    <div class="wf-progress-text">{{ $savedLog->catatan_tindak_lanjut }}</div>
+                                                    <div class="wf-progress-meta">{{ $savedLog->created_at?->format('d M Y, H:i') }} - {{ $savedLog->admin?->name ?? 'Admin' }}</div>
+                                                </div>
+                                            @endforeach
+                                        </div>
 
                                         <input type="text" id="progressLogInput" class="wf-input" placeholder="Tulis catatan progress lalu tekan Enter">
                                         <button type="button" id="progressAddBtn" class="wf-manual-btn">Tambah Catatan Manual</button>
-                                        <textarea name="catatan_tindak_lanjut" id="progressLogPayload" class="d-none">{{ $oldProgressLogs->implode("\n") }}</textarea>
+                                        <textarea name="catatan_tindak_lanjut" id="progressLogPayload" class="d-none">{{ $initialProgressPayload->implode("\n") }}</textarea>
+                                        <button type="submit" id="progressAutoSaveSubmit" name="workflow_action" value="simpan_catatan" class="d-none" tabindex="-1" aria-hidden="true"></button>
                                     </div>
                                 </div>
 
@@ -810,6 +829,7 @@
     const progressInput = document.getElementById('progressLogInput');
     const progressList = document.getElementById('progressLogList');
     const progressPayload = document.getElementById('progressLogPayload');
+    const progressAutoSaveSubmit = document.getElementById('progressAutoSaveSubmit');
     const progressAddBtn = document.getElementById('progressAddBtn');
     const verifyAcceptBtn = document.getElementById('verifyAcceptBtn');
     const verifyRejectBtn = document.getElementById('verifyRejectBtn');
@@ -855,17 +875,18 @@
 
     const addPendingInputAsLog = () => {
         if (!progressInput) {
-            return;
+            return false;
         }
 
         const value = progressInput.value.trim();
         if (!value) {
-            return;
+            return false;
         }
 
         appendLogCard(value, getMetaText());
         progressInput.value = '';
         updatePayload();
+        return true;
     };
 
     if (uploadBtn && photoInput) {
@@ -888,7 +909,10 @@
         progressInput.addEventListener('keydown', (event) => {
             if (event.key === 'Enter') {
                 event.preventDefault();
-                addPendingInputAsLog();
+                const wasAdded = addPendingInputAsLog();
+                if (wasAdded && progressAutoSaveSubmit) {
+                    progressAutoSaveSubmit.click();
+                }
             }
         });
     }
@@ -920,7 +944,7 @@
         });
     }
 
-    if (progressPayload && progressPayload.value.trim() !== '') {
+    if (progressPayload && progressPayload.value.trim() !== '' && progressList && progressList.children.length === 0) {
         const seededLogs = progressPayload.value
             .split(/\r\n|\r|\n/)
             .map((line) => line.trim())
