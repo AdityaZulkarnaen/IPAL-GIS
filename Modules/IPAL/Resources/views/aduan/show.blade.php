@@ -83,6 +83,54 @@
                 ->map(static fn (string $line): string => trim($line))
                 ->filter(static fn (string $line): bool => $line !== '')
                 ->values();
+
+            $historyItems = collect([
+                [
+                    'time' => $aduan->created_at,
+                    'point_color' => '#8B5CF6',
+                    'title' => 'Laporan aduan masuk',
+                    'subtitle' => 'Laporan diterima melalui aduan masyarakat',
+                    'note' => null,
+                ],
+            ]);
+
+            foreach ($aduan->history->sortBy('created_at')->values() as $h) {
+                $fromRaw = strtolower(trim((string) $h->status_sebelumnya));
+                $toRaw = strtolower(trim((string) $h->status_sesudah));
+                $from = $statusAliasMap[$fromRaw] ?? $fromRaw;
+                $to = $statusAliasMap[$toRaw] ?? $toRaw;
+                $note = trim((string) $h->catatan_tindak_lanjut);
+                $adminName = $h->admin?->name ?? 'Admin';
+
+                $title = 'Status aduan diperbarui';
+                $subtitle = 'oleh: ' . $adminName;
+                $pointColor = '#3B82F6';
+
+                if ($to === 'ditolak') {
+                    $title = 'Laporan aduan ditolak';
+                    $pointColor = '#F8285A';
+                } elseif ($to === 'selesai') {
+                    $title = 'Perbaikan selesai';
+                    $pointColor = '#22C55E';
+                } elseif ($to === 'proses' && in_array($from, ['masuk', 'verifikasi', 'ditolak'], true)) {
+                    $title = 'Laporan aduan diterima';
+                    $pointColor = '#1B84FF';
+                } elseif ($from === 'proses' && $to === 'proses' && $note === '') {
+                    $title = 'Proses perbaikan dimulai';
+                    $pointColor = '#EAB308';
+                } elseif ($note !== '') {
+                    $title = 'Catatan tindakan ditambahkan';
+                    $pointColor = '#EAB308';
+                }
+
+                $historyItems->push([
+                    'time' => $h->created_at,
+                    'point_color' => $pointColor,
+                    'title' => $title,
+                    'subtitle' => $subtitle,
+                    'note' => $note !== '' ? $note : null,
+                ]);
+            }
         @endphp
 
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-3 mb-5">
@@ -199,7 +247,7 @@
 
             <div class="col-xxl-5">
                 <div class="card mb-5 border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                    <div class="border-b border-slate-200 pt-5 pb-3 px-5 min-h-0 d-flex align-items-center gap-3 px-9">
+                    <div class="border-b border-slate-200 pt-5 pb-3 min-h-0 d-flex align-items-center gap-3 px-9">
                         <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M14.8562 21.4998H6.64382C4.89843 21.5131 3.21897 20.8342 1.97357 19.6119C0.728177 18.3895 0.0184614 16.7235 0 14.979V7.32971C0.00522825 6.46335 0.181299 5.60652 0.51814 4.80824C0.85498 4.00996 1.34598 3.28589 1.96305 2.67746C2.58012 2.06903 3.31116 1.58817 4.11433 1.2624C4.9175 0.936623 5.77706 0.772327 6.64382 0.778906H10.1805C10.2789 0.778906 10.3764 0.798278 10.4673 0.835916C10.5582 0.873555 10.6408 0.928722 10.7104 0.998268C10.7799 1.06781 10.8351 1.15038 10.8728 1.24124C10.9105 1.33211 10.9298 1.4295 10.9298 1.52785C10.9298 1.62621 10.9105 1.7236 10.8728 1.81446C10.8351 1.90533 10.7799 1.98789 10.7104 2.05744C10.6408 2.12699 10.5582 2.18215 10.4673 2.21979C10.3764 2.25743 10.2789 2.2768 10.1805 2.2768H6.64382C5.30538 2.26871 4.01771 2.78837 3.06011 3.72308C2.10252 4.65779 1.55222 5.93217 1.52858 7.26979V14.919C1.55222 16.2567 2.10252 17.531 3.06011 18.4658C4.01771 19.4005 5.30538 19.9201 6.64382 19.912H14.8562C16.1946 19.9201 17.4823 19.4005 18.4399 18.4658C19.3975 17.531 19.9478 16.2567 19.9714 14.919V9.90609C19.9929 9.71853 20.0827 9.54543 20.2236 9.41977C20.3646 9.2941 20.5468 9.22465 20.7357 9.22465C20.9246 9.22465 21.1069 9.2941 21.2478 9.41977C21.3887 9.54543 21.4785 9.71853 21.5 9.90609V14.979C21.4815 16.7235 20.7718 18.3895 19.5264 19.6119C18.281 20.8342 16.6016 21.5131 14.8562 21.4998ZM16.4247 1.52785C16.2794 1.52507 16.1355 1.55717 16.0051 1.62146C15.8747 1.68575 15.7617 1.78035 15.6754 1.89734L15.086 2.65627C15.2846 3.46333 15.7668 4.17215 16.4447 4.65346C17.0719 5.12817 17.8359 5.38739 18.6227 5.39243H18.7426L19.332 4.63349C19.4056 4.5379 19.4594 4.42862 19.4902 4.31204C19.5211 4.19546 19.5285 4.0739 19.5118 3.95445C19.4973 3.83496 19.4577 3.71987 19.3957 3.61665C19.3338 3.51343 19.2508 3.42439 19.1522 3.35529L16.9842 1.71759C16.824 1.59385 16.6271 1.52708 16.4247 1.52785ZM16.4247 0.0299579C16.9574 0.0299506 17.4759 0.201536 17.9033 0.519271L20.0913 2.137C20.3486 2.32517 20.5656 2.56294 20.7295 2.83628C20.8934 3.10962 21.0008 3.413 21.0455 3.72851C21.0902 4.04403 21.0712 4.3653 20.9897 4.67337C20.9082 4.98144 20.7658 5.27007 20.5709 5.52224L19.9115 6.38104C19.8146 6.50909 19.6931 6.61655 19.5541 6.69713C19.4152 6.77772 19.2616 6.82982 19.1022 6.85038H18.6227C17.5072 6.85557 16.419 6.50583 15.5156 5.85178C14.4828 5.10869 13.7691 4.00296 13.5174 2.75613C13.4937 2.5979 13.5027 2.43648 13.544 2.28188C13.5852 2.12729 13.6578 1.9828 13.7572 1.85739L14.4166 0.998598C14.6492 0.688543 14.9509 0.436888 15.2977 0.263562C15.6446 0.090236 16.027 0 16.4147 0L16.4247 0.0299579ZM11.869 6.82042L9.63104 9.76628C9.53297 9.88853 9.47692 10.0391 9.47119 10.1957V13.3512C9.46638 13.3901 9.47115 13.4295 9.48508 13.466C9.49901 13.5026 9.52168 13.5352 9.55112 13.561C9.61218 13.6223 9.69437 13.658 9.7809 13.6608H9.87082L12.928 12.7621C13.0788 12.7124 13.2111 12.6185 13.3076 12.4925L15.5455 9.59652C14.8345 9.31036 14.163 8.9345 13.5474 8.47809C12.9289 8.01773 12.3745 7.47706 11.8989 6.87035M11.9489 4.71338C12.0623 4.71072 12.1741 4.74027 12.2714 4.7986C12.3686 4.85693 12.4474 4.94165 12.4984 5.04292C12.9997 5.92062 13.6806 6.68282 14.4965 7.27978C15.3085 7.8859 16.2425 8.3084 17.234 8.51804C17.3413 8.5346 17.4423 8.57955 17.5265 8.64823C17.6106 8.71691 17.6749 8.80683 17.7126 8.90868C17.7503 9.01053 17.7601 9.12059 17.7409 9.22749C17.7218 9.33438 17.6744 9.43421 17.6036 9.51663L14.6064 13.4311C14.313 13.8142 13.9026 14.0912 13.4375 14.22L10.3504 15.1188C10.1818 15.1696 10.0069 15.1965 9.83085 15.1987C9.58918 15.2027 9.34916 15.1582 9.12496 15.0679C8.90077 14.9776 8.69696 14.8434 8.52559 14.673C8.35421 14.5026 8.21874 14.2996 8.12719 14.0761C8.03564 13.8525 7.98986 13.6128 7.99256 13.3712V10.2157C8.00044 9.73673 8.16541 9.27363 8.46213 8.8975L11.4593 4.983C11.5198 4.9087 11.5959 4.84868 11.6823 4.80724C11.7686 4.76581 11.8631 4.74399 11.9589 4.74334L11.9489 4.71338Z" fill="#2B7FFF"/>
                         </svg>
@@ -320,53 +368,43 @@
                     </div>
                 </div>
 
-                @if($aduan->history->isNotEmpty())
-                    <div class="card border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                        <div class="card-header border-0 pt-5 pb-3 min-h-0">
-                            <h3 class="card-title fw-bold">Riwayat Perubahan Status</h3>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="timeline-label">
-                                @foreach($aduan->history as $h)
-                                    @php
-                                        $from = strtolower(trim((string) $h->status_sebelumnya));
-                                        $to = strtolower(trim((string) $h->status_sesudah));
-                                        $toBadge = $statusBadgeMap[$to] ?? 'badge-light';
-                                        $fromLabel = $statusLabelMap[$from] ?? ucfirst($h->status_sebelumnya);
-                                        $toLabel = $statusLabelMap[$to] ?? ucfirst($h->status_sesudah);
-                                    @endphp
-                                    <div class="timeline-item mb-5">
-                                        <div class="timeline-label fw-bold text-gray-700 fs-8">
-                                            {{ \Carbon\Carbon::parse($h->created_at)->format('d M Y') }}<br>
-                                            <span class="text-muted fw-normal">{{ \Carbon\Carbon::parse($h->created_at)->format('H:i') }}</span>
-                                        </div>
-                                        <div class="timeline-badge">
-                                            <i class="fa fa-circle text-{{ $to === 'selesai' ? 'success' : ($to === 'ditolak' ? 'danger' : 'primary') }} fs-7"></i>
-                                        </div>
-                                        <div class="timeline-content ps-3">
-                                            <div class="d-flex align-items-center gap-2 mb-1">
-                                                <span class="badge badge-light-secondary">{{ $fromLabel }}</span>
-                                                <i class="ki-outline ki-arrow-right fs-7 text-muted"></i>
-                                                <span class="badge {{ $toBadge }}">{{ $toLabel }}</span>
-                                            </div>
-                                            <div class="text-muted fs-8">oleh: {{ $h->admin?->name ?? 'Admin' }}</div>
-                                            @if($h->catatan_tindak_lanjut)
-                                                <div class="text-gray-700 fs-8 mt-1 fst-italic">"{{ $h->catatan_tindak_lanjut }}"</div>
-                                            @endif
-                                        </div>
+                <div class="card border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
+                    <div class="border-b border-slate-200 pt-5 pb-3 min-h-0 d-flex align-items-center gap-3 px-9">
+                        <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.8067 3.22667C15.9618 1.3818 13.4597 0.345215 10.85 0.345215C8.24028 0.345215 5.73823 1.3818 3.89336 3.22667C2.04849 5.07153 1.0119 7.57359 1.0119 10.1833H2.49869C2.49869 7.96797 3.37871 5.84338 4.94523 4.27686C6.51174 2.71035 8.63633 1.83032 10.8517 1.83032C13.067 1.83032 15.1916 2.71035 16.7581 4.27686C18.3246 5.84338 19.2047 7.96797 19.2047 10.1833C19.2047 12.3987 18.3246 14.5233 16.7581 16.0898C15.1916 17.6563 13.067 18.5364 10.8517 18.5364C9.04675 18.5378 7.29317 17.9405 5.86458 16.8378C4.43599 15.7352 3.41402 14.1883 2.95865 12.4418H4.92459L2.26995 8.73086L0.0202637 12.7136H1.41872C1.89084 14.8554 3.08011 16.7721 4.78873 18.1455C6.49735 19.5189 8.62404 20.2654 10.8166 20.2602C13.4282 20.2602 15.9329 19.2245 17.7808 17.3804C19.6288 15.5364 20.6697 13.0338 20.6756 10.4222C20.6816 7.81063 19.652 5.30333 17.8124 3.45092L17.8067 3.22667ZM10.1083 5.33759V10.7436L14.3065 13.2209L15.0499 11.9586L11.5951 9.92183V5.33759H10.1083Z" fill="#1B84FF"/>
+                        </svg>
+                        <h3 class="wf-heading mb-0">Riwayat Perubahan Status</h3>
+                    </div>
+                    <div class="card-body pt-4 pb-5 px-6 px-lg-9">
+                        <div class="status-history">
+                            @foreach($historyItems as $index => $item)
+                                @php
+                                    $eventTime = \Carbon\Carbon::parse($item['time']);
+                                    $isLast = $loop->last;
+                                @endphp
+                                <div class="status-history-item {{ $isLast ? 'is-last' : '' }}">
+                                    <div class="status-history-time">
+                                        <div class="status-history-date">{{ $eventTime->translatedFormat('d F Y') }}</div>
+                                        <div class="status-history-clock">{{ $eventTime->format('H:i') }}</div>
                                     </div>
-                                @endforeach
-                            </div>
+                                    <div class="status-history-axis">
+                                        <span class="status-history-dot" style="--dot-color: {{ $item['point_color'] }}"></span>
+                                        @if(!$isLast)
+                                            <span class="status-history-line"></span>
+                                        @endif
+                                    </div>
+                                    <div class="status-history-content">
+                                        <h4 class="status-history-title">{{ $item['title'] }}</h4>
+                                        <div class="status-history-subtitle">{{ $item['subtitle'] }}</div>
+                                        @if($item['note'])
+                                            <div class="status-history-note">"{{ $item['note'] }}"</div>
+                                        @endif
+                                    </div>
+                                </div>
+                            @endforeach
                         </div>
                     </div>
-                @else
-                    <div class="card border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                        <div class="card-body text-center text-muted py-8">
-                            <i class="ki-outline ki-time fs-3x text-gray-300 d-block mb-2"></i>
-                            Belum ada riwayat perubahan status.
-                        </div>
-                    </div>
-                @endif
+                </div>
             </div>
         </div>
     </div>
@@ -619,6 +657,107 @@
         background: #eef2f8;
     }
 
+    .status-history {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .status-history-item {
+        display: grid;
+        grid-template-columns: 116px 24px minmax(0, 1fr);
+        column-gap: 12px;
+        align-items: start;
+    }
+
+    .status-history-time {
+        text-align: right;
+        padding-top: 2px;
+    }
+
+    .status-history-date {
+        font-size: 12px;
+        line-height: 1.25;
+        font-weight: 700;
+        color: #64748b;
+    }
+
+    .status-history-clock {
+        font-size: 12px;
+        line-height: 1.2;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+
+    .status-history-axis {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        align-self: stretch;
+        padding-top: 3px;
+    }
+
+    .status-history-axis::after {
+        content: '';
+        position: absolute;
+        left: 50%;
+        top: 15px;
+        bottom: -12px;
+        width: 2px;
+        background: #dbe3ef;
+        transform: translateX(-50%);
+    }
+
+    .status-history-item.is-last .status-history-axis::after {
+        content: none;
+    }
+
+    .status-history-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 999px;
+        background: var(--dot-color);
+        flex-shrink: 0;
+    }
+
+    .status-history-line {
+        display: none;
+    }
+
+    .status-history-content {
+        padding-bottom: 18px;
+    }
+
+    .status-history-item.is-last .status-history-content {
+        padding-bottom: 0;
+    }
+
+    .status-history-title {
+        margin: 0;
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #1e293b;
+    }
+
+    .status-history-subtitle {
+        margin-top: 3px;
+        font-size: 12px;
+        line-height: 1.3;
+        color: #64748b;
+        font-weight: 500;
+    }
+
+    .status-history-note {
+        margin-top: 6px;
+        font-size: 12px;
+        line-height: 1.35;
+        color: #475569;
+        font-style: italic;
+        white-space: pre-line;
+    }
+
     @media (max-width: 767.98px) {
         .wf-heading {
             font-size: 21px;
@@ -639,6 +778,22 @@
         .wf-progress-meta,
         .wf-meta-text,
         .wf-progress-title {
+            font-size: 13px;
+        }
+
+        .status-history-item {
+            grid-template-columns: 96px 20px minmax(0, 1fr);
+            column-gap: 10px;
+        }
+
+        .status-history-title {
+            font-size: 16px;
+        }
+
+        .status-history-date,
+        .status-history-clock,
+        .status-history-subtitle,
+        .status-history-note {
             font-size: 13px;
         }
     }
