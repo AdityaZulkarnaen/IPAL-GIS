@@ -196,7 +196,7 @@
 
     @media (max-width: 767px) {
         .leaflet-bottom.leaflet-right .leaflet-control-zoom {
-            margin-bottom: 110px;
+            margin-bottom: 95px;
             margin-right: 10px;
         }
 
