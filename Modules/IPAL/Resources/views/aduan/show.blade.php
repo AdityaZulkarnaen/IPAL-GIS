@@ -13,11 +13,19 @@
             ];
 
             $statusBadgeMap = [
-                'masuk' => 'badge-light-primary',
+                'masuk' => 'badge-light-warning',
                 'verifikasi' => 'badge-light-warning',
-                'proses' => 'badge-light-info',
+                'proses' => 'badge-light-primary',
                 'ditolak' => 'badge-light-danger',
                 'selesai' => 'badge-light-success',
+            ];
+
+            $statusThemeClassMap = [
+                'masuk' => 'is-menunggu',
+                'verifikasi' => 'is-menunggu',
+                'proses' => 'is-diproses',
+                'ditolak' => 'is-ditolak',
+                'selesai' => 'is-selesai',
             ];
 
             $currentStatus = strtolower(trim((string) $aduan->status_aduan));
@@ -29,6 +37,7 @@
             $currentStatus = $statusAliasMap[$currentStatus] ?? $currentStatus;
             $aduanStatusLabel = $statusLabelMap[$currentStatus] ?? ucfirst($aduan->status_aduan);
             $aduanStatusBadge = $statusBadgeMap[$currentStatus] ?? 'badge-light';
+            $aduanStatusThemeClass = $statusThemeClassMap[$currentStatus] ?? 'is-diproses';
 
             $asset = $aduan->pipa ?: $aduan->manhole;
             $assetTypeLabel = $aduan->pipa_id ? 'Pipa' : ($aduan->manhole_id ? 'Manhole' : '-');
@@ -170,56 +179,60 @@
 
         <div class="row g-5">
             <div class="col-xxl-7">
-                <div class="card mb-5 border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                    <div class="card-header border-0 pt-5 pb-3 min-h-0">
-                        <h3 class="card-title fw-bold">Informasi Aduan</h3>
+                <div class="card mb-5 border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)] aduan-info-card">
+                    <div class="aduan-info-header">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="ki-outline ki-information-5 fs-3 text-primary"></i>
+                            <div class="flex flex-row gap-2 items-center">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                    <path opacity="0.1" d="M11.9996 22.9001C9.8438 22.9001 7.73639 22.2608 5.9439 21.0631C4.1514 19.8654 2.75432 18.1631 1.92933 16.1713C1.10433 14.1796 0.888476 11.988 1.30905 9.87361C1.72963 7.75922 2.76776 5.81703 4.29215 4.29264C5.81654 2.76825 7.75873 1.73012 9.87313 1.30954C11.9875 0.888964 14.1791 1.10482 16.1709 1.92982C18.1626 2.75481 19.8649 4.15189 21.0626 5.94439C22.2603 7.73688 22.8996 9.84428 22.8996 12.0001C22.8969 14.8901 21.7477 17.661 19.7041 19.7046C17.6605 21.7482 14.8896 22.8974 11.9996 22.9001Z" fill="#2B7FFF"/>
+                                    <path fill-rule="evenodd" clip-rule="evenodd" d="M9.85394 1.21112C11.9877 0.786682 14.2004 1.00453 16.2104 1.8371C18.2203 2.66967 19.9383 4.08 21.1469 5.88885C22.3555 7.69776 23.0004 9.82465 23.0004 12.0002C22.9977 14.9167 21.8381 17.7133 19.7758 19.7756C17.7135 21.8379 14.917 22.9975 12.0004 23.0002C9.82489 23.0002 7.69801 22.3553 5.8891 21.1467C4.08024 19.938 2.66992 18.22 1.83734 16.2101C1.00478 14.2002 0.786926 11.9875 1.21136 9.8537C1.63585 7.72005 2.68382 5.76015 4.22211 4.22186C5.7604 2.68357 7.72029 1.6356 9.85394 1.21112ZM12.0004 2.53534C10.1284 2.53534 8.29817 3.09002 6.74164 4.13006C5.18515 5.1701 3.97169 6.64862 3.25531 8.37811C2.539 10.1076 2.35203 12.0109 2.71722 13.8469C3.08242 15.6826 3.98363 17.369 5.30707 18.6926C6.63076 20.0163 8.31773 20.9182 10.1537 21.2834C11.9898 21.6486 13.893 21.4607 15.6225 20.7443C17.3519 20.0279 18.8305 18.8154 19.8705 17.259C20.9106 15.7025 21.4653 13.8722 21.4653 12.0002C21.4626 9.49073 20.4643 7.08519 18.6899 5.31073C16.9154 3.53627 14.5099 2.53806 12.0004 2.53534ZM12.0014 10.5676C12.2727 10.5677 12.5332 10.6756 12.725 10.8674C12.9167 11.0592 13.0239 11.3198 13.0239 11.591V16.3586C13.0239 16.6298 12.9167 16.8904 12.725 17.0822C12.5332 17.274 12.2727 17.3819 12.0014 17.382C11.73 17.382 11.4697 17.2741 11.2778 17.0822C11.0859 16.8903 10.978 16.6299 10.978 16.3586V11.591C10.978 11.3196 11.0859 11.0593 11.2778 10.8674C11.4697 10.6755 11.73 10.5676 12.0014 10.5676ZM12.0014 6.61737C12.7078 6.61737 13.2806 7.19033 13.2807 7.89667C13.2807 8.60308 12.7078 9.17596 12.0014 9.17596C11.295 9.17596 10.7221 8.60308 10.7221 7.89667C10.7222 7.19033 11.295 6.61737 12.0014 6.61737Z" fill="#2B7FFF"/>
+                                </svg>
+                                <h3 class="aduan-info-heading mb-0">Informasi Aduan</h3>
+                            </div>
+                        </div>
+                        <span class="aduan-info-status {{ $aduanStatusThemeClass }}">{{ strtoupper($aduanStatusLabel) }}</span>
                     </div>
-                    <div class="card-body pt-0">
-                        <table class="table table-borderless fs-6 mb-0">
-                            <tr>
-                                <td class="text-muted fw-semibold w-170px py-2">Nomor Tiket</td>
-                                <td class="fw-bold font-monospace py-2">{{ $aduan->nomor_tiket }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted fw-semibold py-2">Tanggal Masuk</td>
-                                <td class="py-2">{{ $aduan->created_at->format('d M Y, H:i') }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted fw-semibold py-2">Aset</td>
-                                <td class="py-2">
-                                    <span class="badge {{ $aduan->pipa_id ? 'badge-light-info' : 'badge-light-warning' }}">{{ $assetTypeLabel }}</span>
-                                    <span class="ms-2 fw-semibold">{{ $assetCode }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted fw-semibold py-2">Status Aset</td>
-                                <td class="py-2">
-                                    <span class="badge {{ $assetStatus['badge'] }}">{{ $assetStatus['label'] }}</span>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted fw-semibold py-2">Lokasi</td>
-                                <td class="py-2">{{ $assetLocation }}</td>
-                            </tr>
-                            <tr>
-                                <td class="text-muted fw-semibold py-2 align-top">Deskripsi Aduan</td>
-                                <td class="py-2">{{ $aduan->deskripsi }}</td>
-                            </tr>
-                        </table>
-                    </div>
-                </div>
 
-                <div class="card mb-5 border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
-                    <div class="card-header border-0 pt-5 pb-3 min-h-0">
-                        <h3 class="card-title fw-bold">Dokumentasi Pelapor</h3>
-                        <span class="text-muted fs-7">{{ $fotoPelapor->count() }} foto</span>
+                    <div class="aduan-info-body">
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Nomor Tiket</div>
+                            <div class="aduan-info-value aduan-info-ticket">{{ $aduan->nomor_tiket }}</div>
+                        </div>
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Tanggal Masuk</div>
+                            <div class="aduan-info-value">{{ $aduan->created_at->format('d F Y, H.i') }}</div>
+                        </div>
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Aset</div>
+                            <div class="aduan-info-value d-flex align-items-center gap-2">
+                                <span class="badge {{ $aduan->pipa_id ? 'badge-light-info' : 'badge-light-warning' }}">{{ strtoupper($assetTypeLabel) }}</span>
+                                <span>{{ $assetCode }}</span>
+                            </div>
+                        </div>
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Status Aset</div>
+                            <div class="aduan-info-value">
+                                <span class="badge {{ $assetStatus['badge'] }}">{{ $assetStatus['label'] }}</span>
+                            </div>
+                        </div>
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Lokasi</div>
+                            <div class="aduan-info-value">{{ $assetLocation }}</div>
+                        </div>
+                        <div class="aduan-info-row aduan-info-row-last">
+                            <div class="aduan-info-label">Deskripsi Aduan</div>
+                            <div class="aduan-info-value aduan-info-desc">{{ $aduan->deskripsi }}</div>
+                        </div>
                     </div>
-                    <div class="card-body pt-0">
+
+                    <div class="aduan-pelapor-wrap">
+                        <div class="aduan-pelapor-title">Dokumentasi Pelapor</div>
                         @if($fotoPelapor->isNotEmpty())
-                            <div class="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:[grid-template-columns:repeat(auto-fill,minmax(120px,1fr))]">
+                            <div class="aduan-pelapor-strip">
                                 @foreach($fotoPelapor as $foto)
-                                    <a href="{{ Storage::url($foto->file_path) }}" target="_blank">
-                                        <img src="{{ Storage::url($foto->file_path) }}" alt="{{ $foto->file_name }}" class="w-full h-[110px] object-cover rounded-[10px] border border-slate-200 transition-transform duration-200 hover:-translate-y-0.5">
+                                    <a href="{{ Storage::url($foto->file_path) }}" target="_blank" class="aduan-pelapor-item">
+                                        <img src="{{ Storage::url($foto->file_path) }}" alt="{{ $foto->file_name }}" class="aduan-pelapor-image">
                                     </a>
                                 @endforeach
                             </div>
@@ -231,7 +244,13 @@
 
                 <div class="card border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
                     <div class="card-header border-0 pt-5 pb-3 min-h-0">
-                        <h3 class="card-title fw-bold">Dokumentasi Tindak Lanjut</h3>
+                        <div class="flex flex-row gap-2 items-center">
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <path opacity="0.1" d="M16.1609 1.5H7.94085C6.16729 1.52085 4.47399 2.23386 3.23015 3.48357C1.98631 4.73328 1.29281 6.41833 1.30085 8.17133V16.0781C1.3006 16.9244 1.4635 17.7629 1.78085 18.549C1.89189 18.8325 2.02564 19.1068 2.18085 19.3693L2.28085 19.5472C2.41085 19.7547 2.54085 19.9425 2.68085 20.1303L2.85085 20.3477C3.00085 20.5256 3.16085 20.6937 3.32085 20.8518L3.61085 21.1186L3.99085 21.4152C4.13085 21.5239 4.28085 21.6227 4.43085 21.7215C4.58085 21.8204 4.74085 21.9093 4.89085 21.9884L5.21085 22.1465C5.42085 22.2355 5.63085 22.3244 5.85085 22.3936L6.06085 22.4628C6.30375 22.5339 6.5509 22.59 6.80085 22.6308H7.04085C7.33562 22.6735 7.63295 22.6966 7.93085 22.7H16.1509C17.9175 22.6818 19.6058 21.9768 20.8504 20.7374C22.095 19.4981 22.7957 17.8242 22.8009 16.0781V8.17133C22.8089 6.41833 22.1154 4.73328 20.8716 3.48357C19.6277 2.23386 17.9344 1.52085 16.1609 1.5Z" fill="#2B7FFF"/>
+                                <path d="M16.1101 1.25H7.89007C6.11651 1.2711 4.42321 1.99252 3.17937 3.25696C1.93553 4.52141 1.24203 6.22633 1.25007 8V16C1.24982 16.8563 1.41272 17.7047 1.73007 18.5C1.8411 18.7869 1.97486 19.0644 2.13007 19.33L2.23007 19.51C2.36007 19.72 2.49007 19.91 2.63007 20.1L2.80007 20.32C2.95007 20.5 3.11007 20.67 3.27007 20.83L3.56007 21.1L3.94007 21.4C4.08007 21.51 4.23007 21.61 4.38007 21.71C4.53007 21.81 4.69007 21.9 4.84007 21.98L5.16007 22.14C5.37007 22.23 5.58007 22.32 5.80007 22.39L6.01007 22.46C6.25297 22.532 6.50012 22.5887 6.75007 22.63H6.99007C7.28484 22.6732 7.58217 22.6966 7.88007 22.7H16.1001C17.8667 22.6816 19.555 21.9682 20.7996 20.7143C22.0442 19.4604 22.7449 17.7667 22.7501 16V8C22.7581 6.22633 22.0646 4.52141 20.8208 3.25696C19.5769 1.99252 17.8836 1.2711 16.1101 1.25ZM21.2501 16C21.2567 16.6816 21.1289 17.3578 20.8742 17.99C20.6195 18.6222 20.2427 19.198 19.7654 19.6846C19.2881 20.1712 18.7196 20.559 18.0924 20.8259C17.4652 21.0927 16.7916 21.2335 16.1101 21.24H7.89007C7.59149 21.2336 7.29389 21.2035 7.00007 21.15H6.79007C6.18712 21.0112 5.61446 20.7638 5.10007 20.42L5.00007 20.3C4.76098 20.1293 4.53684 19.9387 4.33007 19.73C4.08663 19.5059 3.8625 19.2617 3.66007 19L3.56007 18.83C3.49007 18.72 3.43007 18.59 3.37007 18.47L6.37007 16.04C6.81211 15.6773 7.37036 15.4867 7.94191 15.5032C8.51345 15.5198 9.05974 15.7424 9.48007 16.13C9.77259 16.3979 10.1153 16.6051 10.4885 16.7397C10.8616 16.8742 11.2577 16.9335 11.6539 16.9139C12.0501 16.8944 12.4384 16.7965 12.7965 16.6259C13.1546 16.4553 13.4753 16.2154 13.7401 15.92L15.7401 13.74C15.958 13.4975 16.2233 13.3021 16.5195 13.1659C16.8158 13.0298 17.1368 12.9556 17.4628 12.9482C17.7888 12.9407 18.1128 12.9999 18.415 13.1224C18.7172 13.2448 18.9912 13.4278 19.2201 13.66L21.2801 15.75L21.2501 16ZM21.2501 13.57L20.2501 12.57C19.8789 12.193 19.4347 11.8957 18.9446 11.6962C18.4546 11.4968 17.929 11.3994 17.4001 11.41C16.8711 11.4207 16.3502 11.5408 15.87 11.7628C15.3898 11.9849 14.9608 12.3039 14.6101 12.7L12.6101 14.87C12.477 15.0198 12.3155 15.1417 12.1349 15.2285C11.9543 15.3152 11.7582 15.3652 11.5581 15.3754C11.358 15.3857 11.1579 15.356 10.9693 15.2881C10.7808 15.2202 10.6077 15.1155 10.4601 14.98C9.78013 14.3655 8.90372 14.013 7.98765 13.9855C7.07158 13.958 6.17562 14.2574 5.46007 14.83L2.84007 16.92C2.77991 16.617 2.74977 16.3089 2.75007 16V8C2.74207 6.62696 3.27849 5.3067 4.24187 4.32832C5.20525 3.34995 6.51707 2.7932 7.89007 2.78H16.1101C17.4831 2.7932 18.7949 3.34995 19.7583 4.32832C20.7216 5.3067 21.2581 6.62696 21.2501 8V13.57ZM7.79007 5.32C7.23426 5.31007 6.68807 5.46581 6.22109 5.76739C5.7541 6.06896 5.38745 6.50271 5.16783 7.01339C4.94822 7.52407 4.88559 8.08856 4.98791 8.63496C5.09024 9.18136 5.35289 9.68493 5.74241 10.0815C6.13194 10.4781 6.6307 10.7498 7.17516 10.862C7.71963 10.9741 8.28516 10.9217 8.79971 10.7113C9.31427 10.5009 9.75455 10.1421 10.0645 9.68067C10.3744 9.21919 10.54 8.6759 10.5401 8.12C10.544 7.7554 10.476 7.3936 10.3398 7.05537C10.2036 6.71713 10.002 6.40911 9.74648 6.14897C9.49099 5.88883 9.18665 5.68169 8.85092 5.53944C8.51519 5.39718 8.15468 5.32261 7.79007 5.32ZM7.79007 9.4C7.53439 9.414 7.28039 9.351 7.06089 9.21913C6.8414 9.08727 6.6665 8.8926 6.5588 8.66029C6.4511 8.42798 6.41555 8.1687 6.45675 7.91598C6.49794 7.66325 6.61399 7.42869 6.7899 7.24261C6.9658 7.05653 7.19347 6.92749 7.44348 6.87216C7.69349 6.81682 7.95436 6.83775 8.19235 6.93223C8.43034 7.02671 8.63453 7.1904 8.77852 7.40214C8.92251 7.61388 8.99969 7.86394 9.00007 8.12C9.00302 8.44841 8.87864 8.76519 8.65303 9.00385C8.42742 9.24251 8.11812 9.3845 7.79007 9.4Z" fill="#2B7FFF"/>
+                            </svg>
+                            <h3 class="card-title fw-bold">Dokumentasi Tindak Lanjut</h3>
+                        </div>
                         <div class="d-flex align-items-center gap-2">
                             <span class="text-muted fs-7">{{ $fotoAdmin->count() }} foto</span>
                             <button type="button" id="followUpUploadBtn" class="btn btn-sm btn-primary">Upload Foto</button>
@@ -676,6 +695,137 @@
         background: #eef2f8;
     }
 
+    .aduan-info-card {
+        overflow: hidden;
+    }
+
+    .aduan-info-header {
+        padding: 16px 18px;
+        border-bottom: 1px solid #e2e8f0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+    }
+
+    .aduan-info-heading {
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .aduan-info-status {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 30px;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 700;
+        letter-spacing: 0.02em;
+    }
+
+    .aduan-info-status.is-menunggu {
+        border: 1px solid #fde68a;
+        background: #fef9c3;
+        color: #a16207;
+    }
+
+    .aduan-info-status.is-diproses {
+        border: 1px solid #bfdbfe;
+        background: #eff6ff;
+        color: #1d4ed8;
+    }
+
+    .aduan-info-status.is-ditolak {
+        border: 1px solid #fecaca;
+        background: #fef2f2;
+        color: #b91c1c;
+    }
+
+    .aduan-info-status.is-selesai {
+        border: 1px solid #bbf7d0;
+        background: #f0fdf4;
+        color: #15803d;
+    }
+
+    .aduan-info-body {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .aduan-info-row {
+        display: grid;
+        grid-template-columns: 190px minmax(0, 1fr);
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .aduan-info-row-last {
+        align-items: start;
+    }
+
+    .aduan-info-label {
+        padding: 13px 18px;
+        color: #64748b;
+        font-size: 12px;
+        line-height: 1.3;
+        font-weight: 600;
+    }
+
+    .aduan-info-value {
+        padding: 13px 18px;
+        color: #1e293b;
+        font-size: 16px;
+        line-height: 1.35;
+        font-weight: 500;
+    }
+
+    .aduan-info-ticket {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-weight: 700;
+    }
+
+    .aduan-info-desc {
+        text-align: justify;
+    }
+
+    .aduan-pelapor-wrap {
+        border-top: 1px solid #e2e8f0;
+        padding: 14px 18px 16px;
+    }
+
+    .aduan-pelapor-title {
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 600;
+        color: #64748b;
+        margin-bottom: 12px;
+    }
+
+    .aduan-pelapor-strip {
+        display: flex;
+        gap: 12px;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+
+    .aduan-pelapor-item {
+        flex: 0 0 auto;
+        width: 178px;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+    .aduan-pelapor-image {
+        width: 100%;
+        height: 118px;
+        object-fit: cover;
+        border: 1px solid #dbe1eb;
+        border-radius: 14px;
+    }
+
     .status-history {
         display: flex;
         flex-direction: column;
@@ -814,6 +964,28 @@
         .status-history-subtitle,
         .status-history-note {
             font-size: 13px;
+        }
+
+        .aduan-info-row {
+            grid-template-columns: 124px minmax(0, 1fr);
+        }
+
+        .aduan-info-label,
+        .aduan-info-value,
+        .aduan-pelapor-title {
+            font-size: 13px;
+        }
+
+        .aduan-info-heading {
+            font-size: 16px;
+        }
+
+        .aduan-pelapor-item {
+            width: 150px;
+        }
+
+        .aduan-pelapor-image {
+            height: 102px;
         }
     }
 </style>
