@@ -26,6 +26,12 @@ class AduanController extends Controller
         $title    = 'Manajemen Aduan';
         $subtitle = 'Daftar Aduan Masuk';
 
+        $allowedPerPage = [5, 10, 15, 25, 50];
+        $perPage = (int) $request->input('per_page', 5);
+        if (!in_array($perPage, $allowedPerPage, true)) {
+            $perPage = 5;
+        }
+
         $query = Aduan::with(['pipa:id,kode_pipa,wilayah', 'manhole:id,kode_manhole,wilayah'])
             ->withCount('dokumentasi');
 
@@ -41,7 +47,7 @@ class AduanController extends Controller
             });
         }
 
-        $aduan = $query->orderByDesc('created_at')->paginate(15)->withQueryString();
+        $aduan = $query->orderByDesc('created_at')->paginate($perPage)->withQueryString();
 
         $data_konfig = KonfigurasiModel::first();
         $service     = ['data_konfig' => $data_konfig];

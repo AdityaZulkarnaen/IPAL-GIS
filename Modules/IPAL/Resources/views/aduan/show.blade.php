@@ -1,7 +1,7 @@
 @extends('ipal::layouts.main')
 
 @section('content')
-<div id="kt_app_content" class="app-content flex-column-fluid">
+<div id="kt_app_content" class="app-content flex-column-fluid bg-white">
     <div id="kt_app_content_container" class="app-container container-fluid">
         @php
             $statusLabelMap = [
@@ -927,65 +927,141 @@
         white-space: pre-line;
     }
 
-    @media (max-width: 767.98px) {
-        .wf-heading {
-            font-size: 21px;
+    @media (max-width: 991.98px) {
+        #kt_app_content_container {
+            padding-left: 12px;
+            padding-right: 12px;
         }
 
+        .aduan-info-header,
+        .aduan-pelapor-wrap,
+        .card-body {
+            padding-left: 12px !important;
+            padding-right: 12px !important;
+        }
+
+        .aduan-info-row {
+            grid-template-columns: 108px minmax(0, 1fr);
+        }
+
+        .aduan-info-label,
+        .aduan-info-value {
+            padding-top: 10px;
+            padding-bottom: 10px;
+            font-size: 12px;
+        }
+
+        .aduan-info-heading,
+        .aduan-pelapor-title,
+        .wf-heading,
+        .status-history-title,
         .wf-step-title {
-            font-size: 16px;
+            font-size: 14px;
+        }
+
+        .wf-step {
+            grid-template-columns: 34px minmax(0, 1fr);
+            column-gap: 10px;
+        }
+
+        .wf-step::before {
+            left: 14px;
+        }
+
+        .wf-step-num {
+            width: 28px;
+            height: 28px;
+            margin-top: 8px;
+            font-size: 13px;
+        }
+
+        .wf-step-card {
+            padding: 12px;
         }
 
         .wf-step-desc,
         .wf-progress-text,
-        .wf-btn,
         .wf-input,
-        .wf-manual-btn {
-            font-size: 16px;
+        .wf-btn,
+        .wf-manual-btn,
+        .status-history-subtitle,
+        .status-history-note,
+        .status-history-date,
+        .status-history-clock {
+            font-size: 12px;
         }
 
         .wf-progress-meta,
         .wf-meta-text,
         .wf-progress-title {
-            font-size: 13px;
+            font-size: 11px;
+        }
+
+        .wf-verify-row {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .wf-verify-actions-single,
+        .wf-verify-actions-status {
+            width: 100%;
+            grid-template-columns: minmax(0, 1fr);
         }
 
         .status-history-item {
-            grid-template-columns: 96px 20px minmax(0, 1fr);
-            column-gap: 10px;
+            grid-template-columns: 86px 18px minmax(0, 1fr);
+            column-gap: 8px;
         }
 
-        .status-history-title {
-            font-size: 16px;
+        .status-history-dot {
+            width: 10px;
+            height: 10px;
         }
 
-        .status-history-date,
-        .status-history-clock,
-        .status-history-subtitle,
-        .status-history-note {
-            font-size: 13px;
-        }
-
-        .aduan-info-row {
-            grid-template-columns: 124px minmax(0, 1fr);
-        }
-
-        .aduan-info-label,
-        .aduan-info-value,
-        .aduan-pelapor-title {
-            font-size: 13px;
-        }
-
-        .aduan-info-heading {
-            font-size: 16px;
+        .status-history-axis::after {
+            top: 12px;
         }
 
         .aduan-pelapor-item {
-            width: 150px;
+            width: 132px;
         }
 
         .aduan-pelapor-image {
-            height: 102px;
+            height: 92px;
+        }
+    }
+
+    @media (max-width: 575.98px) {
+        .d-flex.justify-content-between.align-items-center.flex-wrap.gap-3.mb-5 {
+            align-items: flex-start !important;
+            gap: 8px !important;
+        }
+
+        .aduan-info-row {
+            grid-template-columns: 1fr;
+            gap: 0;
+        }
+
+        .aduan-info-label {
+            padding-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .aduan-info-value {
+            padding-top: 0;
+        }
+
+        .status-history-item {
+            grid-template-columns: 74px 16px minmax(0, 1fr);
+            column-gap: 6px;
+        }
+
+        .status-history-title {
+            font-size: 13px;
+        }
+
+        .wf-btn {
+            min-height: 34px;
         }
     }
 </style>
