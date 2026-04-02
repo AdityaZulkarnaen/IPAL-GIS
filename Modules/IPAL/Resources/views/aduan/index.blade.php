@@ -8,15 +8,18 @@
         <div class="card">
             <div class="card-header border-0 pt-6">
                 <div class="card-title">
-                    <h3 class="fw-bold mb-0">Daftar Aduan Masuk</h3>
+                    <h3 class="fw-bold mb-0">Daftar Aduan</h3>
                 </div>
                 <div class="card-toolbar">
                     <!--begin::Filter Form-->
                     <form method="GET" action="{{ route('ipal.aduan.index') }}" class="d-flex gap-2 align-items-center">
                         <select name="status_aduan" class="form-select form-select-sm w-150px" onchange="this.form.submit()">
                             <option value="">Semua Status</option>
-                            @foreach(['masuk','verifikasi','proses','selesai'] as $st)
-                                <option value="{{ $st }}" @selected(request('status_aduan') === $st)>{{ ucfirst($st) }}</option>
+                            @foreach(['masuk','verifikasi','proses','ditolak','selesai'] as $st)
+                                @php
+                                    $statusLabel = $st === 'proses' ? 'Diproses' : ucfirst($st);
+                                @endphp
+                                <option value="{{ $st }}" @selected(request('status_aduan') === $st)>{{ $statusLabel }}</option>
                             @endforeach
                         </select>
                         <div class="position-relative">
@@ -86,11 +89,13 @@
                                             'masuk'      => 'badge-light-primary',
                                             'verifikasi' => 'badge-light-warning',
                                             'proses'     => 'badge-light-info',
+                                            'ditolak'    => 'badge-light-danger',
                                             'selesai'    => 'badge-light-success',
                                         ];
                                         $badge = $badgeMap[$item->status_aduan] ?? 'badge-light';
+                                        $statusLabel = $item->status_aduan === 'proses' ? 'Diproses' : ucfirst($item->status_aduan);
                                     @endphp
-                                    <span class="badge {{ $badge }}">{{ ucfirst($item->status_aduan) }}</span>
+                                    <span class="badge {{ $badge }}">{{ $statusLabel }}</span>
                                 </td>
                                 <td class="text-center">
                                     <span class="badge badge-light">{{ $item->dokumentasi_count }}</span>
