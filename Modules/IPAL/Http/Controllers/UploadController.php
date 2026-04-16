@@ -7,17 +7,21 @@ use App\Models\KonfigurasiModel;
 use Modules\IPAL\Models\IpalUpload;
 use Modules\IPAL\Services\GeoJsonParserService;
 use Modules\IPAL\Services\GeoJsonImportService;
+use Modules\IPAL\Services\ShapefileParserService;
 
 class UploadController extends Controller
 {
     private GeoJsonParserService $parserService;
+    private ShapefileParserService $shapefileService;
     private GeoJsonImportService $importService;
 
     public function __construct(
         GeoJsonParserService $parserService,
+        ShapefileParserService $shapefileService,
         GeoJsonImportService $importService
     ) {
         $this->parserService = $parserService;
+        $this->shapefileService = $shapefileService;
         $this->importService = $importService;
     }
 
@@ -78,20 +82,41 @@ class UploadController extends Controller
         $file = $request->file('file');
         $tipe = $request->input('tipe');
 
-        $extension = $file->getClientOriginalExtension();
-        if (!in_array(strtolower($extension), ['geojson', 'json'])) {
-            return back()->with('error', 'File must be a GeoJSON (.geojson or .json) file.');
+        $extension = strtolower($file->getClientOriginalExtension());
+        
+        $isGeoJson = in_array($extension, ['geojson', 'json']);
+        $isShapefile = $extension === 'zip';
+        
+        if (!$isGeoJson && !$isShapefile) {
+            return back()->with('error', 'File must be a GeoJSON (.geojson or .json) or Shapefile ZIP (.zip) file.');
         }
 
         try {
-            $geojsonData = $this->parserService->parseFile($file);
+            if ($isGeoJson) {
+                $geojsonData = $this->parserService->parseFile($file);
+                $fileType = 'geojson';
+                $metadata = [
+                    'original_format' => 'geojson',
+                ];
+            } else {
+                $geojsonData = $this->shapefileService->parseZipFile($file);
+                $fileType = 'shapefile';
+                $shapefileName = $this->shapefileService->extractShapefileNameFromZip($file);
+                $zipContents = $this->shapefileService->getZipFileList($file);
+                $metadata = [
+                    'original_format' => 'shapefile',
+                    'shapefile_name' => $shapefileName,
+                    'zip_contents' => $zipContents,
+                ];
+            }
+            
             $this->parserService->validate($geojsonData);
 
             $expectedType = $this->parserService->getExpectedGeometryType($tipe);
             $features = $this->parserService->extractFeatures($geojsonData);
             $this->parserService->validateGeometryType($features, $expectedType);
         } catch (\Exception $e) {
-            return back()->with('error', 'GeoJSON validation failed: ' . $e->getMessage());
+            return back()->with('error', ($fileType === 'shapefile' ? 'Shapefile' : 'GeoJSON') . ' validation failed: ' . $e->getMessage());
         }
 
         $upload = IpalUpload::create([
@@ -99,15 +124,15 @@ class UploadController extends Controller
             'tipe' => $tipe,
             'nama_file_asli' => $file->getClientOriginalName(),
             'status' => 'processing',
-            'metadata' => [
+            'metadata' => array_merge($metadata, [
                 'crs' => $this->parserService->extractCrs($geojsonData),
                 'total_features_in_file' => count($features),
-            ],
+            ]),
         ]);
 
         try {
             $importedCount = $this->importService->import($upload, $geojsonData);
-            return back()->with('success', "Successfully imported {$importedCount} features from {$file->getClientOriginalName()}.");
+            return back()->with('success', "Successfully imported {$importedCount} features from " . ($fileType === 'shapefile' ? 'shapefile' : 'GeoJSON') . " ({$file->getClientOriginalName()}).");
         } catch (\Exception $e) {
             return back()->with('error', 'Import failed: ' . $e->getMessage());
         }
