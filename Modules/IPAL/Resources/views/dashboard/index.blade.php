@@ -6,14 +6,15 @@
 
     .ipal-dashboard-page {
         font-family: 'Plus Jakarta Sans', sans-serif;
-        background: #f5f7fb;
+        background: #ffffff;
         min-height: 100%;
         padding: 18px 22px 26px;
     }
 
     .ipal-dashboard-shell {
         width: 100%;
-        max-width: 1160px;
+        max-width: 1420px;
+        margin-inline: auto;
     }
 
     .ipal-crumb {
@@ -347,6 +348,80 @@
         color: #16213f;
         font-size: 14px;
         font-weight: 700;
+    }
+
+    @media (min-width: 1600px) {
+        .ipal-dashboard-page {
+            padding: 22px 30px 32px;
+        }
+
+        .ipal-dashboard-shell {
+            max-width: 1600px;
+        }
+
+        .ipal-kpi-grid,
+        .ipal-dashboard-grid,
+        .ipal-status-stack {
+            gap: 18px;
+        }
+
+        .ipal-kpi-card {
+            min-height: 124px;
+            padding: 18px;
+        }
+
+        .ipal-kpi-label {
+            font-size: 21px;
+        }
+
+        .ipal-kpi-value {
+            font-size: 48px;
+        }
+
+        .ipal-kpi-value span {
+            font-size: 35px;
+        }
+
+        .ipal-panel,
+        .ipal-status-card {
+            padding: 20px;
+        }
+
+        .ipal-panel {
+            min-height: 440px;
+        }
+
+        .ipal-status-stack {
+            min-height: 440px;
+        }
+
+        .ipal-panel-title,
+        .ipal-status-title {
+            font-size: 21px;
+        }
+
+        .ipal-pie-wrap {
+            width: min(100%, 380px);
+            margin-top: 14px;
+        }
+
+        .ipal-pie-wrap canvas {
+            max-height: 320px;
+        }
+
+        .ipal-status-row {
+            grid-template-columns: 96px minmax(0, 1fr) 56px;
+            gap: 12px;
+        }
+
+        .ipal-status-row .label,
+        .ipal-status-row .value {
+            font-size: 15px;
+        }
+
+        .ipal-status-track {
+            height: 18px;
+        }
     }
 
     @media (max-width: 1199.98px) {
