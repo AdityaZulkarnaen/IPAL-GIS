@@ -74,6 +74,21 @@
             color: #60a5fa;
         }
 
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg path,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg rect,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg circle,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg line,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg polyline {
+            color: #60a5fa !important;
+            stroke: currentColor !important;
+        }
+
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg [fill="currentColor"] {
+            fill: currentColor !important;
+        }
+
         .ipal-header-user {
             display: flex;
             align-items: center;

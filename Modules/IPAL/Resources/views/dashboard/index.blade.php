@@ -69,6 +69,21 @@
         pointer-events: none;
     }
 
+    .ipal-link-card {
+        display: block;
+        text-decoration: none;
+        color: inherit;
+        transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    }
+
+    .ipal-link-card:hover,
+    .ipal-link-card:focus-visible {
+        transform: translateY(-1px);
+        border-color: #cfd8e6;
+        box-shadow: 0 12px 24px rgba(15, 23, 42, 0.08);
+        color: inherit;
+    }
+
     .ipal-kpi-top {
         display: flex;
         align-items: center;
@@ -135,7 +150,7 @@
         display: grid;
         grid-template-columns: 1.03fr 1.47fr;
         gap: 14px;
-        align-items: start;
+        align-items: stretch;
     }
 
     .ipal-panel,
@@ -148,6 +163,7 @@
     .ipal-panel {
         padding: 16px;
         min-height: 386px;
+        height: 100%;
     }
 
     .ipal-panel-title,
@@ -266,13 +282,23 @@
     .dot-glontor { background: #7c4dff; }
 
     .ipal-status-stack {
-        display: flex;
-        flex-direction: column;
+        display: grid;
+        grid-template-rows: repeat(2, minmax(0, 1fr));
         gap: 14px;
+        min-height: 386px;
+        height: 100%;
     }
 
     .ipal-status-card {
         padding: 16px;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .ipal-status-card.ipal-link-card {
+        cursor: pointer;
     }
 
     .ipal-status-list {
@@ -280,6 +306,8 @@
         display: flex;
         flex-direction: column;
         gap: 10px;
+        flex: 1;
+        justify-content: center;
     }
 
     .ipal-status-row {
@@ -350,6 +378,12 @@
 
         .ipal-panel {
             min-height: auto;
+            height: auto;
+        }
+
+        .ipal-status-stack {
+            min-height: auto;
+            height: auto;
         }
     }
 
@@ -468,11 +502,14 @@
 <div id="kt_app_content" class="app-content flex-column-fluid p-0">
     <div class="ipal-dashboard-page">
         <div class="ipal-dashboard-shell">
-            <p class="ipal-crumb">IPAL <b>&rsaquo;</b> Dashboard</p>
+            <p class="ipal-crumb flex flex-row items-center gap-2">IPAL <b><svg width="6" height="10" viewBox="0 0 6 10" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                        <path fill-rule="evenodd" clip-rule="evenodd" d="M0.175736 0.180086C0.410051 -0.0600286 0.78995 -0.0600286 1.02426 0.180086L5.02426 4.2791C5.25858 4.51921 5.25858 4.90851 5.02426 5.14863L1.24649 9.01991C1.01217 9.26003 0.632273 9.26003 0.397958 9.01991C0.163644 8.7798 0.163644 8.3905 0.397958 8.15038L3.75147 4.71386L0.175736 1.04962C-0.0585787 0.809503 -0.0585787 0.4202 0.175736 0.180086Z" fill="#99A1B7"/>
+                                        </svg>
+                                        </b> Dashboard</p>
             <h1 class="ipal-page-title">Dashboard</h1>
 
             <div class="ipal-kpi-grid">
-                <div class="ipal-kpi-card">
+                <a class="ipal-kpi-card ipal-link-card" href="{{ route('ipal.upload.index') }}#manhole-table-card" aria-label="Lihat tabel informasi manhole di Data Jaringan">
                     <div class="ipal-kpi-top">
                         <span class="ipal-kpi-icon icon-green">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -483,9 +520,9 @@
                         <div class="ipal-kpi-label">Total Manhole</div>
                     </div>
                     <div class="ipal-kpi-value" id="dash-total-manhole">0</div>
-                </div>
+                </a>
 
-                <div class="ipal-kpi-card">
+                <a class="ipal-kpi-card ipal-link-card" href="{{ route('ipal.upload.index') }}#pipe-table-card" aria-label="Lihat tabel informasi pipa di Data Jaringan">
                     <div class="ipal-kpi-top">
                         <span class="ipal-kpi-icon icon-purple">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -495,9 +532,9 @@
                         <div class="ipal-kpi-label">Total Jalur Pipa</div>
                     </div>
                     <div class="ipal-kpi-value" id="dash-total-pipa">0</div>
-                </div>
+                </a>
 
-                <div class="ipal-kpi-card">
+                <a class="ipal-kpi-card ipal-link-card" href="{{ route('ipal.upload.index') }}#pipe-table-card" aria-label="Lihat tabel informasi pipa di Data Jaringan">
                     <div class="ipal-kpi-top">
                         <span class="ipal-kpi-icon icon-blue">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -507,7 +544,7 @@
                         <div class="ipal-kpi-label">Total Panjang Pipa</div>
                     </div>
                     <div class="ipal-kpi-value"><span id="dash-total-panjang">0</span><span>km</span></div>
-                </div>
+                </a>
             </div>
 
             <div class="ipal-dashboard-grid">
@@ -549,7 +586,7 @@
                 </section>
 
                 <div class="ipal-status-stack">
-                    <section class="ipal-status-card">
+                    <a class="ipal-status-card ipal-link-card" href="{{ route('ipal.aduan.index') }}" aria-label="Lihat daftar aduan untuk status jalur pipa">
                         <h2 class="ipal-status-title">Status Jalur Pipa</h2>
                         <div class="ipal-status-list" id="status-pipa-list">
                             <div class="ipal-status-row" data-key="baik">
@@ -568,9 +605,9 @@
                                 <span class="value">0</span>
                             </div>
                         </div>
-                    </section>
+                    </a>
 
-                    <section class="ipal-status-card">
+                    <a class="ipal-status-card ipal-link-card" href="{{ route('ipal.aduan.index') }}" aria-label="Lihat daftar aduan untuk status manhole">
                         <h2 class="ipal-status-title">Status Manhole</h2>
                         <div class="ipal-status-list" id="status-manhole-list">
                             <div class="ipal-status-row" data-key="baik">
@@ -589,7 +626,7 @@
                                 <span class="value">0</span>
                             </div>
                         </div>
-                    </section>
+                    </a>
                 </div>
             </div>
         </div>
