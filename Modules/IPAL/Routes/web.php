@@ -34,6 +34,8 @@ Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(fu
 
     /** Manajemen Aduan */
     Route::get('/aduan', [\Modules\IPAL\Http\Controllers\AduanController::class, 'index'])->name('aduan.index');
+    Route::get('/aduan/{id}/related', [\Modules\IPAL\Http\Controllers\AduanController::class, 'relatedAduanIndex'])->name('aduan.related.index');
+    Route::get('/aduan/{id}/related/{relatedId}', [\Modules\IPAL\Http\Controllers\AduanController::class, 'relatedAduanShow'])->name('aduan.related.show');
     Route::get('/aduan/{id}', [\Modules\IPAL\Http\Controllers\AduanController::class, 'show'])->name('aduan.show');
     Route::post('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
 });

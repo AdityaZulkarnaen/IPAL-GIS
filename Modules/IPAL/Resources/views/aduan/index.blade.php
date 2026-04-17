@@ -91,7 +91,7 @@
                         </colgroup>
                         <thead class="aduan-table-head">
                             <tr class="text-start fw-semibold text-uppercase gs-0">
-                                <th>Nomor Tiket</th>
+                                <th>Tiket Terbaru</th>
                                 <th>Tipe</th>
                                 <th>ID Aset</th>
                                 <th>Wilayah</th>
@@ -102,9 +102,15 @@
                         </thead>
                         <tbody class="aduan-table-body">
                             @forelse($aduan as $item)
+                            @php
+                                $laporanCount = (int) ($item->laporan_count ?? 1);
+                            @endphp
                             <tr>
                                 <td>
-                                    <span class="aduan-ticket">{{ $item->nomor_tiket }}</span>
+                                    <div class="aduan-ticket-wrap">
+                                        <span class="aduan-ticket">{{ $item->nomor_tiket }}</span>
+                                        <span class="badge badge-light-primary aduan-count-badge">{{ $laporanCount }} laporan</span>
+                                    </div>
                                 </td>
                                 <td>
                                     @if($item->pipa_id)
@@ -156,6 +162,7 @@
                 <div class="aduan-mobile-list">
                     @forelse($aduan as $item)
                         @php
+                            $laporanCount = (int) ($item->laporan_count ?? 1);
                             $statusLabel = match ($item->status_aduan) {
                                 'masuk', 'verifikasi' => 'MENUNGGU',
                                 'proses' => 'DIPROSES',
@@ -176,6 +183,9 @@
                                 <a href="{{ route('ipal.aduan.show', $item->id) }}" class="btn btn-sm btn-light aduan-detail-btn">Detail</a>
                             </div>
                             <div class="aduan-mobile-ticket">{{ $item->nomor_tiket }}</div>
+                            <div class="mt-1">
+                                <span class="badge badge-light-primary aduan-count-badge">{{ $laporanCount }} laporan</span>
+                            </div>
                             <div class="aduan-mobile-asset">{{ $assetCode }}</div>
                         </div>
                     @empty
@@ -229,6 +239,7 @@
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
     </div>
@@ -349,6 +360,21 @@
         font-weight: 700;
         color: #0f172a;
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    }
+
+    .aduan-ticket-wrap {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .aduan-count-badge {
+        font-size: 10px;
+        font-weight: 700;
+        line-height: 1;
+        border-radius: 999px;
+        padding: 5px 10px;
     }
 
     .aduan-asset-id {
