@@ -67,7 +67,8 @@
                 '-' => ['label' => '-', 'badge' => 'badge-light'],
             ];
 
-            $assetStatusKey = $asset ? $normalizeAssetStatus($asset->status) : '-';
+            $assetCanonicalStatus = $aduan->pipa?->canonicalStatus?->status ?? $aduan->manhole?->canonicalStatus?->status;
+            $assetStatusKey = $asset ? $normalizeAssetStatus($assetCanonicalStatus ?? $asset->status) : '-';
             $assetStatus = $assetStatusMap[$assetStatusKey] ?? $assetStatusMap['-'];
 
             $canVerify = in_array($currentStatus, ['masuk', 'verifikasi', 'ditolak'], true);

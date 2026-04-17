@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Modules\IPAL\Http\Controllers\Controller;
+use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalManhole;
 use Modules\IPAL\Models\IpalJaringanPipa;
 
@@ -75,9 +76,13 @@ class StatisticsController extends Controller
         $total = (clone $query)->count();
 
         $rawByStatus = (clone $query)
-            ->selectRaw('LOWER(status) as status, COUNT(*) as total')
-            ->whereNotNull('status')
-            ->groupBy(DB::raw('LOWER(status)'))
+            ->leftJoin('ipal_asset_statuses as asset_status', function ($join) {
+                $join->on('asset_status.asset_code', '=', 'ipal_manholes.kode_manhole')
+                    ->where('asset_status.asset_type', IpalAssetStatus::ASSET_TYPE_MANHOLE);
+            })
+            ->selectRaw('LOWER(COALESCE(asset_status.status, ipal_manholes.status)) as status, COUNT(*) as total')
+            ->whereRaw('COALESCE(asset_status.status, ipal_manholes.status) IS NOT NULL')
+            ->groupBy(DB::raw('LOWER(COALESCE(asset_status.status, ipal_manholes.status))'))
             ->pluck('total', 'status')
             ->toArray();
 
@@ -113,9 +118,13 @@ class StatisticsController extends Controller
         );
 
         $rawByStatus = (clone $query)
-            ->selectRaw('LOWER(status) as status, COUNT(*) as total')
-            ->whereNotNull('status')
-            ->groupBy(DB::raw('LOWER(status)'))
+            ->leftJoin('ipal_asset_statuses as asset_status', function ($join) {
+                $join->on('asset_status.asset_code', '=', 'ipal_jaringan_pipa.kode_pipa')
+                    ->where('asset_status.asset_type', IpalAssetStatus::ASSET_TYPE_PIPE);
+            })
+            ->selectRaw('LOWER(COALESCE(asset_status.status, ipal_jaringan_pipa.status)) as status, COUNT(*) as total')
+            ->whereRaw('COALESCE(asset_status.status, ipal_jaringan_pipa.status) IS NOT NULL')
+            ->groupBy(DB::raw('LOWER(COALESCE(asset_status.status, ipal_jaringan_pipa.status))'))
             ->pluck('total', 'status')
             ->toArray();
 
@@ -147,7 +156,7 @@ class StatisticsController extends Controller
         ];
 
         foreach ($rawTotals as $status => $total) {
-            $key = $this->normalizeStatusKey($status);
+            $key = IpalAssetStatus::normalizeStatus($status);
             if (!array_key_exists($key, $normalized)) {
                 continue;
             }
@@ -155,24 +164,5 @@ class StatisticsController extends Controller
         }
 
         return $normalized;
-    }
-
-    private function normalizeStatusKey(?string $status): string
-    {
-        $raw = strtolower(trim((string) $status));
-
-        if ($raw === 'aman' || $raw === 'baik') {
-            return 'baik';
-        }
-
-        if ($raw === 'dalam perbaikan' || $raw === 'perbaikan') {
-            return 'perbaikan';
-        }
-
-        if ($raw === 'masalah' || $raw === 'bermasalah' || $raw === 'rusak') {
-            return 'rusak';
-        }
-
-        return $raw;
     }
 }

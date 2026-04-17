@@ -83,7 +83,7 @@ class GeoJsonParserService
     {
         $allowedTypes = $this->getAllowedGeometryTypes($expectedType);
         
-        foreach ($features as $index => $feature) {
+        foreach ($features as $feature) {
             $type = $feature['geometry']['type'] ?? null;
 
             if (!in_array($type, $allowedTypes)) {
@@ -96,6 +96,22 @@ class GeoJsonParserService
                 );
             }
         }
+    }
+
+    public function countPipeFeaturesWithoutIdJalur(array $features): int
+    {
+        $missingCount = 0;
+
+        foreach ($features as $index => $feature) {
+            $props = $feature['properties'] ?? [];
+            $idJalur = trim((string) ($props['ID_JALUR'] ?? ''));
+
+            if ($idJalur === '') {
+                $missingCount++;
+            }
+        }
+
+        return $missingCount;
     }
 
     private function getAllowedGeometryTypes(string $primaryType): array
