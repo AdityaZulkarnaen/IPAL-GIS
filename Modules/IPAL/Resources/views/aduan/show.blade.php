@@ -43,6 +43,7 @@
             $assetTypeLabel = $aduan->pipa_id ? 'Pipa' : ($aduan->manhole_id ? 'Manhole' : '-');
             $assetCode = $aduan->pipa?->kode_pipa ?? $aduan->manhole?->kode_manhole ?? '-';
             $assetLocation = $aduan->pipa?->wilayah ?? $aduan->manhole?->wilayah ?? '-';
+            $laporanCount = (int) ($relatedAduanCount ?? 1);
 
             $normalizeAssetStatus = static function (?string $status): string {
                 $raw = strtolower(trim((string) $status));
@@ -206,6 +207,24 @@
                         <div class="aduan-info-row">
                             <div class="aduan-info-label">Tanggal Masuk</div>
                             <div class="aduan-info-value">{{ $aduan->created_at->format('d F Y, H.i') }}</div>
+                        </div>
+                        <div class="aduan-info-row">
+                            <div class="aduan-info-label">Laporan Terkait</div>
+                            <div class="aduan-info-value">
+                                <div class="d-flex align-items-center gap-2 flex-wrap">
+                                    <span class="badge badge-light-primary">{{ $laporanCount }} laporan</span>
+                                    <button
+                                        type="button"
+                                        class="btn btn-sm btn-light-primary"
+                                        id="openRelatedAduanBrowser"
+                                        data-related-url="{{ route('ipal.aduan.related.index', $aduan->id) }}"
+                                        @disabled($laporanCount < 1)
+                                    >
+                                        Telusuri aduan terkait
+                                    </button>
+                                </div>
+                                <div class="text-muted fs-8 mt-2">Gunakan browser aduan terkait untuk melihat deskripsi dan foto dari laporan lain pada aset yang sama.</div>
+                            </div>
                         </div>
                         <div class="aduan-info-row">
                             <div class="aduan-info-label">Aset</div>
@@ -449,6 +468,66 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="relatedAduanBrowserModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border border-slate-200 rounded-xl">
+                    <div class="modal-header border-bottom border-slate-200">
+                        <div>
+                            <h5 class="modal-title mb-1">Browser Aduan Terkait</h5>
+                            <div class="text-muted fs-7" id="relatedAduanBrowserSubtitle">Memuat data...</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div class="row g-4">
+                            <div class="col-lg-5">
+                                <input
+                                    type="text"
+                                    id="relatedAduanSearchInput"
+                                    class="form-control form-control-sm mb-3"
+                                    placeholder="Cari tiket atau deskripsi aduan..."
+                                >
+                                <div id="relatedAduanListLoading" class="text-muted fs-7 py-6 d-none">Memuat daftar aduan...</div>
+                                <div id="relatedAduanListEmpty" class="text-muted fs-7 py-6 d-none">Tidak ada aduan terkait.</div>
+                                <div id="relatedAduanList" class="related-browser-list"></div>
+                                <div class="d-flex align-items-center justify-content-between mt-3">
+                                    <div class="text-muted fs-8" id="relatedAduanPaginationSummary"></div>
+                                    <div class="d-flex align-items-center gap-2">
+                                        <button type="button" class="btn btn-sm btn-light" id="relatedAduanPrevBtn">Sebelumnya</button>
+                                        <button type="button" class="btn btn-sm btn-light" id="relatedAduanNextBtn">Berikutnya</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-7">
+                                <div id="relatedAduanDetailPlaceholder" class="border border-dashed border-slate-300 rounded-3 p-4 text-muted fs-7">
+                                    Pilih salah satu aduan untuk melihat deskripsi dan foto.
+                                </div>
+                                <div id="relatedAduanDetailPane" class="d-none">
+                                    <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                        <span id="relatedAduanDetailTicket" class="fw-bold text-dark" style="font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;"></span>
+                                        <span id="relatedAduanDetailStatus" class="badge badge-light"></span>
+                                        <span id="relatedAduanDetailTime" class="text-muted fs-8"></span>
+                                    </div>
+                                    <div class="border border-slate-200 rounded-3 p-3 mb-3">
+                                        <div class="fw-semibold fs-7 text-gray-700 mb-1">Deskripsi</div>
+                                        <div id="relatedAduanDetailDescription" class="text-gray-700 fs-7"></div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <div class="fw-semibold fs-7 text-gray-700 mb-2">Foto Pelapor</div>
+                                        <div id="relatedAduanPelaporPhotos" class="related-browser-photo-grid"></div>
+                                    </div>
+                                    <div>
+                                        <div class="fw-semibold fs-7 text-gray-700 mb-2">Foto Tindak Lanjut Admin</div>
+                                        <div id="relatedAduanAdminPhotos" class="related-browser-photo-grid"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -460,6 +539,69 @@
         font-weight: 700;
         color: #0f172a;
         line-height: 1.2;
+    }
+
+    .related-browser-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        max-height: 56vh;
+        overflow-y: auto;
+    }
+
+    .related-browser-item {
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        background: #ffffff;
+        padding: 10px 12px;
+        cursor: pointer;
+    }
+
+    .related-browser-item.is-active {
+        border-color: #93c5fd;
+        background: #eff6ff;
+    }
+
+    .related-browser-ticket {
+        font-size: 12px;
+        font-weight: 700;
+        color: #0f172a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    }
+
+    .related-browser-meta {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 6px;
+    }
+
+    .related-browser-desc {
+        font-size: 12px;
+        color: #64748b;
+        margin-top: 6px;
+        line-height: 1.35;
+    }
+
+    .related-browser-photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 8px;
+    }
+
+    .related-browser-photo-item {
+        display: block;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .related-browser-photo-item img {
+        width: 100%;
+        height: 96px;
+        object-fit: cover;
     }
 
     .wf-timeline {
@@ -1086,6 +1228,24 @@
     const verifyAcceptBtn = document.getElementById('verifyAcceptBtn');
     const verifyRejectBtn = document.getElementById('verifyRejectBtn');
     const verifyInfoText = document.getElementById('verifyInfoText');
+    const relatedBrowserTrigger = document.getElementById('openRelatedAduanBrowser');
+    const relatedBrowserModalElement = document.getElementById('relatedAduanBrowserModal');
+    const relatedBrowserSearchInput = document.getElementById('relatedAduanSearchInput');
+    const relatedBrowserList = document.getElementById('relatedAduanList');
+    const relatedBrowserListLoading = document.getElementById('relatedAduanListLoading');
+    const relatedBrowserListEmpty = document.getElementById('relatedAduanListEmpty');
+    const relatedBrowserSubtitle = document.getElementById('relatedAduanBrowserSubtitle');
+    const relatedBrowserPaginationSummary = document.getElementById('relatedAduanPaginationSummary');
+    const relatedBrowserPrevButton = document.getElementById('relatedAduanPrevBtn');
+    const relatedBrowserNextButton = document.getElementById('relatedAduanNextBtn');
+    const relatedDetailPlaceholder = document.getElementById('relatedAduanDetailPlaceholder');
+    const relatedDetailPane = document.getElementById('relatedAduanDetailPane');
+    const relatedDetailTicket = document.getElementById('relatedAduanDetailTicket');
+    const relatedDetailStatus = document.getElementById('relatedAduanDetailStatus');
+    const relatedDetailTime = document.getElementById('relatedAduanDetailTime');
+    const relatedDetailDescription = document.getElementById('relatedAduanDetailDescription');
+    const relatedPelaporPhotos = document.getElementById('relatedAduanPelaporPhotos');
+    const relatedAdminPhotos = document.getElementById('relatedAduanAdminPhotos');
     const actorName = @json(auth()->user()->name ?? 'Admin Lapangan');
 
     const escapeHtml = (value) => String(value)
@@ -1094,6 +1254,225 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+
+    const relatedBrowserState = {
+        baseUrl: relatedBrowserTrigger?.dataset.relatedUrl || '',
+        currentPage: 1,
+        lastPage: 1,
+        search: '',
+        perPage: 10,
+        activeItemId: null,
+    };
+    const relatedBrowserModal = relatedBrowserModalElement && typeof bootstrap !== 'undefined'
+        ? new bootstrap.Modal(relatedBrowserModalElement)
+        : null;
+    let relatedSearchTimer = null;
+
+    const buildRelatedFetchUrl = (page) => {
+        const url = new URL(relatedBrowserState.baseUrl, window.location.origin);
+        url.searchParams.set('page', String(page));
+        url.searchParams.set('per_page', String(relatedBrowserState.perPage));
+
+        if (relatedBrowserState.search.trim() !== '') {
+            url.searchParams.set('search', relatedBrowserState.search.trim());
+        } else {
+            url.searchParams.delete('search');
+        }
+
+        return url.toString();
+    };
+
+    const toggleRelatedListLoading = (isLoading) => {
+        if (!relatedBrowserListLoading) {
+            return;
+        }
+
+        relatedBrowserListLoading.classList.toggle('d-none', !isLoading);
+        if (isLoading && relatedBrowserList) {
+            relatedBrowserList.innerHTML = '';
+        }
+    };
+
+    const renderPhotoGrid = (targetElement, photos) => {
+        if (!targetElement) {
+            return;
+        }
+
+        if (!Array.isArray(photos) || photos.length === 0) {
+            targetElement.innerHTML = '<div class="text-muted fs-8 py-2">Belum ada foto.</div>';
+            return;
+        }
+
+        targetElement.innerHTML = photos.map((photo) => `
+            <a href="${escapeHtml(photo.url)}" target="_blank" class="related-browser-photo-item">
+                <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.file_name)}">
+            </a>
+        `).join('');
+    };
+
+    const renderRelatedDetail = (detail) => {
+        if (!relatedDetailPlaceholder || !relatedDetailPane) {
+            return;
+        }
+
+        if (!detail) {
+            relatedDetailPlaceholder.classList.remove('d-none');
+            relatedDetailPane.classList.add('d-none');
+            return;
+        }
+
+        relatedDetailPlaceholder.classList.add('d-none');
+        relatedDetailPane.classList.remove('d-none');
+
+        if (relatedDetailTicket) {
+            relatedDetailTicket.textContent = detail.nomor_tiket || '-';
+        }
+
+        if (relatedDetailStatus) {
+            relatedDetailStatus.className = detail.status_class || 'badge badge-light';
+            relatedDetailStatus.textContent = detail.status_label || '-';
+        }
+
+        if (relatedDetailTime) {
+            relatedDetailTime.textContent = detail.created_at_label || '-';
+        }
+
+        if (relatedDetailDescription) {
+            relatedDetailDescription.textContent = detail.deskripsi || '-';
+        }
+
+        renderPhotoGrid(relatedPelaporPhotos, detail.pelapor_photos || []);
+        renderPhotoGrid(relatedAdminPhotos, detail.admin_photos || []);
+    };
+
+    const loadRelatedDetail = async (detailUrl) => {
+        if (!detailUrl) {
+            return;
+        }
+
+        try {
+            const response = await fetch(detailUrl, {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal memuat detail aduan.');
+            }
+
+            const json = await response.json();
+            renderRelatedDetail(json?.data ?? null);
+        } catch (error) {
+            renderRelatedDetail(null);
+        }
+    };
+
+    const renderRelatedList = (items) => {
+        if (!relatedBrowserList || !relatedBrowserListEmpty) {
+            return;
+        }
+
+        if (!Array.isArray(items) || items.length === 0) {
+            relatedBrowserList.innerHTML = '';
+            relatedBrowserListEmpty.classList.remove('d-none');
+            renderRelatedDetail(null);
+            return;
+        }
+
+        relatedBrowserListEmpty.classList.add('d-none');
+        relatedBrowserList.innerHTML = items.map((item) => `
+            <div class="related-browser-item ${relatedBrowserState.activeItemId === item.id ? 'is-active' : ''}" data-related-id="${escapeHtml(item.id)}" data-detail-url="${escapeHtml(item.detail_url)}">
+                <div class="related-browser-ticket">${escapeHtml(item.nomor_tiket)}</div>
+                <div class="related-browser-meta">
+                    <span class="${escapeHtml(item.status_class)}">${escapeHtml(item.status_label)}</span>
+                    <span class="badge badge-light">${escapeHtml((item.pelapor_foto_count ?? 0) + (item.admin_foto_count ?? 0))} foto</span>
+                    <span class="text-muted fs-8">${escapeHtml(item.created_at_label ?? '-')}</span>
+                </div>
+                <div class="related-browser-desc">${escapeHtml(item.deskripsi_preview ?? '-')}</div>
+            </div>
+        `).join('');
+
+        relatedBrowserList.querySelectorAll('.related-browser-item').forEach((element) => {
+            element.addEventListener('click', () => {
+                relatedBrowserState.activeItemId = Number(element.dataset.relatedId);
+                relatedBrowserList.querySelectorAll('.related-browser-item').forEach((candidate) => {
+                    candidate.classList.toggle('is-active', candidate === element);
+                });
+                loadRelatedDetail(element.dataset.detailUrl || '');
+            });
+        });
+    };
+
+    const renderRelatedPagination = (payload) => {
+        relatedBrowserState.currentPage = Number(payload.current_page ?? 1);
+        relatedBrowserState.lastPage = Number(payload.last_page ?? 1);
+
+        if (relatedBrowserPaginationSummary) {
+            const from = payload.from ?? 0;
+            const to = payload.to ?? 0;
+            const total = payload.total ?? 0;
+            relatedBrowserPaginationSummary.textContent = `${from}-${to} dari ${total} aduan`;
+        }
+
+        if (relatedBrowserPrevButton) {
+            relatedBrowserPrevButton.disabled = relatedBrowserState.currentPage <= 1;
+        }
+
+        if (relatedBrowserNextButton) {
+            relatedBrowserNextButton.disabled = relatedBrowserState.currentPage >= relatedBrowserState.lastPage;
+        }
+    };
+
+    const loadRelatedList = async (page = 1) => {
+        if (!relatedBrowserState.baseUrl) {
+            return;
+        }
+
+        toggleRelatedListLoading(true);
+
+        try {
+            const response = await fetch(buildRelatedFetchUrl(page), {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal memuat daftar aduan terkait.');
+            }
+
+            const json = await response.json();
+            const summary = json?.data?.summary ?? {};
+            const payload = json?.data?.list ?? {};
+            const items = payload?.data ?? [];
+
+            if (relatedBrowserSubtitle) {
+                const assetCode = summary.asset_code ?? '-';
+                const location = summary.asset_location ?? '-';
+                const count = summary.laporan_count ?? 0;
+                relatedBrowserSubtitle.textContent = `${assetCode} • ${location} • ${count} laporan`;
+            }
+
+            renderRelatedList(items);
+            renderRelatedPagination(payload);
+
+            if (items.length > 0) {
+                const initialItem = items[0];
+                relatedBrowserState.activeItemId = Number(initialItem.id);
+                loadRelatedDetail(initialItem.detail_url || '');
+            } else {
+                relatedBrowserState.activeItemId = null;
+            }
+        } catch (error) {
+            if (relatedBrowserList) {
+                relatedBrowserList.innerHTML = '<div class="text-danger fs-7 py-3">Gagal memuat aduan terkait.</div>';
+            }
+            renderRelatedDetail(null);
+        } finally {
+            toggleRelatedListLoading(false);
+        }
+    };
 
     const getMetaText = () => {
         const now = new Date();
@@ -1205,6 +1584,49 @@
         progressList.innerHTML = '';
         seededLogs.forEach((line) => appendLogCard(line, 'Draft catatan'));
         updatePayload();
+    }
+
+    if (relatedBrowserTrigger && relatedBrowserModal) {
+        relatedBrowserTrigger.addEventListener('click', () => {
+            relatedBrowserState.search = '';
+            relatedBrowserState.currentPage = 1;
+            relatedBrowserState.lastPage = 1;
+            relatedBrowserState.activeItemId = null;
+
+            if (relatedBrowserSearchInput) {
+                relatedBrowserSearchInput.value = '';
+            }
+
+            renderRelatedDetail(null);
+            relatedBrowserModal.show();
+            loadRelatedList(1);
+        });
+    }
+
+    if (relatedBrowserSearchInput) {
+        relatedBrowserSearchInput.addEventListener('input', () => {
+            window.clearTimeout(relatedSearchTimer);
+            relatedSearchTimer = window.setTimeout(() => {
+                relatedBrowserState.search = relatedBrowserSearchInput.value || '';
+                loadRelatedList(1);
+            }, 350);
+        });
+    }
+
+    if (relatedBrowserPrevButton) {
+        relatedBrowserPrevButton.addEventListener('click', () => {
+            if (relatedBrowserState.currentPage > 1) {
+                loadRelatedList(relatedBrowserState.currentPage - 1);
+            }
+        });
+    }
+
+    if (relatedBrowserNextButton) {
+        relatedBrowserNextButton.addEventListener('click', () => {
+            if (relatedBrowserState.currentPage < relatedBrowserState.lastPage) {
+                loadRelatedList(relatedBrowserState.currentPage + 1);
+            }
+        });
     }
 })();
 </script>

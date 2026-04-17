@@ -2,6 +2,7 @@
 
 namespace Modules\IPAL\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -60,5 +61,31 @@ class Aduan extends Model
         $sequence = $last ? ((int) substr($last, -5)) + 1 : 1;
 
         return $prefix . str_pad($sequence, 5, '0', STR_PAD_LEFT);
+    }
+
+    public static function buildAssetGroupKey(?int $pipaId, ?int $manholeId): ?string
+    {
+        if ($pipaId !== null) {
+            return 'pipa:' . $pipaId;
+        }
+
+        if ($manholeId !== null) {
+            return 'manhole:' . $manholeId;
+        }
+
+        return null;
+    }
+
+    public function scopeSameAssetAs(Builder $query, self $aduan): Builder
+    {
+        if ($aduan->pipa_id !== null) {
+            return $query->where('pipa_id', $aduan->pipa_id);
+        }
+
+        if ($aduan->manhole_id !== null) {
+            return $query->where('manhole_id', $aduan->manhole_id);
+        }
+
+        return $query->whereKey($aduan->id);
     }
 }

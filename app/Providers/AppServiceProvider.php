@@ -35,13 +35,30 @@ class AppServiceProvider extends ServiceProvider
         });
 
         try {
-            $data_konfig = KonfigurasiModel::first();
-            $data = array(
+            $data_konfig = KonfigurasiModel::query()->first() ?? $this->buildDefaultKonfigurasi();
+            View::share('service', [
                 'data_konfig' => $data_konfig,
-            );
-            View::share("service", $data);
-        } catch (\Exception $e) {
-            View::share("service", ['data_konfig' => null]);
+            ]);
+        } catch (\Throwable $e) {
+            View::share('service', [
+                'data_konfig' => $this->buildDefaultKonfigurasi(),
+            ]);
         }
+    }
+
+    private function buildDefaultKonfigurasi(): KonfigurasiModel
+    {
+        return (new KonfigurasiModel())->forceFill([
+            'nama_sistem' => config('app.name', 'SIMLAB'),
+            'nama_instansi' => '',
+            'logo' => '',
+            'kontak' => '',
+            'alamat' => '',
+            'maps' => '',
+            'instagram' => '',
+            'youtube' => '',
+            'website' => '',
+            'petunjuk_penggunaan' => '',
+        ]);
     }
 }
