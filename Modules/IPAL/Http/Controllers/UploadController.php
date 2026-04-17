@@ -115,6 +115,9 @@ class UploadController extends Controller
             $expectedType = $this->parserService->getExpectedGeometryType($tipe);
             $features = $this->parserService->extractFeatures($geojsonData);
             $this->parserService->validateGeometryType($features, $expectedType);
+            $pipeWithoutIdJalurCount = $tipe === 'pipe'
+                ? $this->parserService->countPipeFeaturesWithoutIdJalur($features)
+                : 0;
         } catch (\Exception $e) {
             return back()->with('error', ($fileType === 'shapefile' ? 'Shapefile' : 'GeoJSON') . ' validation failed: ' . $e->getMessage());
         }
@@ -127,6 +130,7 @@ class UploadController extends Controller
             'metadata' => array_merge($metadata, [
                 'crs' => $this->parserService->extractCrs($geojsonData),
                 'total_features_in_file' => count($features),
+                'pipe_features_without_id_jalur' => $pipeWithoutIdJalurCount ?? 0,
             ]),
         ]);
 

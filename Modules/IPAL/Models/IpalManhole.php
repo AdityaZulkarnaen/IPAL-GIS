@@ -4,6 +4,7 @@ namespace Modules\IPAL\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IpalManhole extends Model
 {
@@ -75,6 +76,12 @@ class IpalManhole extends Model
     public function logs()
     {
         return $this->hasMany(IpalManholeLog::class, 'manhole_id');
+    }
+
+    public function canonicalStatus(): HasOne
+    {
+        return $this->hasOne(IpalAssetStatus::class, 'asset_code', 'kode_manhole')
+            ->where('asset_type', IpalAssetStatus::ASSET_TYPE_MANHOLE);
     }
 
     public function scopeFromActiveUpload($query)

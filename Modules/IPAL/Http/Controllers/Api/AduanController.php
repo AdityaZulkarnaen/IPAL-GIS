@@ -13,6 +13,7 @@ use Modules\IPAL\Http\Controllers\Controller;
 use Modules\IPAL\Models\Aduan;
 use Modules\IPAL\Models\AduanDokumentasi;
 use Modules\IPAL\Models\AduanHistory;
+use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalJaringanPipa;
 use Modules\IPAL\Models\IpalManhole;
 use Modules\IPAL\Services\ImageCompressionService;
@@ -527,12 +528,48 @@ class AduanController extends Controller
 
     private function updateRelatedAssetStatus(Aduan $aduan, string $statusAset): void
     {
+        $normalizedStatus = IpalAssetStatus::normalizeStatus($statusAset);
+
         if ($aduan->pipa_id) {
-            IpalJaringanPipa::where('id', $aduan->pipa_id)->update(['status' => $statusAset]);
+            $pipe = IpalJaringanPipa::query()
+                ->select(['id', 'kode_pipa'])
+                ->find($aduan->pipa_id);
+
+            if ($pipe !== null && trim((string) $pipe->kode_pipa) !== '') {
+                IpalAssetStatus::updateOrCreate(
+                    [
+                        'asset_type' => IpalAssetStatus::ASSET_TYPE_PIPE,
+                        'asset_code' => $pipe->kode_pipa,
+                    ],
+                    [
+                        'asset_id' => $pipe->id,
+                        'status' => $normalizedStatus,
+                    ]
+                );
+            }
+
+            IpalJaringanPipa::where('id', $aduan->pipa_id)->update(['status' => $normalizedStatus]);
         }
 
         if ($aduan->manhole_id) {
-            IpalManhole::where('id', $aduan->manhole_id)->update(['status' => $statusAset]);
+            $manhole = IpalManhole::query()
+                ->select(['id', 'kode_manhole'])
+                ->find($aduan->manhole_id);
+
+            if ($manhole !== null && trim((string) $manhole->kode_manhole) !== '') {
+                IpalAssetStatus::updateOrCreate(
+                    [
+                        'asset_type' => IpalAssetStatus::ASSET_TYPE_MANHOLE,
+                        'asset_code' => $manhole->kode_manhole,
+                    ],
+                    [
+                        'asset_id' => $manhole->id,
+                        'status' => $normalizedStatus,
+                    ]
+                );
+            }
+
+            IpalManhole::where('id', $aduan->manhole_id)->update(['status' => $normalizedStatus]);
         }
     }
 }
