@@ -76,7 +76,7 @@
                                     @endif
                                 </td>
                                 <td class="px-5 py-3 border border-[#f0f3f8] text-center">
-                                    <form method="POST" action="{{ route('ipal.upload.destroy', $upload->id) }}" onsubmit="return confirm('Hapus data upload ini?')" class="inline-block">
+                                    <form method="POST" action="{{ route('ipal.upload.destroy', $upload->id) }}" class="inline-block js-upload-delete-form" data-confirm="Hapus data upload ini?">
                                         @csrf
                                         @method('DELETE')
                                         <button type="submit" class="text-[#98a2b8] hover:text-[#d1435b]" title="Hapus">
@@ -116,12 +116,60 @@
 <script>
     document.getElementById('manhole-per-page').addEventListener('change', function() {
         const url = new URL(window.location.href);
-        
+
         url.searchParams.set('per_page', this.value);
-        
+
         url.searchParams.set('page', 1);
-        
+
         window.location.href = url.href;
+    });
+
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+    document.querySelectorAll('.js-upload-delete-form').forEach((form) => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            const confirmMessage = this.dataset.confirm || 'Hapus data upload ini?';
+            if (!window.confirm(confirmMessage)) {
+                return;
+            }
+
+            const submitButton = this.querySelector('button[type="submit"]');
+            if (submitButton) {
+                submitButton.disabled = true;
+            }
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'DELETE',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': csrfToken,
+                    },
+                });
+
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch (e) {
+                    payload = null;
+                }
+
+                if (!response.ok || !payload?.success) {
+                    alert(payload?.message || 'Gagal menghapus data upload.');
+                    return;
+                }
+
+                window.location.reload();
+            } catch (error) {
+                alert('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+            } finally {
+                if (submitButton) {
+                    submitButton.disabled = false;
+                }
+            }
+        });
     });
 </script>
 @endsection

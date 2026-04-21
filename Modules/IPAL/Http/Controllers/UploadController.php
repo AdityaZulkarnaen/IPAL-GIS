@@ -142,7 +142,7 @@ class UploadController extends Controller
         }
     }
 
-    public function destroy(int $id)
+    public function destroy(Request $request, int $id)
     {
         $upload = IpalUpload::findOrFail($id);
         $tipe = $upload->tipe;
@@ -156,6 +156,13 @@ class UploadController extends Controller
         $upload->delete();
 
         IpalUpload::setLatestAsActive($tipe);
+
+        if ($request->expectsJson() || $request->ajax()) {
+            return response()->json([
+                'success' => true,
+                'message' => 'Upload and associated data deleted.',
+            ]);
+        }
 
         return back()->with('success', 'Upload and associated data deleted.');
     }

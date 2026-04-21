@@ -37,5 +37,5 @@ Route::middleware(['auth', 'verified', 'checkRole:Super Admin,Admin'])->group(fu
     Route::get('/aduan/{id}/related', [\Modules\IPAL\Http\Controllers\AduanController::class, 'relatedAduanIndex'])->name('aduan.related.index');
     Route::get('/aduan/{id}/related/{relatedId}', [\Modules\IPAL\Http\Controllers\AduanController::class, 'relatedAduanShow'])->name('aduan.related.show');
     Route::get('/aduan/{id}', [\Modules\IPAL\Http\Controllers\AduanController::class, 'show'])->name('aduan.show');
-    Route::post('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
+    Route::put('/aduan/{id}/status', [\Modules\IPAL\Http\Controllers\AduanController::class, 'updateStatus'])->name('aduan.updateStatus');
 });

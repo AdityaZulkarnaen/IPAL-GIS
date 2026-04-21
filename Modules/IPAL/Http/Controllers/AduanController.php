@@ -241,6 +241,7 @@ class AduanController extends Controller
     public function updateStatus(Request $request, int $id)
     {
         $aduan = Aduan::findOrFail($id);
+        $expectsJson = $request->expectsJson() || $request->ajax();
 
         $validator = Validator::make($request->all(), [
             'workflow_action'       => 'required|in:' . implode(',', self::WORKFLOW_ACTIONS),
@@ -249,6 +250,14 @@ class AduanController extends Controller
         ]);
 
         if ($validator->fails()) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Validasi gagal.',
+                    'data' => $validator->errors(),
+                ], 422);
+            }
+
             return redirect()->back()
                 ->withErrors($validator)
                 ->withInput();
@@ -327,13 +336,39 @@ class AduanController extends Controller
                 $successMessage .= ' ' . $updatedCount . ' aduan terkait turut diperbarui.';
             }
 
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => true,
+                    'message' => $successMessage,
+                    'data' => [
+                        'redirect_url' => route('ipal.aduan.show', $aduan->id),
+                    ],
+                ]);
+            }
+
             return redirect()->route('ipal.aduan.show', $aduan->id)
                 ->with('success', $successMessage);
         } catch (\DomainException $e) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => $e->getMessage(),
+                    'data' => null,
+                ], 422);
+            }
+
             return redirect()->back()
                 ->with('error', $e->getMessage())
                 ->withInput();
         } catch (\Throwable $e) {
+            if ($expectsJson) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Gagal memperbarui status aduan.',
+                    'data' => null,
+                ], 500);
+            }
+
             return redirect()->back()
                 ->with('error', 'Gagal memperbarui status aduan.')
                 ->withInput();

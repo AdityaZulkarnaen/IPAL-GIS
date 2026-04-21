@@ -320,6 +320,7 @@
 
                         <form id="workflowForm" action="{{ route('ipal.aduan.updateStatus', $aduan->id) }}" method="POST" enctype="multipart/form-data">
                             @csrf
+                            @method('PUT')
 
                             <div class="wf-timeline">
                                 <div class="wf-step {{ $activeWorkflowStep === 1 ? 'wf-step-active' : '' }}">
@@ -1570,9 +1571,80 @@
     }
 
     if (workflowForm) {
-        workflowForm.addEventListener('submit', () => {
+        workflowForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
             addPendingInputAsLog();
             updatePayload();
+
+            const submitter = event.submitter || null;
+            const formData = new FormData(workflowForm);
+            if (submitter && submitter.name) {
+                formData.set(submitter.name, submitter.value);
+            }
+
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '';
+            const submitButtons = workflowForm.querySelectorAll('button[type="submit"]');
+            const hasPhotoUpload = Boolean(photoInput && photoInput.files && photoInput.files.length > 0);
+            submitButtons.forEach((button) => {
+                button.disabled = true;
+            });
+
+            try {
+                let response;
+
+                if (hasPhotoUpload) {
+                    // Keep POST + _method=PUT when uploading files to avoid multipart PUT parsing issues in PHP.
+                    response = await fetch(workflowForm.action, {
+                        method: 'POST',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: formData,
+                    });
+                } else {
+                    const payload = {
+                        workflow_action: String(formData.get('workflow_action') || ''),
+                        catatan_tindak_lanjut: String(formData.get('catatan_tindak_lanjut') || ''),
+                    };
+
+                    response = await fetch(workflowForm.action, {
+                        method: 'PUT',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'Accept': 'application/json',
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': csrfToken,
+                        },
+                        body: JSON.stringify(payload),
+                    });
+                }
+
+                let payload = null;
+                try {
+                    payload = await response.json();
+                } catch (e) {
+                    payload = null;
+                }
+
+                if (response.ok && payload?.success) {
+                    window.location.href = payload?.data?.redirect_url || window.location.href;
+                    return;
+                }
+
+                if (payload?.message) {
+                    alert(payload.message);
+                } else {
+                    alert('Gagal memperbarui status aduan.');
+                }
+            } catch (error) {
+                alert('Tidak dapat terhubung ke server. Periksa koneksi internet Anda.');
+            } finally {
+                submitButtons.forEach((button) => {
+                    button.disabled = false;
+                });
+            }
         });
     }
 
