@@ -233,6 +233,56 @@
     .leaflet-manhole-tooltip::before {
         display: none !important;
     }
+
+    .map-report-toast {
+        position: fixed;
+        top: 84px;
+        right: 16px;
+        z-index: 1400;
+        display: flex;
+        align-items: flex-start;
+        gap: 10px;
+        min-width: 260px;
+        max-width: min(460px, calc(100vw - 32px));
+        padding: 12px 14px;
+        border: 1px solid #bbf7d0;
+        border-radius: 12px;
+        background: #f0fdf4;
+        box-shadow: 0 16px 36px rgba(15, 23, 42, 0.2);
+        color: #14532d;
+        opacity: 0;
+        transform: translateY(-8px);
+        pointer-events: none;
+        transition: opacity 0.2s ease, transform 0.2s ease;
+        font-family: 'Montserrat', sans-serif;
+    }
+
+    .map-report-toast.is-visible {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .map-report-toast-title {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.3;
+    }
+
+    .map-report-toast-meta {
+        margin-top: 2px;
+        font-size: 12px;
+        color: #166534;
+        line-height: 1.4;
+    }
+
+    @media (max-width: 767px) {
+        .map-report-toast {
+            top: 78px;
+            right: 12px;
+            left: 12px;
+            max-width: calc(100vw - 24px);
+        }
+    }
 </style>
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.3.0/maptiler-sdk.umd.js"></script>
@@ -251,6 +301,56 @@ L.control.zoom({ position: 'bottomright' }).addTo(map);
 const BASEMAP_STORAGE_KEY = 'ipal.map.basemap';
 const BASEMAP_DEFAULT_ID = 'maptiler_custom_osm'; 
 const USER_LOCATION_ZOOM = 18;
+const REPORT_TOAST_KEY = 'ipal_report_toast';
+
+function consumeReportToastPayload() {
+    try {
+        const raw = sessionStorage.getItem(REPORT_TOAST_KEY);
+        if (!raw) return null;
+        sessionStorage.removeItem(REPORT_TOAST_KEY);
+        const payload = JSON.parse(raw);
+        return payload && typeof payload === 'object' ? payload : null;
+    } catch (e) {
+        sessionStorage.removeItem(REPORT_TOAST_KEY);
+        return null;
+    }
+}
+
+function showReportToast(payload) {
+    if (!payload || !payload.message) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'map-report-toast';
+    const nomorTiket = payload.nomor_tiket ? String(payload.nomor_tiket) : '';
+    toast.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#16a34a" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-top:1px;flex-shrink:0;">
+            <path d="M20 6 9 17l-5-5"/>
+        </svg>
+        <div>
+            <div class="map-report-toast-title"></div>
+            <div class="map-report-toast-meta" style="display:none;"></div>
+        </div>
+    `;
+
+    toast.querySelector('.map-report-toast-title').textContent = payload.message;
+    const metaEl = toast.querySelector('.map-report-toast-meta');
+    if (nomorTiket) {
+        metaEl.textContent = `Nomor tiket: ${nomorTiket}`;
+        metaEl.style.display = 'block';
+    }
+
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => {
+        toast.classList.add('is-visible');
+    });
+
+    setTimeout(() => {
+        toast.classList.remove('is-visible');
+        setTimeout(() => toast.remove(), 240);
+    }, 4200);
+}
+
+showReportToast(consumeReportToastPayload());
 
 // ─── Konfigurasi Provider ─────────────────────────────────────────────────
 const BASEMAP_PROVIDERS = {

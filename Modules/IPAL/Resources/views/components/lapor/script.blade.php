@@ -12,6 +12,7 @@
     const API_BASE   = BASE_URL + '/api/ipal';
     const MAX_FOTO   = {{ config('ipal.aduan_max_foto', 5) }};
     const DRAFT_KEY  = 'ipal_lapor_draft';
+    const REPORT_TOAST_KEY = 'ipal_report_toast';
     const MAP_URL    = '{{ route('ipal.map.index') }}';
     const COLOR      = { aman:'#22c55e', perbaikan:'#eab308', masalah:'#ef4444', rusak:'#ef4444', 'dalam perbaikan':'#eab308' };
     const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
@@ -74,7 +75,6 @@
     let assetData    = null;
     let selectedFiles = [];
     let captchaToken  = null;
-    let successToastTimer = null;
 
     /* ── Init mini-map ──────────────────────────────────────── */
     const miniMap = L.map('lapor-map', {
@@ -466,14 +466,17 @@
             // Treat 2xx as success even when body is empty/non-JSON, because data may already be persisted.
             if (res.ok && (!json || json.success !== false)) {
                 clearDraft();
-                const banner = document.getElementById('success-banner');
                 const nomorTiket = json?.data?.nomor_tiket || '';
-                document.getElementById('nomor-tiket').textContent = nomorTiket;
-                if (successToastTimer) clearTimeout(successToastTimer);
-                banner.style.display = 'flex';
-                successToastTimer = setTimeout(() => {
-                    window.location.href = MAP_URL;
-                }, 1200);
+                try {
+                    sessionStorage.setItem(REPORT_TOAST_KEY, JSON.stringify({
+                        message: 'Laporan berhasil dikirim.',
+                        nomor_tiket: nomorTiket,
+                    }));
+                } catch (storageErr) {
+                    // Continue redirect even if sessionStorage is unavailable.
+                }
+                window.location.href = MAP_URL;
+                return;
             } else {
                 loadCaptcha(); // refresh soal setelah jawaban salah / error
                 const errors = json?.data;
