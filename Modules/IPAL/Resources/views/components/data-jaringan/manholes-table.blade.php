@@ -1,5 +1,5 @@
 <div class="bg-white border border-slate-200 rounded-xl shadow-panel" id="manhole-table-card">
-    <div class="px-6 pt-6 pb-2">
+    <div class="px-6 pt-6 pb-2 flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 ">
         <h3 class="text-lg font-bold text-slate-800">Data Manhole</h3>
         <div class="mt-4 flex flex-wrap items-center gap-2.5">
             <input id="manhole-search" type="text" class="h-10 w-full lg:w-[260px] rounded-lg border border-slate-300 bg-white px-3 text-sm text-slate-700 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200" placeholder="Cari ID manhole, desa, kecamatan, wilayah">

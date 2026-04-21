@@ -196,7 +196,7 @@
 
     @media (max-width: 767px) {
         .leaflet-bottom.leaflet-right .leaflet-control-zoom {
-            margin-bottom: 110px;
+            margin-bottom: 95px;
             margin-right: 10px;
         }
 
@@ -1176,7 +1176,10 @@ function selectSuggestion(result) {
 function handleSearch() {
     const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
     hideSuggestions();
-    if (!q) return;
+    if (!q) {
+        renderSuggestions([]);
+        return;
+    }
 
     for (const feature of currentPipeFeatures) {
         const p        = feature.properties || {};
@@ -1205,7 +1208,10 @@ function handleSearch() {
     const parts = q.split(',').map(s => parseFloat(s.trim()));
     if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
         map.flyTo([parts[0], parts[1]], 16, { duration: 1.2 });
+        return;
     }
+
+    renderSuggestions([]);
 }
 
 // ─── Search event listeners ───────────────────────────────────────────────
@@ -1218,7 +1224,10 @@ const debouncedSuggest = debounce(function () {
 document.getElementById('search-input').addEventListener('input', debouncedSuggest);
 
 document.getElementById('search-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter')  handleSearch();
+    if (e.key === 'Enter') {
+        e.preventDefault();
+        handleSearch();
+    }
     if (e.key === 'Escape') hideSuggestions();
 });
 

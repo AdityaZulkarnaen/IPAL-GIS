@@ -23,9 +23,100 @@
     <link href="{{ asset('tema') }}/dist/assets/css/style.bundle.css" rel="stylesheet" type="text/css" />
     <!--end::Global Stylesheets Bundle-->
 
+    @vite(['resources/css/app.css'])
+
     <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
 
     <style>
+        #kt_app_body,
+        #kt_app_root,
+        #kt_app_page,
+        #kt_app_wrapper,
+        #kt_app_main {
+            background: #f5f7fb;
+        }
+
+        #kt_app_header {
+            background: #ffffff;
+            border-bottom: 1px solid #e8edf5;
+            box-shadow: 0 2px 18px rgba(15, 23, 42, 0.03);
+            z-index: 70;
+        }
+
+        #kt_app_sidebar {
+            background: linear-gradient(180deg, #0b1120 0%, #020617 100%) !important;
+            border-right: 1px solid rgba(148, 163, 184, 0.16);
+        }
+
+        #kt_app_sidebar .menu-link {
+            border-radius: 8px;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        #kt_app_sidebar .menu-link .menu-icon,
+        #kt_app_sidebar .menu-link .menu-title {
+            color: inherit;
+        }
+
+        #kt_app_sidebar .menu-link:hover {
+            background: rgba(30, 41, 59, 0.75);
+            color: #e2e8f0;
+        }
+
+        #kt_app_sidebar .menu-link.active {
+            background: rgba(26, 88, 242, 0.24);
+            color: #60a5fa;
+            border: 1px solid rgba(96, 165, 250, 0.34);
+        }
+
+        #kt_app_sidebar .menu-link.active .menu-icon {
+            color: #60a5fa;
+        }
+
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg path,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg rect,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg circle,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg line,
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg polyline {
+            color: #60a5fa !important;
+            stroke: currentColor !important;
+        }
+
+        #kt_app_sidebar .menu-link.active .menu-icon .svg-icon svg [fill="currentColor"] {
+            fill: currentColor !important;
+        }
+
+        .ipal-header-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 3px 6px 3px 3px;
+            border-radius: 999px;
+            border: 1px solid #dbe3ef;
+            background: #ffffff;
+        }
+
+        .ipal-header-user-name {
+            font-size: 13px;
+            font-weight: 600;
+            color: #334155;
+            white-space: nowrap;
+        }
+
+        @media (max-width: 767.98px) {
+            .ipal-header-user {
+                border: 0;
+                padding: 0;
+            }
+
+            .ipal-header-user-name {
+                display: none;
+            }
+        }
+
         .menu-item button.menu-link {
             background-color: transparent;
             border: none;
@@ -86,10 +177,13 @@
                         <div class="app-navbar flex-shrink-0">
                             <!--begin::User menu-->
                             <div class="app-navbar-item ms-1 ms-md-3" id="kt_header_user_menu_toggle">
-                                <div class="cursor-pointer symbol symbol-30px symbol-md-40px"
+                                <div class="cursor-pointer ipal-header-user"
                                     data-kt-menu-trigger="{default: 'click', lg: 'hover'}"
                                     data-kt-menu-attach="parent" data-kt-menu-placement="bottom-end">
-                                    <img src="{{ asset('logo/cogwheel.png') }}" alt="user" />
+                                    <div class="symbol symbol-32px symbol-md-35px">
+                                        <img src="{{ asset('logo/cogwheel.png') }}" alt="user" />
+                                    </div>
+                                    <span class="ipal-header-user-name">{{ auth()->user()->name }}</span>
                                 </div>
                                 <div class="menu menu-sub menu-sub-dropdown menu-column menu-rounded menu-gray-800 menu-state-bg menu-state-color fw-semibold py-4 fs-6 w-275px"
                                     data-kt-menu="true">

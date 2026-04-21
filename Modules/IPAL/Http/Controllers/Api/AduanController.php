@@ -6,6 +6,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Validator;
 use Modules\IPAL\Http\Controllers\Controller;
 use Modules\IPAL\Models\Aduan;
@@ -17,6 +18,9 @@ use Modules\IPAL\Services\ImageCompressionService;
 
 class AduanController extends Controller
 {
+    private const WORKFLOW_ACTIONS = ['terima', 'tolak', 'mulai_perbaikan', 'tandai_selesai'];
+    private const VERIFICATION_STATUSES = ['masuk', 'verifikasi', 'ditolak'];
+
     public function __construct(private ImageCompressionService $imageService) {}
 
     /**
@@ -235,7 +239,8 @@ class AduanController extends Controller
     public function updateStatus(Request $request, int $id): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'status_aduan'          => 'required|in:masuk,verifikasi,proses,selesai',
+            'workflow_action'       => 'nullable|in:' . implode(',', self::WORKFLOW_ACTIONS),
+            'status_aduan'          => 'nullable|in:masuk,verifikasi,proses,ditolak,selesai',
             'status_aset'           => 'nullable|in:baik,perbaikan,rusak',
             'catatan_tindak_lanjut' => 'nullable|string|max:5000',
             'foto'                  => 'nullable|file|mimes:jpg,jpeg,png,webp',
@@ -259,62 +264,151 @@ class AduanController extends Controller
             ], 404);
         }
 
+        if (!$request->filled('workflow_action') && !$request->filled('status_aduan')) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Validasi gagal.',
+                'data'    => ['workflow_action' => ['Pilih aksi workflow atau kirim status_aduan manual.']],
+            ], 422);
+        }
+
         try {
-            DB::beginTransaction();
+            $transition = $request->filled('workflow_action')
+                ? $this->resolveWorkflowTransition($aduan, (string) $request->workflow_action)
+                : [
+                    'status_aduan' => (string) $request->status_aduan,
+                    'status_aset' => $request->filled('status_aset') ? (string) $request->status_aset : null,
+                    'success_message' => 'Status aduan berhasil diperbarui.',
+                ];
 
-            $statusSebelumnya = $aduan->status_aduan;
+            DB::transaction(function () use ($aduan, $request, $transition) {
+                $statusSebelumnya = $aduan->status_aduan;
 
-            AduanHistory::create([
-                'aduan_id'              => $aduan->id,
-                'admin_id'              => $request->user()->id,
-                'status_sebelumnya'     => $statusSebelumnya,
-                'status_sesudah'        => $request->status_aduan,
-                'catatan_tindak_lanjut' => $request->catatan_tindak_lanjut,
-                'created_at'            => now(),
-            ]);
+                $aduan->update(['status_aduan' => $transition['status_aduan']]);
 
-            $aduan->update(['status_aduan' => $request->status_aduan]);
-
-            if ($request->filled('status_aset')) {
-                if ($aduan->pipa_id) {
-                    IpalJaringanPipa::where('id', $aduan->pipa_id)
-                        ->update(['status' => $request->status_aset]);
+                if ($transition['status_aset'] !== null) {
+                    $this->updateRelatedAssetStatus($aduan, $transition['status_aset']);
                 }
 
-                if ($aduan->manhole_id) {
-                    IpalManhole::where('id', $aduan->manhole_id)
-                        ->update(['status' => $request->status_aset]);
-                }
-            }
-
-            if ($request->hasFile('foto')) {
-                $file = $request->file('foto');
-                $path = $this->imageService->compressToMaxKb($file, config('ipal.aduan_foto_max_kb_admin'), $aduan->id);
-
-                AduanDokumentasi::create([
-                    'aduan_id'        => $aduan->id,
-                    'file_name'       => $file->getClientOriginalName(),
-                    'file_path'       => $path,
-                    'tipe_pengunggah' => 'admin',
-                    'uploaded_at'     => now(),
+                AduanHistory::create([
+                    'aduan_id'              => $aduan->id,
+                    'admin_id'              => $request->user()->id,
+                    'status_sebelumnya'     => $statusSebelumnya,
+                    'status_sesudah'        => $transition['status_aduan'],
+                    'catatan_tindak_lanjut' => $request->catatan_tindak_lanjut,
+                    'created_at'            => now(),
                 ]);
-            }
 
-            DB::commit();
+                if ($request->hasFile('foto')) {
+                    $file = $request->file('foto');
+                    $path = $this->imageService->compressToMaxKb($file, config('ipal.aduan_foto_max_kb_admin'), $aduan->id);
+
+                    AduanDokumentasi::create([
+                        'aduan_id'        => $aduan->id,
+                        'file_name'       => $file->getClientOriginalName(),
+                        'file_path'       => $path,
+                        'tipe_pengunggah' => 'admin',
+                        'uploaded_at'     => now(),
+                    ]);
+                }
+            });
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status aduan berhasil diperbarui.',
+                'message' => $transition['success_message'],
                 'data'    => $aduan->fresh(['dokumentasi', 'history.admin:id,name']),
             ]);
+        } catch (\DomainException $e) {
+            return response()->json([
+                'success' => false,
+                'message' => $e->getMessage(),
+                'data'    => null,
+            ], 422);
         } catch (\Throwable $e) {
-            DB::rollBack();
+            Log::error('Aduan update status failed', [
+                'message' => $e->getMessage(),
+                'trace'   => $e->getTraceAsString(),
+            ]);
 
             return response()->json([
                 'success' => false,
                 'message' => 'Gagal memperbarui status aduan.',
                 'data'    => null,
             ], 500);
+        }
+    }
+
+    private function resolveWorkflowTransition(Aduan $aduan, string $action): array
+    {
+        return match ($action) {
+            'terima' => $this->transitionTerima($aduan),
+            'tolak' => $this->transitionTolak($aduan),
+            'mulai_perbaikan' => $this->transitionMulaiPerbaikan($aduan),
+            'tandai_selesai' => $this->transitionTandaiSelesai($aduan),
+            default => throw new \DomainException('Aksi workflow tidak dikenal.'),
+        };
+    }
+
+    private function transitionTerima(Aduan $aduan): array
+    {
+        if (!in_array($aduan->status_aduan, self::VERIFICATION_STATUSES, true)) {
+            throw new \DomainException('Aksi Terima hanya bisa dilakukan pada tahap verifikasi.');
+        }
+
+        return [
+            'status_aduan' => 'proses',
+            'status_aset' => 'rusak',
+            'success_message' => 'Laporan diterima. Status aduan menjadi Diproses dan status aset menjadi Rusak.',
+        ];
+    }
+
+    private function transitionTolak(Aduan $aduan): array
+    {
+        if (!in_array($aduan->status_aduan, self::VERIFICATION_STATUSES, true)) {
+            throw new \DomainException('Aksi Tolak hanya bisa dilakukan pada tahap verifikasi.');
+        }
+
+        return [
+            'status_aduan' => 'ditolak',
+            'status_aset' => null,
+            'success_message' => 'Laporan ditolak. Status aduan menjadi Ditolak.',
+        ];
+    }
+
+    private function transitionMulaiPerbaikan(Aduan $aduan): array
+    {
+        if ($aduan->status_aduan !== 'proses') {
+            throw new \DomainException('Aksi Mulai Perbaikan hanya tersedia untuk aduan berstatus Diproses.');
+        }
+
+        return [
+            'status_aduan' => 'proses',
+            'status_aset' => 'perbaikan',
+            'success_message' => 'Perbaikan dimulai. Status aset diperbarui menjadi Perbaikan.',
+        ];
+    }
+
+    private function transitionTandaiSelesai(Aduan $aduan): array
+    {
+        if ($aduan->status_aduan !== 'proses') {
+            throw new \DomainException('Aksi Tandai Selesai hanya tersedia untuk aduan berstatus Diproses.');
+        }
+
+        return [
+            'status_aduan' => 'selesai',
+            'status_aset' => 'baik',
+            'success_message' => 'Aduan selesai. Status aset dikembalikan menjadi Baik.',
+        ];
+    }
+
+    private function updateRelatedAssetStatus(Aduan $aduan, string $statusAset): void
+    {
+        if ($aduan->pipa_id) {
+            IpalJaringanPipa::where('id', $aduan->pipa_id)->update(['status' => $statusAset]);
+        }
+
+        if ($aduan->manhole_id) {
+            IpalManhole::where('id', $aduan->manhole_id)->update(['status' => $statusAset]);
         }
     }
 }
