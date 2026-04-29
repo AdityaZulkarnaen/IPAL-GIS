@@ -3,6 +3,9 @@
 
 {{-- ─── Scripts ────────────────────────────────────────────────────────── --}}
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.maptiler.com/maptiler-sdk-js/v2.3.0/maptiler-sdk.umd.js"></script>
+<link href="https://cdn.maptiler.com/maptiler-sdk-js/v2.3.0/maptiler-sdk.css" rel="stylesheet" />
+<script src="https://cdn.maptiler.com/leaflet-maptilersdk/v2.0.0/leaflet-maptilersdk.js"></script>
 <script>
 (function () {
     'use strict';
@@ -17,6 +20,29 @@
     const BADGE_BG   = { aman:'#22C55E1A', perbaikan:'#fef3c7', masalah:'#fee2e2', rusak:'#fee2e2', 'dalam perbaikan':'#fef3c7' };
     const BADGE_TEXT = { aman:'#22c55e',   perbaikan:'#a16207', masalah:'#dc2626', rusak:'#dc2626', 'dalam perbaikan':'#a16207' };
     const LABEL      = { aman:'AMAN',      perbaikan:'PERBAIKAN', masalah:'MASALAH', rusak:'RUSAK', 'dalam perbaikan':'PERBAIKAN' };
+
+    const BASEMAP_STORAGE_KEY = 'ipal.map.basemap';
+    const BASEMAP_DEFAULT_ID = 'maptiler_custom_osm';
+    const BASEMAP_PROVIDERS = {
+        osm: {
+            id: 'osm',
+            type: 'raster',
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+            url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+            options: {
+                maxZoom: 19,
+                referrerPolicy: 'origin',
+            },
+            enabled: true,
+        },
+        maptiler_custom_osm: {
+            id: 'maptiler_custom_osm',
+            type: 'maptiler',
+            styleId: '{{ env("VITE_MAPTILER_STYLE_ID") }}',
+            apiKey: '{{ env("VITE_MAPTILER_API_KEY") }}',
+            enabled: true,
+        },
+    };
 
     /* ── Draft helpers (localStorage) ──────────────────────── */
     function getDraft() {
@@ -82,10 +108,24 @@
         attributionControl: true,
     });
 
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-        maxZoom: 19,
-    }).addTo(miniMap);
+    function getPreferredBasemapId() {
+        const saved = localStorage.getItem(BASEMAP_STORAGE_KEY);
+        return BASEMAP_PROVIDERS[saved] ? saved : BASEMAP_DEFAULT_ID;
+    }
+
+    function createBasemapLayer(provider) {
+        if (!provider || !provider.enabled) return null;
+        if (provider.type === 'maptiler') {
+            if (!provider.apiKey || !provider.styleId) return null;
+            return L.maptilerLayer({ apiKey: provider.apiKey, style: provider.styleId });
+        }
+        const opts = Object.assign({ attribution: provider.attribution || '', maxZoom: 19 }, provider.options || {});
+        return L.tileLayer(provider.url, opts);
+    }
+
+    const initialProvider = BASEMAP_PROVIDERS[getPreferredBasemapId()] || BASEMAP_PROVIDERS[BASEMAP_DEFAULT_ID];
+    const baseLayer = createBasemapLayer(initialProvider) || createBasemapLayer(BASEMAP_PROVIDERS.osm);
+    if (baseLayer) baseLayer.addTo(miniMap);
 
     L.control.zoom({ position: 'bottomright' }).addTo(miniMap);
 
