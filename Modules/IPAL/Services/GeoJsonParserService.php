@@ -81,15 +81,59 @@ class GeoJsonParserService
      */
     public function validateGeometryType(array $features, string $expectedType): void
     {
-        foreach ($features as $index => $feature) {
+        $allowedTypes = $this->getAllowedGeometryTypes($expectedType);
+        
+        foreach ($features as $feature) {
             $type = $feature['geometry']['type'] ?? null;
 
-            if ($type !== $expectedType) {
+            if (!in_array($type, $allowedTypes)) {
+                $allowedTypesStr = implode(' or ', $allowedTypes);
+                
+                $suggestion = $this->getTypeSuggestion($type);
+                
                 throw new \RuntimeException(
-                    "Feature at index {$index} has geometry type '{$type}', expected '{$expectedType}'."
+                    "Geometry type mismatch: File contains '{$type}' geometry, but expected {$allowedTypesStr}. {$suggestion}"
                 );
             }
         }
+    }
+
+    public function countPipeFeaturesWithoutIdJalur(array $features): int
+    {
+        $missingCount = 0;
+
+        foreach ($features as $index => $feature) {
+            $props = $feature['properties'] ?? [];
+            $idJalur = trim((string) ($props['ID_JALUR'] ?? ''));
+
+            if ($idJalur === '') {
+                $missingCount++;
+            }
+        }
+
+        return $missingCount;
+    }
+
+    private function getAllowedGeometryTypes(string $primaryType): array
+    {
+        if ($primaryType === 'MultiLineString') {
+            return ['LineString', 'MultiLineString'];
+        }
+        
+        return [$primaryType];
+    }
+
+    private function getTypeSuggestion(string $actualType): string
+    {
+        if ($actualType === 'Point') {
+            return "This appears to be manhole data. Please select 'manhole' as the upload type.";
+        }
+        
+        if (in_array($actualType, ['LineString', 'MultiLineString'])) {
+            return "This appears to be pipe/network data. Please select 'pipe' as the upload type.";
+        }
+        
+        return "Please verify your file and selected upload type.";
     }
 
     /**

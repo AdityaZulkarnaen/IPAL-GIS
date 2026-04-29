@@ -43,6 +43,7 @@
             $assetTypeLabel = $aduan->pipa_id ? 'Pipa' : ($aduan->manhole_id ? 'Manhole' : '-');
             $assetCode = $aduan->pipa?->kode_pipa ?? $aduan->manhole?->kode_manhole ?? '-';
             $assetLocation = $aduan->pipa?->wilayah ?? $aduan->manhole?->wilayah ?? '-';
+            $laporanCount = (int) ($relatedAduanCount ?? 1);
 
             $normalizeAssetStatus = static function (?string $status): string {
                 $raw = strtolower(trim((string) $status));
@@ -66,7 +67,8 @@
                 '-' => ['label' => '-', 'badge' => 'badge-light'],
             ];
 
-            $assetStatusKey = $asset ? $normalizeAssetStatus($asset->status) : '-';
+            $assetCanonicalStatus = $aduan->pipa?->canonicalStatus?->status ?? $aduan->manhole?->canonicalStatus?->status;
+            $assetStatusKey = $asset ? $normalizeAssetStatus($assetCanonicalStatus ?? $asset->status) : '-';
             $assetStatus = $assetStatusMap[$assetStatusKey] ?? $assetStatusMap['-'];
 
             $canVerify = in_array($currentStatus, ['masuk', 'verifikasi', 'ditolak'], true);
@@ -192,7 +194,7 @@
                                     <path opacity="0.1" d="M11.9996 22.9001C9.8438 22.9001 7.73639 22.2608 5.9439 21.0631C4.1514 19.8654 2.75432 18.1631 1.92933 16.1713C1.10433 14.1796 0.888476 11.988 1.30905 9.87361C1.72963 7.75922 2.76776 5.81703 4.29215 4.29264C5.81654 2.76825 7.75873 1.73012 9.87313 1.30954C11.9875 0.888964 14.1791 1.10482 16.1709 1.92982C18.1626 2.75481 19.8649 4.15189 21.0626 5.94439C22.2603 7.73688 22.8996 9.84428 22.8996 12.0001C22.8969 14.8901 21.7477 17.661 19.7041 19.7046C17.6605 21.7482 14.8896 22.8974 11.9996 22.9001Z" fill="#2B7FFF"/>
                                     <path fill-rule="evenodd" clip-rule="evenodd" d="M9.85394 1.21112C11.9877 0.786682 14.2004 1.00453 16.2104 1.8371C18.2203 2.66967 19.9383 4.08 21.1469 5.88885C22.3555 7.69776 23.0004 9.82465 23.0004 12.0002C22.9977 14.9167 21.8381 17.7133 19.7758 19.7756C17.7135 21.8379 14.917 22.9975 12.0004 23.0002C9.82489 23.0002 7.69801 22.3553 5.8891 21.1467C4.08024 19.938 2.66992 18.22 1.83734 16.2101C1.00478 14.2002 0.786926 11.9875 1.21136 9.8537C1.63585 7.72005 2.68382 5.76015 4.22211 4.22186C5.7604 2.68357 7.72029 1.6356 9.85394 1.21112ZM12.0004 2.53534C10.1284 2.53534 8.29817 3.09002 6.74164 4.13006C5.18515 5.1701 3.97169 6.64862 3.25531 8.37811C2.539 10.1076 2.35203 12.0109 2.71722 13.8469C3.08242 15.6826 3.98363 17.369 5.30707 18.6926C6.63076 20.0163 8.31773 20.9182 10.1537 21.2834C11.9898 21.6486 13.893 21.4607 15.6225 20.7443C17.3519 20.0279 18.8305 18.8154 19.8705 17.259C20.9106 15.7025 21.4653 13.8722 21.4653 12.0002C21.4626 9.49073 20.4643 7.08519 18.6899 5.31073C16.9154 3.53627 14.5099 2.53806 12.0004 2.53534ZM12.0014 10.5676C12.2727 10.5677 12.5332 10.6756 12.725 10.8674C12.9167 11.0592 13.0239 11.3198 13.0239 11.591V16.3586C13.0239 16.6298 12.9167 16.8904 12.725 17.0822C12.5332 17.274 12.2727 17.3819 12.0014 17.382C11.73 17.382 11.4697 17.2741 11.2778 17.0822C11.0859 16.8903 10.978 16.6299 10.978 16.3586V11.591C10.978 11.3196 11.0859 11.0593 11.2778 10.8674C11.4697 10.6755 11.73 10.5676 12.0014 10.5676ZM12.0014 6.61737C12.7078 6.61737 13.2806 7.19033 13.2807 7.89667C13.2807 8.60308 12.7078 9.17596 12.0014 9.17596C11.295 9.17596 10.7221 8.60308 10.7221 7.89667C10.7222 7.19033 11.295 6.61737 12.0014 6.61737Z" fill="#2B7FFF"/>
                                 </svg>
-                                <h3 class="aduan-info-heading mb-0">Informasi Aduan</h3>
+                                <h3 class="aduan-info-heading mb-0">Informasi Aset</h3>
                             </div>
                         </div>
                         <span class="aduan-info-status {{ $aduanStatusThemeClass }}">{{ strtoupper($aduanStatusLabel) }}</span>
@@ -200,18 +202,10 @@
 
                     <div class="aduan-info-body">
                         <div class="aduan-info-row">
-                            <div class="aduan-info-label">Nomor Tiket</div>
-                            <div class="aduan-info-value aduan-info-ticket">{{ $aduan->nomor_tiket }}</div>
-                        </div>
-                        <div class="aduan-info-row">
-                            <div class="aduan-info-label">Tanggal Masuk</div>
-                            <div class="aduan-info-value">{{ $aduan->created_at->format('d F Y, H.i') }}</div>
-                        </div>
-                        <div class="aduan-info-row">
                             <div class="aduan-info-label">Aset</div>
                             <div class="aduan-info-value d-flex align-items-center gap-2">
                                 <span class="badge {{ $aduan->pipa_id ? 'badge-light-info' : 'badge-light-warning' }}">{{ strtoupper($assetTypeLabel) }}</span>
-                                <span>{{ $assetCode }}</span>
+                                <span class="aduan-info-ticket">{{ $assetCode }}</span>
                             </div>
                         </div>
                         <div class="aduan-info-row">
@@ -220,31 +214,48 @@
                                 <span class="badge {{ $assetStatus['badge'] }}">{{ $assetStatus['label'] }}</span>
                             </div>
                         </div>
-                        <div class="aduan-info-row">
+                        <div class="aduan-info-row aduan-info-row-last">
                             <div class="aduan-info-label">Lokasi</div>
                             <div class="aduan-info-value">{{ $assetLocation }}</div>
                         </div>
-                        <div class="aduan-info-row aduan-info-row-last">
-                            <div class="aduan-info-label">Deskripsi Aduan</div>
-                            <div class="aduan-info-value aduan-info-desc">{{ $aduan->deskripsi }}</div>
-                        </div>
                     </div>
 
-                    <div class="aduan-pelapor-wrap">
-                        <div class="aduan-pelapor-title">Dokumentasi Pelapor</div>
-                        @if($fotoPelapor->isNotEmpty())
-                            <div class="aduan-pelapor-strip">
-                                @foreach($fotoPelapor as $foto)
-                                    <a href="{{ Storage::url($foto->file_path) }}" target="_blank" class="aduan-pelapor-item">
-                                        <img src="{{ Storage::url($foto->file_path) }}" alt="{{ $foto->file_name }}" class="aduan-pelapor-image">
-                                    </a>
-                                @endforeach
+                </div>
+                <div class="bg-white border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)] p-5 mb-5">
+                    <div class="" id="relatedAduanSection" data-related-url="{{ route('ipal.aduan.related.index', $aduan->id) }}">
+                        <div class="">
+                            <div class="d-flex align-items-center gap-2">
+                                <h3 class="font-semibold text-[16px] mb-0">Aduan Terkait</h3>
                             </div>
-                        @else
-                            <div class="text-muted fs-7 py-2">Belum ada dokumentasi dari pelapor.</div>
-                        @endif
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table align-middle mb-0 aduan-related-table">
+                                <thead>
+                                    <tr class="text-start text-uppercase text-[12px] fw-semibold">
+                                        <th>Nomor Tiket</th>
+                                        <th>Lampiran</th>
+                                        <th class="text-end">Aksi</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="relatedAduanTableBody">
+                                    <tr id="relatedAduanListLoading" class="d-none">
+                                        <td colspan="3" class="text-muted fs-7 py-4">Memuat daftar aduan...</td>
+                                    </tr>
+                                    <tr id="relatedAduanListEmpty" class="d-none">
+                                        <td colspan="3" class="text-muted fs-7 py-4">Tidak ada aduan terkait.</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div class="d-flex align-items-center justify-content-between mt-3">
+                            <div class="text-muted fs-8" id="relatedAduanPaginationSummary"></div>
+                            <div class="d-flex align-items-center gap-2" id="relatedAduanPagination"></div>
+                        </div>
                     </div>
                 </div>
+                
 
                 <div class="card border border-slate-200 rounded-xl shadow-[0_10px_28px_rgba(15,23,42,0.04)]">
                     <div class="card-header border-0 pt-5 pb-3 min-h-0">
@@ -449,6 +460,40 @@
                 </div>
             </div>
         </div>
+
+        <div class="modal fade" id="relatedAduanDetailModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+                <div class="modal-content border border-slate-200 rounded-xl">
+                    <div class="modal-header border-bottom border-slate-200">
+                        <div>
+                            <h5 class="modal-title mb-1">Detail Aduan</h5>
+                            <div class="text-muted fs-7" id="relatedAduanDetailSubtitle">Memuat data...</div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body pt-4">
+                        <div id="relatedAduanDetailPlaceholder" class="border border-dashed border-slate-300 rounded-3 p-4 text-muted fs-7">
+                            Memuat detail aduan...
+                        </div>
+                        <div id="relatedAduanDetailPane" class="d-none">
+                            <div class="d-flex align-items-center gap-2 flex-wrap mb-2">
+                                <span id="relatedAduanDetailTicket" class="fw-bold text-dark related-detail-ticket"></span>
+                                <span id="relatedAduanDetailStatus" class="badge badge-light"></span>
+                                <span id="relatedAduanDetailTime" class="text-muted fs-8"></span>
+                            </div>
+                            <div class="border border-slate-200 rounded-3 p-3 mb-3">
+                                <div class="fw-semibold fs-7 text-gray-700 mb-1">Deskripsi Aduan</div>
+                                <div id="relatedAduanDetailDescription" class="text-gray-700 fs-7"></div>
+                            </div>
+                            <div>
+                                <div class="fw-semibold fs-7 text-gray-700 mb-2">Dokumentasi Pelapor</div>
+                                <div id="relatedAduanPelaporPhotos" class="related-browser-photo-grid"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
@@ -460,6 +505,113 @@
         font-weight: 700;
         color: #0f172a;
         line-height: 1.2;
+    }
+
+    .aduan-related-wrap {
+        border-top: 1px solid #e2e8f0;
+        padding: 14px 18px 16px;
+    }
+
+    .aduan-related-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .aduan-related-title {
+        font-size: 16px;
+        line-height: 1.2;
+        font-weight: 700;
+        color: #0f172a;
+    }
+
+    .aduan-related-table thead th {
+        font-size: 11px;
+        color: #94a3b8;
+        letter-spacing: 0.06em;
+        border-bottom: 1px solid #e2e8f0;
+        padding: 10px 0;
+    }
+
+    .aduan-related-table tbody td {
+        border-bottom: 1px solid #f1f5f9;
+        padding: 12px 0;
+        font-size: 13px;
+        color: #1e293b;
+        vertical-align: middle;
+    }
+
+    .aduan-related-ticket {
+        font-size: 13px;
+        font-weight: 700;
+        color: #0f172a;
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+    }
+
+    .related-detail-ticket {
+        font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+        font-weight: 700;
+    }
+
+    .related-browser-photo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+        gap: 8px;
+    }
+
+    .related-browser-photo-item {
+        display: block;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        overflow: hidden;
+        background: #ffffff;
+    }
+
+    .related-browser-photo-item img {
+        width: 100%;
+        height: 96px;
+        object-fit: cover;
+    }
+
+    .related-pagination {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .related-page-btn {
+        min-width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .related-page-btn:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #dbe3ef;
+        color: #1e293b;
+    }
+
+    .related-page-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .related-page-btn.is-active {
+        background: #e2e8f0;
+        border-color: #cbd5f5;
+        color: #0f172a;
     }
 
     .wf-timeline {
@@ -795,41 +947,6 @@
         text-align: justify;
     }
 
-    .aduan-pelapor-wrap {
-        border-top: 1px solid #e2e8f0;
-        padding: 14px 18px 16px;
-    }
-
-    .aduan-pelapor-title {
-        font-size: 16px;
-        line-height: 1.2;
-        font-weight: 600;
-        color: #64748b;
-        margin-bottom: 12px;
-    }
-
-    .aduan-pelapor-strip {
-        display: flex;
-        gap: 12px;
-        overflow-x: auto;
-        padding-bottom: 8px;
-    }
-
-    .aduan-pelapor-item {
-        flex: 0 0 auto;
-        width: 178px;
-        border-radius: 14px;
-        overflow: hidden;
-    }
-
-    .aduan-pelapor-image {
-        width: 100%;
-        height: 118px;
-        object-fit: cover;
-        border: 1px solid #dbe1eb;
-        border-radius: 14px;
-    }
-
     .status-history {
         display: flex;
         flex-direction: column;
@@ -938,7 +1055,7 @@
         }
 
         .aduan-info-header,
-        .aduan-pelapor-wrap,
+        .aduan-related-wrap,
         .card-body {
             padding-left: 12px !important;
             padding-right: 12px !important;
@@ -956,7 +1073,7 @@
         }
 
         .aduan-info-heading,
-        .aduan-pelapor-title,
+        .aduan-related-title,
         .wf-heading,
         .status-history-title,
         .wf-step-title {
@@ -1026,12 +1143,8 @@
             top: 12px;
         }
 
-        .aduan-pelapor-item {
-            width: 132px;
-        }
-
-        .aduan-pelapor-image {
-            height: 92px;
+        .aduan-related-table tbody td {
+            font-size: 12px;
         }
     }
 
@@ -1086,6 +1199,22 @@
     const verifyAcceptBtn = document.getElementById('verifyAcceptBtn');
     const verifyRejectBtn = document.getElementById('verifyRejectBtn');
     const verifyInfoText = document.getElementById('verifyInfoText');
+    const relatedSection = document.getElementById('relatedAduanSection');
+    const relatedTableBody = document.getElementById('relatedAduanTableBody');
+    const relatedListLoading = document.getElementById('relatedAduanListLoading');
+    const relatedListEmpty = document.getElementById('relatedAduanListEmpty');
+    const relatedPaginationSummary = document.getElementById('relatedAduanPaginationSummary');
+    const relatedPagination = document.getElementById('relatedAduanPagination');
+    const relatedCountLabel = document.getElementById('relatedAduanCount');
+    const relatedDetailModalElement = document.getElementById('relatedAduanDetailModal');
+    const relatedDetailSubtitle = document.getElementById('relatedAduanDetailSubtitle');
+    const relatedDetailPlaceholder = document.getElementById('relatedAduanDetailPlaceholder');
+    const relatedDetailPane = document.getElementById('relatedAduanDetailPane');
+    const relatedDetailTicket = document.getElementById('relatedAduanDetailTicket');
+    const relatedDetailStatus = document.getElementById('relatedAduanDetailStatus');
+    const relatedDetailTime = document.getElementById('relatedAduanDetailTime');
+    const relatedDetailDescription = document.getElementById('relatedAduanDetailDescription');
+    const relatedPelaporPhotos = document.getElementById('relatedAduanPelaporPhotos');
     const actorName = @json(auth()->user()->name ?? 'Admin Lapangan');
 
     const escapeHtml = (value) => String(value)
@@ -1094,6 +1223,301 @@
         .replace(/>/g, '&gt;')
         .replace(/"/g, '&quot;')
         .replace(/'/g, '&#039;');
+
+    const relatedListState = {
+        baseUrl: relatedSection?.dataset.relatedUrl || '',
+        currentPage: 1,
+        lastPage: 1,
+        search: '',
+        perPage: 5,
+    };
+    const relatedDetailModal = relatedDetailModalElement && typeof bootstrap !== 'undefined'
+        ? new bootstrap.Modal(relatedDetailModalElement)
+        : null;
+
+    const buildRelatedFetchUrl = (page) => {
+        const url = new URL(relatedListState.baseUrl, window.location.origin);
+        url.searchParams.set('page', String(page));
+        url.searchParams.set('per_page', String(relatedListState.perPage));
+
+        return url.toString();
+    };
+
+    const toggleRelatedListLoading = (isLoading) => {
+        if (!relatedListLoading) {
+            return;
+        }
+
+        relatedListLoading.classList.toggle('d-none', !isLoading);
+        if (isLoading && relatedTableBody) {
+            relatedTableBody.querySelectorAll('tr[data-related-row]').forEach((row) => row.remove());
+        }
+    };
+
+    const renderPhotoGrid = (targetElement, photos) => {
+        if (!targetElement) {
+            return;
+        }
+
+        if (!Array.isArray(photos) || photos.length === 0) {
+            targetElement.innerHTML = '<div class="text-muted fs-8 py-2">Belum ada foto pelapor.</div>';
+            return;
+        }
+
+        targetElement.innerHTML = photos.map((photo) => `
+            <a href="${escapeHtml(photo.url)}" target="_blank" class="related-browser-photo-item">
+                <img src="${escapeHtml(photo.url)}" alt="${escapeHtml(photo.file_name)}">
+            </a>
+        `).join('');
+    };
+
+    const renderRelatedDetail = (detail) => {
+        if (!relatedDetailPlaceholder || !relatedDetailPane) {
+            return;
+        }
+
+        if (!detail) {
+            relatedDetailPlaceholder.classList.remove('d-none');
+            relatedDetailPane.classList.add('d-none');
+            return;
+        }
+
+        relatedDetailPlaceholder.classList.add('d-none');
+        relatedDetailPane.classList.remove('d-none');
+
+        if (relatedDetailTicket) {
+            relatedDetailTicket.textContent = detail.nomor_tiket || '-';
+        }
+
+        if (relatedDetailStatus) {
+            relatedDetailStatus.className = detail.status_class || 'badge badge-light';
+            relatedDetailStatus.textContent = detail.status_label || '-';
+        }
+
+        if (relatedDetailTime) {
+            relatedDetailTime.textContent = detail.created_at_label || '-';
+        }
+
+        if (relatedDetailDescription) {
+            relatedDetailDescription.textContent = detail.deskripsi || '-';
+        }
+
+        renderPhotoGrid(relatedPelaporPhotos, detail.pelapor_photos || []);
+
+        if (relatedDetailSubtitle) {
+            relatedDetailSubtitle.textContent = `${detail.created_at_label || '-'} - ${detail.status_label || '-'}`;
+        }
+    };
+
+    const loadRelatedDetail = async (detailUrl) => {
+        if (!detailUrl) {
+            return;
+        }
+
+        try {
+            const response = await fetch(detailUrl, {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal memuat detail aduan.');
+            }
+
+            const json = await response.json();
+            renderRelatedDetail(json?.data ?? null);
+        } catch (error) {
+            renderRelatedDetail(null);
+        }
+    };
+
+    const renderRelatedList = (items) => {
+        if (!relatedTableBody || !relatedListEmpty) {
+            return;
+        }
+
+        if (!Array.isArray(items) || items.length === 0) {
+            relatedTableBody.querySelectorAll('tr[data-related-row]').forEach((row) => row.remove());
+            relatedListEmpty.classList.remove('d-none');
+            renderRelatedDetail(null);
+            return;
+        }
+
+        relatedListEmpty.classList.add('d-none');
+        relatedTableBody.querySelectorAll('tr[data-related-row]').forEach((row) => row.remove());
+
+        const rows = items.map((item) => {
+            const fotoCount = item.pelapor_foto_count ?? 0;
+            return `
+                <tr data-related-row>
+                    <td>
+                        <div class="aduan-related-ticket">${escapeHtml(item.nomor_tiket)}</div>
+                        <div class="text-muted fs-8">${escapeHtml(item.created_at_label ?? '-')}</div>
+                    </td>
+                    <td>
+                        <span class="badge badge-light">${escapeHtml(fotoCount)} foto</span>
+                    </td>
+                    <td class="text-end">
+                        <button type="button" class="btn btn-sm btn-light" data-detail-url="${escapeHtml(item.detail_url)}">Detail</button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+
+        relatedTableBody.insertAdjacentHTML('beforeend', rows);
+        relatedTableBody.querySelectorAll('button[data-detail-url]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const detailUrl = button.dataset.detailUrl || '';
+                if (relatedDetailPlaceholder) {
+                    relatedDetailPlaceholder.classList.remove('d-none');
+                }
+                if (relatedDetailPane) {
+                    relatedDetailPane.classList.add('d-none');
+                }
+                if (relatedDetailSubtitle) {
+                    relatedDetailSubtitle.textContent = 'Memuat data...';
+                }
+                if (relatedDetailModal) {
+                    relatedDetailModal.show();
+                }
+                loadRelatedDetail(detailUrl);
+            });
+        });
+    };
+
+    const buildPaginationPages = (current, last) => {
+        if (last <= 7) {
+            return Array.from({ length: last }, (_, idx) => idx + 1);
+        }
+
+        const pages = [1];
+        const left = Math.max(2, current - 1);
+        const right = Math.min(last - 1, current + 1);
+
+        if (left > 2) {
+            pages.push('ellipsis');
+        }
+
+        for (let page = left; page <= right; page += 1) {
+            pages.push(page);
+        }
+
+        if (right < last - 1) {
+            pages.push('ellipsis');
+        }
+
+        pages.push(last);
+        return pages;
+    };
+
+    const renderRelatedPagination = (payload) => {
+        relatedListState.currentPage = Number(payload.current_page ?? 1);
+        relatedListState.lastPage = Number(payload.last_page ?? 1);
+
+        if (relatedPaginationSummary) {
+            const from = payload.from ?? 0;
+            const to = payload.to ?? 0;
+            const total = payload.total ?? 0;
+            relatedPaginationSummary.textContent = `${from}-${to} dari ${total} aduan`;
+
+            if (relatedCountLabel) {
+                relatedCountLabel.textContent = String(total);
+            }
+        }
+
+        if (!relatedPagination) {
+            return;
+        }
+
+        const currentPage = relatedListState.currentPage;
+        const lastPage = relatedListState.lastPage;
+        const pages = buildPaginationPages(currentPage, lastPage);
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        const nextDisabled = currentPage >= lastPage ? 'disabled' : '';
+
+        const leftArrow = `
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M10.5 3.5L6 8l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        `;
+        const rightArrow = `
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5.5 3.5L10 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        `;
+
+        relatedPagination.classList.add('related-pagination');
+        relatedPagination.innerHTML = [
+            `<button type="button" class="related-page-btn" data-action="prev" ${prevDisabled} aria-label="Sebelumnya">${leftArrow}</button>`,
+            ...pages.map((page) => {
+                if (page === 'ellipsis') {
+                    return '<span class="text-muted fs-8 px-2">...</span>';
+                }
+
+                const isActive = page === currentPage;
+                const activeClass = isActive ? 'is-active' : '';
+                const disabled = isActive ? 'disabled' : '';
+                return `<button type="button" class="related-page-btn ${activeClass}" data-page="${page}" ${disabled}>${page}</button>`;
+            }),
+            `<button type="button" class="related-page-btn" data-action="next" ${nextDisabled} aria-label="Berikutnya">${rightArrow}</button>`,
+        ].join('');
+
+        relatedPagination.querySelectorAll('button[data-page]').forEach((button) => {
+            button.addEventListener('click', () => {
+                const targetPage = Number(button.dataset.page || '1');
+                if (!Number.isNaN(targetPage)) {
+                    loadRelatedList(targetPage);
+                }
+            });
+        });
+
+        relatedPagination.querySelectorAll('button[data-action]').forEach((button) => {
+            button.addEventListener('click', () => {
+                if (button.dataset.action === 'prev' && currentPage > 1) {
+                    loadRelatedList(currentPage - 1);
+                }
+                if (button.dataset.action === 'next' && currentPage < lastPage) {
+                    loadRelatedList(currentPage + 1);
+                }
+            });
+        });
+    };
+
+    const loadRelatedList = async (page = 1) => {
+        if (!relatedListState.baseUrl) {
+            return;
+        }
+
+        toggleRelatedListLoading(true);
+
+        try {
+            const response = await fetch(buildRelatedFetchUrl(page), {
+                headers: {
+                    Accept: 'application/json',
+                },
+            });
+
+            if (!response.ok) {
+                throw new Error('Gagal memuat daftar aduan terkait.');
+            }
+
+            const json = await response.json();
+            const payload = json?.data?.list ?? {};
+            const items = payload?.data ?? [];
+
+            renderRelatedList(items);
+            renderRelatedPagination(payload);
+        } catch (error) {
+            if (relatedTableBody) {
+                relatedTableBody.querySelectorAll('tr[data-related-row]').forEach((row) => row.remove());
+                relatedTableBody.insertAdjacentHTML('beforeend', '<tr data-related-row><td colspan="3" class="text-danger fs-7 py-3">Gagal memuat aduan terkait.</td></tr>');
+            }
+            renderRelatedDetail(null);
+        } finally {
+            toggleRelatedListLoading(false);
+        }
+    };
 
     const getMetaText = () => {
         const now = new Date();
@@ -1205,6 +1629,10 @@
         progressList.innerHTML = '';
         seededLogs.forEach((line) => appendLogCard(line, 'Draft catatan'));
         updatePayload();
+    }
+
+    if (relatedListState.baseUrl) {
+        loadRelatedList(1);
     }
 })();
 </script>

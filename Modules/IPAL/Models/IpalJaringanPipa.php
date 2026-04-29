@@ -4,6 +4,7 @@ namespace Modules\IPAL\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class IpalJaringanPipa extends Model
 {
@@ -45,6 +46,12 @@ class IpalJaringanPipa extends Model
         }
 
         return $query->where('upload_id', $activeUploadId);
+    }
+
+    public function canonicalStatus(): HasOne
+    {
+        return $this->hasOne(IpalAssetStatus::class, 'asset_code', 'kode_pipa')
+            ->where('asset_type', IpalAssetStatus::ASSET_TYPE_PIPE);
     }
 
     public function aduan(): HasMany

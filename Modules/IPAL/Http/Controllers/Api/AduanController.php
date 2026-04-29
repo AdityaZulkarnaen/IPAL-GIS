@@ -2,6 +2,7 @@
 
 namespace Modules\IPAL\Http\Controllers\Api;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Crypt;
@@ -12,6 +13,7 @@ use Modules\IPAL\Http\Controllers\Controller;
 use Modules\IPAL\Models\Aduan;
 use Modules\IPAL\Models\AduanDokumentasi;
 use Modules\IPAL\Models\AduanHistory;
+use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalJaringanPipa;
 use Modules\IPAL\Models\IpalManhole;
 use Modules\IPAL\Services\ImageCompressionService;
@@ -173,36 +175,84 @@ class AduanController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Aduan::with(['pipa:id,kode_pipa,wilayah', 'manhole:id,kode_manhole,wilayah'])
-            ->withCount('dokumentasi');
-
-        if ($request->filled('status_aduan')) {
-            $query->where('status_aduan', $request->status_aduan);
-        }
-
-        if ($request->filled('pipa_id')) {
-            $query->where('pipa_id', $request->pipa_id);
-        }
-
-        if ($request->filled('manhole_id')) {
-            $query->where('manhole_id', $request->manhole_id);
-        }
-
-        if ($request->filled('search')) {
-            $keyword = '%' . $request->search . '%';
-            $query->where(function ($q) use ($keyword) {
-                $q->where('nomor_tiket', 'like', $keyword)
-                  ->orWhere('deskripsi', 'like', $keyword);
-            });
-        }
-
+        $filteredQuery = $this->buildFilteredAduanQuery($request);
         $perPage = min((int) $request->get('per_page', 15), 100);
-        $data    = $query->orderByDesc('created_at')->paginate($perPage);
+
+        $groupPaginator = (clone $filteredQuery)
+            ->selectRaw("CASE WHEN pipa_id IS NOT NULL THEN 'pipa' ELSE 'manhole' END AS asset_type")
+            ->selectRaw('COALESCE(pipa_id, manhole_id) AS asset_id')
+            ->selectRaw('MAX(created_at) AS latest_created_at')
+            ->selectRaw('COUNT(*) AS laporan_count')
+            ->groupBy('asset_type', 'asset_id')
+            ->orderByDesc('latest_created_at')
+            ->paginate($perPage);
+
+        $groupRows = collect($groupPaginator->items());
+
+        if ($groupRows->isNotEmpty()) {
+            $groupedItems = Aduan::with(['pipa:id,kode_pipa,wilayah', 'manhole:id,kode_manhole,wilayah'])
+                ->withCount('dokumentasi')
+                ->where(function (Builder $query) use ($groupRows) {
+                    foreach ($groupRows as $row) {
+                        $query->orWhere(function (Builder $nestedQuery) use ($row) {
+                            if ($row->asset_type === 'pipa') {
+                                $nestedQuery->where('pipa_id', (int) $row->asset_id);
+                                return;
+                            }
+
+                            $nestedQuery->where('manhole_id', (int) $row->asset_id);
+                        });
+                    }
+                })
+                ->orderByDesc('created_at')
+                ->get();
+
+            $groupedByKey = $groupedItems->groupBy(
+                static fn (Aduan $item): ?string => Aduan::buildAssetGroupKey($item->pipa_id, $item->manhole_id)
+            );
+
+            $groupCollection = $groupRows
+                ->map(function ($row) use ($groupedByKey) {
+                    $groupKey = $row->asset_type . ':' . $row->asset_id;
+                    $relatedAduan = $groupedByKey->get($groupKey, collect())->values();
+                    $representative = $relatedAduan->first();
+
+                    if (!$representative) {
+                        return null;
+                    }
+
+                    return [
+                        'group_key' => $groupKey,
+                        'asset_type' => $row->asset_type,
+                        'asset_id' => (int) $row->asset_id,
+                        'laporan_count' => (int) $row->laporan_count,
+                        'status_aduan' => $representative->status_aduan,
+                        'representative_id' => $representative->id,
+                        'latest_created_at' => $representative->created_at,
+                        'asset' => [
+                            'kode_aset' => $representative->pipa?->kode_pipa ?? $representative->manhole?->kode_manhole,
+                            'wilayah' => $representative->pipa?->wilayah ?? $representative->manhole?->wilayah,
+                        ],
+                        'related_aduan' => $relatedAduan->map(static function (Aduan $item) {
+                            return [
+                                'id' => $item->id,
+                                'nomor_tiket' => $item->nomor_tiket,
+                                'status_aduan' => $item->status_aduan,
+                                'created_at' => $item->created_at,
+                            ];
+                        })->values(),
+                    ];
+                })
+                ->filter()
+                ->values();
+
+            $groupPaginator->setCollection($groupCollection);
+        }
 
         return response()->json([
             'success' => true,
             'message' => 'Daftar aduan berhasil dimuat.',
-            'data'    => $data,
+            'data'    => $groupPaginator,
         ]);
     }
 
@@ -226,10 +276,18 @@ class AduanController extends Controller
             ], 404);
         }
 
+        $relatedAduan = $this->relatedAduanQuery($aduan)
+            ->orderByDesc('created_at')
+            ->get(['id', 'nomor_tiket', 'status_aduan', 'created_at']);
+
+        $payload = $aduan->toArray();
+        $payload['laporan_count'] = $relatedAduan->count();
+        $payload['related_aduan'] = $relatedAduan;
+
         return response()->json([
             'success' => true,
             'message' => 'Detail aduan berhasil dimuat.',
-            'data'    => $aduan,
+            'data'    => $payload,
         ]);
     }
 
@@ -281,42 +339,69 @@ class AduanController extends Controller
                     'success_message' => 'Status aduan berhasil diperbarui.',
                 ];
 
-            DB::transaction(function () use ($aduan, $request, $transition) {
-                $statusSebelumnya = $aduan->status_aduan;
+            $updatedCount = 0;
 
-                $aduan->update(['status_aduan' => $transition['status_aduan']]);
+            DB::transaction(function () use ($aduan, $request, $transition, &$updatedCount) {
+                $relatedAduan = $this->relatedAduanQuery($aduan)
+                    ->lockForUpdate()
+                    ->get();
+
+                $updatedCount = $relatedAduan->count();
+
+                foreach ($relatedAduan as $relatedItem) {
+                    $statusSebelumnya = $relatedItem->status_aduan;
+
+                    $relatedItem->update(['status_aduan' => $transition['status_aduan']]);
+
+                    AduanHistory::create([
+                        'aduan_id'              => $relatedItem->id,
+                        'admin_id'              => $request->user()->id,
+                        'status_sebelumnya'     => $statusSebelumnya,
+                        'status_sesudah'        => $transition['status_aduan'],
+                        'catatan_tindak_lanjut' => $request->catatan_tindak_lanjut,
+                        'created_at'            => now(),
+                    ]);
+
+                    if ($request->hasFile('foto')) {
+                        $file = $request->file('foto');
+                        $path = $this->imageService->compressToMaxKb(
+                            $file,
+                            config('ipal.aduan_foto_max_kb_admin'),
+                            (string) $relatedItem->id
+                        );
+
+                        AduanDokumentasi::create([
+                            'aduan_id'        => $relatedItem->id,
+                            'file_name'       => $file->getClientOriginalName(),
+                            'file_path'       => $path,
+                            'tipe_pengunggah' => 'admin',
+                            'uploaded_at'     => now(),
+                        ]);
+                    }
+                }
 
                 if ($transition['status_aset'] !== null) {
                     $this->updateRelatedAssetStatus($aduan, $transition['status_aset']);
                 }
-
-                AduanHistory::create([
-                    'aduan_id'              => $aduan->id,
-                    'admin_id'              => $request->user()->id,
-                    'status_sebelumnya'     => $statusSebelumnya,
-                    'status_sesudah'        => $transition['status_aduan'],
-                    'catatan_tindak_lanjut' => $request->catatan_tindak_lanjut,
-                    'created_at'            => now(),
-                ]);
-
-                if ($request->hasFile('foto')) {
-                    $file = $request->file('foto');
-                    $path = $this->imageService->compressToMaxKb($file, config('ipal.aduan_foto_max_kb_admin'), $aduan->id);
-
-                    AduanDokumentasi::create([
-                        'aduan_id'        => $aduan->id,
-                        'file_name'       => $file->getClientOriginalName(),
-                        'file_path'       => $path,
-                        'tipe_pengunggah' => 'admin',
-                        'uploaded_at'     => now(),
-                    ]);
-                }
             });
+
+            $successMessage = $transition['success_message'];
+            if ($updatedCount > 1) {
+                $successMessage .= ' ' . $updatedCount . ' aduan terkait turut diperbarui.';
+            }
+
+            $relatedAduan = $this->relatedAduanQuery($aduan)
+                ->orderByDesc('created_at')
+                ->get(['id', 'nomor_tiket', 'status_aduan', 'created_at']);
+
+            $payload = $aduan->fresh(['dokumentasi', 'history.admin:id,name'])->toArray();
+            $payload['laporan_count'] = $relatedAduan->count();
+            $payload['related_aduan'] = $relatedAduan;
 
             return response()->json([
                 'success' => true,
-                'message' => $transition['success_message'],
-                'data'    => $aduan->fresh(['dokumentasi', 'history.admin:id,name']),
+                'message' => $successMessage,
+                'data'    => $payload,
             ]);
         } catch (\DomainException $e) {
             return response()->json([
@@ -401,14 +486,90 @@ class AduanController extends Controller
         ];
     }
 
+    private function buildFilteredAduanQuery(Request $request): Builder
+    {
+        $query = Aduan::query();
+
+        if ($request->filled('status_aduan')) {
+            $query->where('status_aduan', $request->status_aduan);
+        }
+
+        if ($request->filled('pipa_id')) {
+            $query->where('pipa_id', $request->pipa_id);
+        }
+
+        if ($request->filled('manhole_id')) {
+            $query->where('manhole_id', $request->manhole_id);
+        }
+
+        if ($request->filled('search')) {
+            $keyword = '%' . trim((string) $request->search) . '%';
+            $query->where(function (Builder $searchQuery) use ($keyword) {
+                $searchQuery->where('nomor_tiket', 'like', $keyword)
+                    ->orWhere('deskripsi', 'like', $keyword)
+                    ->orWhereHas('pipa', function (Builder $pipeQuery) use ($keyword) {
+                        $pipeQuery->where('kode_pipa', 'like', $keyword)
+                            ->orWhere('wilayah', 'like', $keyword);
+                    })
+                    ->orWhereHas('manhole', function (Builder $manholeQuery) use ($keyword) {
+                        $manholeQuery->where('kode_manhole', 'like', $keyword)
+                            ->orWhere('wilayah', 'like', $keyword);
+                    });
+            });
+        }
+
+        return $query;
+    }
+
+    private function relatedAduanQuery(Aduan $aduan): Builder
+    {
+        return Aduan::query()->sameAssetAs($aduan);
+    }
+
     private function updateRelatedAssetStatus(Aduan $aduan, string $statusAset): void
     {
+        $normalizedStatus = IpalAssetStatus::normalizeStatus($statusAset);
+
         if ($aduan->pipa_id) {
-            IpalJaringanPipa::where('id', $aduan->pipa_id)->update(['status' => $statusAset]);
+            $pipe = IpalJaringanPipa::query()
+                ->select(['id', 'kode_pipa'])
+                ->find($aduan->pipa_id);
+
+            if ($pipe !== null && trim((string) $pipe->kode_pipa) !== '') {
+                IpalAssetStatus::updateOrCreate(
+                    [
+                        'asset_type' => IpalAssetStatus::ASSET_TYPE_PIPE,
+                        'asset_code' => $pipe->kode_pipa,
+                    ],
+                    [
+                        'asset_id' => $pipe->id,
+                        'status' => $normalizedStatus,
+                    ]
+                );
+            }
+
+            IpalJaringanPipa::where('id', $aduan->pipa_id)->update(['status' => $normalizedStatus]);
         }
 
         if ($aduan->manhole_id) {
-            IpalManhole::where('id', $aduan->manhole_id)->update(['status' => $statusAset]);
+            $manhole = IpalManhole::query()
+                ->select(['id', 'kode_manhole'])
+                ->find($aduan->manhole_id);
+
+            if ($manhole !== null && trim((string) $manhole->kode_manhole) !== '') {
+                IpalAssetStatus::updateOrCreate(
+                    [
+                        'asset_type' => IpalAssetStatus::ASSET_TYPE_MANHOLE,
+                        'asset_code' => $manhole->kode_manhole,
+                    ],
+                    [
+                        'asset_id' => $manhole->id,
+                        'status' => $normalizedStatus,
+                    ]
+                );
+            }
+
+            IpalManhole::where('id', $aduan->manhole_id)->update(['status' => $normalizedStatus]);
         }
     }
 }

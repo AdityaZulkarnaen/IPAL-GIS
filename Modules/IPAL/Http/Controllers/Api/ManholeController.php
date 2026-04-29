@@ -2,9 +2,12 @@
 
 namespace Modules\IPAL\Http\Controllers\Api;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\IPAL\Http\Controllers\Controller;
+use Modules\IPAL\Models\Aduan;
+use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalManhole;
 
 class ManholeController extends Controller
@@ -14,7 +17,9 @@ class ManholeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = IpalManhole::fromActiveUpload();
+        $query = IpalManhole::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->withCount('aduan');
 
         if ($request->filled('desa')) {
             $query->where('desa', 'like', '%' . $request->desa . '%');
@@ -37,7 +42,8 @@ class ManholeController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = IpalAssetStatus::normalizeStatus((string) $request->status);
+            $this->applyCanonicalStatusFilter($query, $status);
         }
 
         if ($request->filled('bentuk')) {
@@ -76,6 +82,9 @@ class ManholeController extends Controller
         }
 
         $manholes = $query->paginate($request->get('per_page', 15));
+        $manholes->getCollection()->transform(function (IpalManhole $manhole) {
+            return $this->applyCanonicalStatus($manhole);
+        });
 
         return response()->json([
             'success' => true,
@@ -88,7 +97,10 @@ class ManholeController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $manhole = IpalManhole::fromActiveUpload()->with('logs')->findOrFail($id);
+        $manhole = IpalManhole::fromActiveUpload()
+            ->with(['logs', 'canonicalStatus'])
+            ->findOrFail($id);
+        $this->applyCanonicalStatus($manhole);
 
         return response()->json([
             'success' => true,
@@ -144,7 +156,22 @@ class ManholeController extends Controller
             'coordinates' => [(float) $validated['longitude'], (float) $validated['latitude']],
         ];
 
+        $normalizedStatus = IpalAssetStatus::normalizeStatus($validated['status'] ?? null);
+        $validated['status'] = $normalizedStatus;
+
         $manhole = IpalManhole::create($validated);
+        IpalAssetStatus::updateOrCreate(
+            [
+                'asset_type' => IpalAssetStatus::ASSET_TYPE_MANHOLE,
+                'asset_code' => $manhole->kode_manhole,
+            ],
+            [
+                'asset_id' => $manhole->id,
+                'status' => $normalizedStatus,
+            ]
+        );
+        $manhole->load('canonicalStatus');
+        $this->applyCanonicalStatus($manhole);
 
         return response()->json([
             'success' => true,
@@ -159,6 +186,7 @@ class ManholeController extends Controller
     public function update(Request $request, int $id): JsonResponse
     {
         $manhole = IpalManhole::findOrFail($id);
+        $originalKodeManhole = $manhole->kode_manhole;
 
         $validated = $request->validate([
             'kode_manhole' => 'sometimes|string|unique:ipal_manholes,kode_manhole,' . $id,
@@ -207,12 +235,42 @@ class ManholeController extends Controller
             ];
         }
 
+        if (array_key_exists('status', $validated)) {
+            $validated['status'] = IpalAssetStatus::normalizeStatus($validated['status']);
+        }
+
         $manhole->update($validated);
+
+        $effectiveStatus = IpalAssetStatus::normalizeStatus($manhole->status);
+        if ($manhole->status !== $effectiveStatus) {
+            $manhole->update(['status' => $effectiveStatus]);
+        }
+
+        if ($originalKodeManhole !== $manhole->kode_manhole) {
+            IpalAssetStatus::query()
+                ->where('asset_type', IpalAssetStatus::ASSET_TYPE_MANHOLE)
+                ->where('asset_code', $originalKodeManhole)
+                ->delete();
+        }
+
+        IpalAssetStatus::updateOrCreate(
+            [
+                'asset_type' => IpalAssetStatus::ASSET_TYPE_MANHOLE,
+                'asset_code' => $manhole->kode_manhole,
+            ],
+            [
+                'asset_id' => $manhole->id,
+                'status' => $effectiveStatus,
+            ]
+        );
+
+        $manhole->load('canonicalStatus');
+        $this->applyCanonicalStatus($manhole);
 
         return response()->json([
             'success' => true,
             'message' => 'Manhole updated.',
-            'data' => $manhole->fresh(),
+            'data' => $manhole,
         ]);
     }
 
@@ -222,6 +280,12 @@ class ManholeController extends Controller
     public function destroy(int $id): JsonResponse
     {
         $manhole = IpalManhole::findOrFail($id);
+
+        IpalAssetStatus::query()
+            ->where('asset_type', IpalAssetStatus::ASSET_TYPE_MANHOLE)
+            ->where('asset_code', $manhole->kode_manhole)
+            ->delete();
+
         $manhole->delete();
 
         return response()->json([
@@ -235,7 +299,14 @@ class ManholeController extends Controller
      */
     public function geojson(Request $request): JsonResponse
     {
-        $query = IpalManhole::fromActiveUpload();
+        $query = IpalManhole::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->addSelect([
+                'aduan_count' => Aduan::query()
+                    ->join('ipal_manholes as manhole_lookup', 'aduan.manhole_id', '=', 'manhole_lookup.id')
+                    ->whereColumn('manhole_lookup.kode_manhole', 'ipal_manholes.kode_manhole')
+                    ->selectRaw('COUNT(*)'),
+            ]);
 
         if ($request->filled('kecamatan')) {
             $query->where('kecamatan', $request->kecamatan);
@@ -250,7 +321,8 @@ class ManholeController extends Controller
         }
 
         if ($request->filled('status')) {
-            $query->where('status', $request->status);
+            $status = IpalAssetStatus::normalizeStatus((string) $request->status);
+            $this->applyCanonicalStatusFilter($query, $status);
         }
 
         if ($request->filled('sektor')) {
@@ -275,10 +347,11 @@ class ManholeController extends Controller
                     'kondisi_mh' => $manhole->kondisi_mh,
                     'risiko' => $manhole->risiko,
                     'klasifikasi' => $manhole->klasifikasi,
-                    'status' => $manhole->status,
+                    'status' => $this->resolvedManholeStatus($manhole),
                     'desa' => $manhole->desa,
                     'kecamatan' => $manhole->kecamatan,
                     'sektor' => $manhole->sektor,
+                    'aduan_count' => $manhole->aduan_count ?? 0,
                 ],
             ];
         });
@@ -303,10 +376,50 @@ class ManholeController extends Controller
                 'kecamatan' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('kecamatan')->pluck('kecamatan'),
                 'bentuk' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('bentuk')->pluck('bentuk'),
                 'material_mh' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('material_mh')->pluck('material_mh'),
-                'status' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('status')->pluck('status'),
+                'status' => IpalAssetStatus::query()
+                    ->where('asset_type', IpalAssetStatus::ASSET_TYPE_MANHOLE)
+                    ->whereIn('asset_code', IpalManhole::fromActiveUpload()->select('kode_manhole'))
+                    ->distinct()
+                    ->whereNotNull('status')
+                    ->orderBy('status')
+                    ->pluck('status'),
                 'sektor' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('sektor')->pluck('sektor'),
                 'wilayah' => IpalManhole::fromActiveUpload()->distinct()->whereNotNull('wilayah')->orderBy('wilayah')->pluck('wilayah'),
             ],
         ]);
+    }
+
+    private function applyCanonicalStatusFilter(Builder $query, string $status): void
+    {
+        $query->where(function (Builder $statusQuery) use ($status) {
+            $statusQuery
+                ->whereHas('canonicalStatus', function (Builder $canonicalQuery) use ($status) {
+                    $canonicalQuery->where('status', $status);
+                })
+                ->orWhere(function (Builder $fallbackQuery) use ($status) {
+                    $fallbackQuery
+                        ->whereDoesntHave('canonicalStatus')
+                        ->where('status', $status);
+                });
+        });
+    }
+
+    private function resolvedManholeStatus(IpalManhole $manhole): string
+    {
+        $canonicalStatus = $manhole->canonicalStatus?->status;
+
+        if ($canonicalStatus !== null && trim((string) $canonicalStatus) !== '') {
+            return IpalAssetStatus::normalizeStatus($canonicalStatus);
+        }
+
+        return IpalAssetStatus::normalizeStatus($manhole->status);
+    }
+
+    private function applyCanonicalStatus(IpalManhole $manhole): IpalManhole
+    {
+        $manhole->setAttribute('status', $this->resolvedManholeStatus($manhole));
+        $manhole->unsetRelation('canonicalStatus');
+
+        return $manhole;
     }
 }

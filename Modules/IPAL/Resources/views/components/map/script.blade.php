@@ -261,7 +261,10 @@ const BASEMAP_PROVIDERS = {
         note: 'Style OSM bawaan (lebih kontras).',
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        options: { maxZoom: 19 },
+        options: {
+            maxZoom: 19,
+            referrerPolicy: 'origin',
+        },
         enabled: true,
     },
     maptiler_custom_osm: {
@@ -715,6 +718,11 @@ function tooltipFieldHtml(label, value) {
     return `<div><span style="font-size:10px;color:#94a3b8;font-weight:600;">${label}</span><br><span style="font-weight:600;color:#334155;font-size:11px;">${value}</span></div>`;
 }
 
+function formatAduanCount(value) {
+    const count = Number.isFinite(Number(value)) ? Number(value) : 0;
+    return `${count} Aduan`;
+}
+
 // Shared popup outer container + header block (leaves outer <div> open for body)
 function popupHeaderHtml(typeLabel, kode, status, minWidth = '260px') {
     return `<div style="font-family:'Montserrat',sans-serif;font-size:13px;min-width:${minWidth};">
@@ -764,6 +772,7 @@ function buildPipePopup(p, coordStr) {
                 ${fieldHtml('Koordinat', coordStr, 'font-size:11px;color:#64748b;')}
             </div>
             <div style="margin-bottom:14px;">${fieldHtml('Wilayah', p.wilayah || '—', 'font-weight:500;color:#334155;')}</div>
+            <div style="margin-bottom:14px;">${fieldHtml('Jumlah Aduan Masuk', formatAduanCount(p.aduan_count))}</div>
             ${buildLaporBtn('pipa', p.id, p.kode_pipa, coordStr, p.wilayah, status)}
         </div>
     </div>`;
@@ -780,6 +789,7 @@ function buildManholePopup(p, lat, lng) {
                 ${fieldHtml('Desa',        p.desa       || '—', 'font-weight:500;color:#334155;')}
                 ${fieldHtml('Kecamatan',   p.kecamatan  || '—', 'font-weight:500;color:#334155;')}
             </div>
+            <div style="margin-bottom:14px;">${fieldHtml('Jumlah Aduan Masuk', formatAduanCount(p.aduan_count))}</div>
             ${buildLaporBtn('manhole', p.id, p.kode_manhole, coordStr, p.wilayah, status)}
         </div>
     </div>`;
