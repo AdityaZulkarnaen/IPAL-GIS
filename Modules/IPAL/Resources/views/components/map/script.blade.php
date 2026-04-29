@@ -261,7 +261,10 @@ const BASEMAP_PROVIDERS = {
         note: 'Style OSM bawaan (lebih kontras).',
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
         url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        options: { maxZoom: 19 },
+        options: {
+            maxZoom: 19,
+            referrerPolicy: 'origin',
+        },
         enabled: true,
     },
     maptiler_custom_osm: {
