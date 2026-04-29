@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Validator;
@@ -71,6 +72,9 @@ class AduanController extends Controller
                 }
 
                 $representative->laporan_count = (int) $row->laporan_count;
+                $representative->latest_created_at = $row->latest_created_at
+                    ? Carbon::parse($row->latest_created_at)
+                    : null;
 
                 return $representative;
             })

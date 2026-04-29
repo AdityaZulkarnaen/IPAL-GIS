@@ -81,19 +81,21 @@
                 <div class="table-responsive">
                     <table class="table align-middle table-row-dashed mb-0 aduan-table">
                         <colgroup>
-                            <col style="width: 24%;">
-                            <col style="width: 10%;">
+                            <col style="width: 22%;">
                             <col style="width: 12%;">
-                            <col style="width: 18%;">
-                            <col style="width: 18%;">
                             <col style="width: 10%;">
+                            <col style="width: 10%;">
+                            <col style="width: 16%;">
+                            <col style="width: 16%;">
                             <col style="width: 8%;">
+                            <col style="width: 6%;">
                         </colgroup>
                         <thead class="aduan-table-head">
                             <tr class="text-start fw-semibold text-uppercase gs-0">
                                 <th>Tiket Terbaru</th>
-                                <th>Tipe</th>
                                 <th>ID Aset</th>
+                                <th>Jumlah Aduan</th>
+                                <th>Tipe</th>
                                 <th>Wilayah</th>
                                 <th>Tanggal Masuk</th>
                                 <th>Status</th>
@@ -104,13 +106,21 @@
                             @forelse($aduan as $item)
                             @php
                                 $laporanCount = (int) ($item->laporan_count ?? 1);
+                                $displayDate = $item->latest_created_at ?? $item->created_at;
                             @endphp
                             <tr>
                                 <td>
                                     <div class="aduan-ticket-wrap">
                                         <span class="aduan-ticket">{{ $item->nomor_tiket }}</span>
-                                        <span class="badge badge-light-primary aduan-count-badge">{{ $laporanCount }} laporan</span>
                                     </div>
+                                </td>
+                                <td>
+                                    <span class="aduan-asset-id">
+                                        {{ $item->pipa?->kode_pipa ?? $item->manhole?->kode_manhole ?? '-' }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="">{{ $laporanCount }}</span>
                                 </td>
                                 <td>
                                     @if($item->pipa_id)
@@ -121,13 +131,8 @@
                                         <span class="badge badge-light">-</span>
                                     @endif
                                 </td>
-                                <td>
-                                    <span class="aduan-asset-id">
-                                        {{ $item->pipa?->kode_pipa ?? $item->manhole?->kode_manhole ?? '-' }}
-                                    </span>
-                                </td>
                                 <td class="aduan-region">{{ $item->pipa?->wilayah ?? $item->manhole?->wilayah ?? '-' }}</td>
-                                <td class="aduan-date">{{ $item->created_at->format('d F Y, H.i') }}</td>
+                                <td class="aduan-date">{{ $displayDate->format('d F Y, H.i') }}</td>
                                 <td>
                                     @php
                                         $statusLabel = match ($item->status_aduan) {
@@ -149,7 +154,7 @@
                             </tr>
                             @empty
                             <tr>
-                                <td colspan="7" class="text-center text-muted py-10">
+                                <td colspan="8" class="text-center text-muted py-10">
                                     <i class="ki-outline ki-search-list fs-3x text-gray-300 d-block mb-3"></i>
                                     Aduan tidak ditemukan.
                                 </td>
@@ -173,11 +178,12 @@
                             $statusClass = $statusBadgeMap[$item->status_aduan] ?? 'aduan-status';
                             $assetCode = $item->pipa?->kode_pipa ?? $item->manhole?->kode_manhole ?? '-';
                             $typeLabel = $item->pipa_id ? 'PIPA' : ($item->manhole_id ? 'MH' : '-');
+                            $displayDate = $item->latest_created_at ?? $item->created_at;
                         @endphp
 
                         <div class="aduan-mobile-item">
                             <div class="aduan-mobile-top">
-                                <div class="aduan-mobile-date">{{ $item->created_at->format('d F Y, H.i') }}</div>
+                                <div class="aduan-mobile-date">{{ $displayDate->format('d F Y, H.i') }}</div>
                                 <span class="badge badge-light-info aduan-mobile-type">{{ $typeLabel }}</span>
                                 <span class="{{ $statusClass }}">{{ $statusLabel }}</span>
                                 <a href="{{ route('ipal.aduan.show', $item->id) }}" class="btn btn-sm btn-light aduan-detail-btn">Detail</a>
