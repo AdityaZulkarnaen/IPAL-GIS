@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\IPAL\Http\Controllers\Controller;
+use Modules\IPAL\Models\Aduan;
 use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalJaringanPipa;
 
@@ -16,7 +17,9 @@ class PipeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = IpalJaringanPipa::fromActiveUpload()->with('canonicalStatus');
+        $query = IpalJaringanPipa::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->withCount('aduan');
 
         if ($request->filled('fungsi')) {
             $query->where('fungsi', $request->fungsi);
@@ -221,7 +224,14 @@ class PipeController extends Controller
      */
     public function geojson(Request $request): JsonResponse
     {
-        $query = IpalJaringanPipa::fromActiveUpload()->with('canonicalStatus');
+        $query = IpalJaringanPipa::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->addSelect([
+                'aduan_count' => Aduan::query()
+                    ->join('ipal_jaringan_pipa as pipa_lookup', 'aduan.pipa_id', '=', 'pipa_lookup.id')
+                    ->whereColumn('pipa_lookup.kode_pipa', 'ipal_jaringan_pipa.kode_pipa')
+                    ->selectRaw('COUNT(*)'),
+            ]);
 
         if ($request->filled('fungsi')) {
             $query->where('fungsi', $request->fungsi);
@@ -255,6 +265,7 @@ class PipeController extends Controller
                     'length_km' => $pipe->length_km,
                     'tahun' => $pipe->tahun,
                     'status' => $this->resolvedPipeStatus($pipe),
+                    'aduan_count' => $pipe->aduan_count ?? 0,
                 ],
             ];
         });

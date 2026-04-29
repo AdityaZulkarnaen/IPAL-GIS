@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Modules\IPAL\Http\Controllers\Controller;
+use Modules\IPAL\Models\Aduan;
 use Modules\IPAL\Models\IpalAssetStatus;
 use Modules\IPAL\Models\IpalManhole;
 
@@ -16,7 +17,9 @@ class ManholeController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = IpalManhole::fromActiveUpload()->with('canonicalStatus');
+        $query = IpalManhole::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->withCount('aduan');
 
         if ($request->filled('desa')) {
             $query->where('desa', 'like', '%' . $request->desa . '%');
@@ -296,7 +299,14 @@ class ManholeController extends Controller
      */
     public function geojson(Request $request): JsonResponse
     {
-        $query = IpalManhole::fromActiveUpload()->with('canonicalStatus');
+        $query = IpalManhole::fromActiveUpload()
+            ->with('canonicalStatus')
+            ->addSelect([
+                'aduan_count' => Aduan::query()
+                    ->join('ipal_manholes as manhole_lookup', 'aduan.manhole_id', '=', 'manhole_lookup.id')
+                    ->whereColumn('manhole_lookup.kode_manhole', 'ipal_manholes.kode_manhole')
+                    ->selectRaw('COUNT(*)'),
+            ]);
 
         if ($request->filled('kecamatan')) {
             $query->where('kecamatan', $request->kecamatan);
@@ -341,6 +351,7 @@ class ManholeController extends Controller
                     'desa' => $manhole->desa,
                     'kecamatan' => $manhole->kecamatan,
                     'sektor' => $manhole->sektor,
+                    'aduan_count' => $manhole->aduan_count ?? 0,
                 ],
             ];
         });
