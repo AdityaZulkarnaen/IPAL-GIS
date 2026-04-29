@@ -575,6 +575,45 @@
         object-fit: cover;
     }
 
+    .related-pagination {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .related-page-btn {
+        min-width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        border: 1px solid #e2e8f0;
+        background: #ffffff;
+        color: #475569;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 8px;
+        transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+    }
+
+    .related-page-btn:hover:not(:disabled) {
+        background: #f8fafc;
+        border-color: #dbe3ef;
+        color: #1e293b;
+    }
+
+    .related-page-btn:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+    }
+
+    .related-page-btn.is-active {
+        background: #e2e8f0;
+        border-color: #cbd5f5;
+        color: #0f172a;
+    }
+
     .wf-timeline {
         position: relative;
         padding-left: 0;
@@ -1391,23 +1430,55 @@
             return;
         }
 
-        const pages = buildPaginationPages(relatedListState.currentPage, relatedListState.lastPage);
-        relatedPagination.innerHTML = pages.map((page) => {
-            if (page === 'ellipsis') {
-                return '<span class="text-muted fs-8 px-2">...</span>';
-            }
+        const currentPage = relatedListState.currentPage;
+        const lastPage = relatedListState.lastPage;
+        const pages = buildPaginationPages(currentPage, lastPage);
+        const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+        const nextDisabled = currentPage >= lastPage ? 'disabled' : '';
 
-            const isActive = page === relatedListState.currentPage;
-            const classes = isActive ? 'btn btn-sm btn-primary' : 'btn btn-sm btn-light';
-            const disabled = isActive ? 'disabled' : '';
-            return `<button type="button" class="${classes}" data-page="${page}" ${disabled}>${page}</button>`;
-        }).join('');
+        const leftArrow = `
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M10.5 3.5L6 8l4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        `;
+        const rightArrow = `
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                <path d="M5.5 3.5L10 8l-4.5 4.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+        `;
+
+        relatedPagination.classList.add('related-pagination');
+        relatedPagination.innerHTML = [
+            `<button type="button" class="related-page-btn" data-action="prev" ${prevDisabled} aria-label="Sebelumnya">${leftArrow}</button>`,
+            ...pages.map((page) => {
+                if (page === 'ellipsis') {
+                    return '<span class="text-muted fs-8 px-2">...</span>';
+                }
+
+                const isActive = page === currentPage;
+                const activeClass = isActive ? 'is-active' : '';
+                const disabled = isActive ? 'disabled' : '';
+                return `<button type="button" class="related-page-btn ${activeClass}" data-page="${page}" ${disabled}>${page}</button>`;
+            }),
+            `<button type="button" class="related-page-btn" data-action="next" ${nextDisabled} aria-label="Berikutnya">${rightArrow}</button>`,
+        ].join('');
 
         relatedPagination.querySelectorAll('button[data-page]').forEach((button) => {
             button.addEventListener('click', () => {
                 const targetPage = Number(button.dataset.page || '1');
                 if (!Number.isNaN(targetPage)) {
                     loadRelatedList(targetPage);
+                }
+            });
+        });
+
+        relatedPagination.querySelectorAll('button[data-action]').forEach((button) => {
+            button.addEventListener('click', () => {
+                if (button.dataset.action === 'prev' && currentPage > 1) {
+                    loadRelatedList(currentPage - 1);
+                }
+                if (button.dataset.action === 'next' && currentPage < lastPage) {
+                    loadRelatedList(currentPage + 1);
                 }
             });
         });
