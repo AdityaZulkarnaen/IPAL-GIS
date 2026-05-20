@@ -374,12 +374,19 @@
     /* ── Photo handling ─────────────────────────────────────── */
     window.handleFotoChange = function (input) {
         const files = Array.from(input.files);
+        const fotoError = document.getElementById('foto-error');
+        const fotoDropzone = document.getElementById('foto-dropzone');
         if (files.length > MAX_FOTO) {
             showError(`Maksimal ${MAX_FOTO} foto yang dapat diunggah.`);
             input.value = '';
             return;
         }
         selectedFiles = files;
+        if (fotoError) fotoError.style.display = selectedFiles.length ? 'none' : 'block';
+        if (fotoDropzone) {
+            fotoDropzone.style.borderColor = selectedFiles.length ? '' : '#dc2626';
+            fotoDropzone.style.background = selectedFiles.length ? '' : '#fef2f2';
+        }
         renderFotoPreview();
     };
 
@@ -442,9 +449,21 @@
         errorDiv.style.display = 'none';
 
         const fotoInput = document.getElementById('foto-input');
+        const fotoError = document.getElementById('foto-error');
+        const fotoDropzone = document.getElementById('foto-dropzone');
         if (!fotoInput || fotoInput.files.length === 0) {
             showError('Foto dokumentasi wajib diunggah.');
+            if (fotoError) fotoError.style.display = 'block';
+            if (fotoDropzone) {
+                fotoDropzone.style.borderColor = '#dc2626';
+                fotoDropzone.style.background = '#fef2f2';
+            }
             return;
+        }
+        if (fotoError) fotoError.style.display = 'none';
+        if (fotoDropzone) {
+            fotoDropzone.style.borderColor = '';
+            fotoDropzone.style.background = '';
         }
 
         if (!pipaId && !manholeId) {

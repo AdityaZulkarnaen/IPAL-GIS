@@ -90,9 +90,12 @@
                 </svg>
                 <p style="margin:0;font-size:13px;color:#94a3b8;">Klik atau drag untuk unggah foto</p>
             </div>
-                 <input id="foto-input" type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
-                     multiple required style="display:none;" onchange="handleFotoChange(this)" />
+                <input id="foto-input" type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                         multiple style="display:none;" onchange="handleFotoChange(this)" />
             <div id="foto-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
+                <div id="foto-error" style="display:none;font-size:12px;color:#dc2626;margin-top:4px;">
+                    Foto dokumentasi wajib diunggah.
+                </div>
         </div>
 
         @if(config('ipal.aduan_captcha_enabled'))
