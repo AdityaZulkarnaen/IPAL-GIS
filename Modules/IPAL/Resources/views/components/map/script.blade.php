@@ -1183,6 +1183,56 @@ function selectSuggestion(result) {
     });
 }
 
+function normalizeAssetType(value) {
+    const raw = (value || '').toString().trim().toLowerCase();
+    if (raw === 'pipa' || raw === 'pipe') return 'pipe';
+    if (raw === 'manhole' || raw === 'mh') return 'manhole';
+    return '';
+}
+
+function findAssetSelection(type, code) {
+    const target = (code || '').toString().trim().toLowerCase();
+    if (!target) return null;
+
+    if (type === 'pipe') {
+        for (const feature of currentPipeFeatures) {
+            const p = feature.properties || {};
+            const kode = (p.kode_pipa || '').toString().trim().toLowerCase();
+            if (kode !== target) continue;
+            const coordSets = buildPipeCoordSets(feature.geometry);
+            if (!coordSets.length) return null;
+            const mid = coordSets[0][Math.floor(coordSets[0].length / 2)];
+            return { type: 'pipe', label: p.kode_pipa || code, latlng: mid, zoom: 17, key: p.kode_pipa };
+        }
+    }
+
+    if (type === 'manhole') {
+        for (const feature of currentManholeFeatures) {
+            const p = feature.properties || {};
+            const kode = (p.kode_manhole || '').toString().trim().toLowerCase();
+            if (kode !== target) continue;
+            const geom = feature.geometry;
+            if (!geom || geom.type !== 'Point') return null;
+            const [lng, lat] = geom.coordinates;
+            return { type: 'manhole', label: p.kode_manhole || code, latlng: [lat, lng], zoom: 18, key: p.kode_manhole };
+        }
+    }
+
+    return null;
+}
+
+function openAssetFromQuery() {
+    const params = new URLSearchParams(window.location.search);
+    const typeParam = params.get('asset_type') || params.get('type');
+    const codeParam = params.get('asset_code') || params.get('code') || params.get('kode');
+    const type = normalizeAssetType(typeParam);
+    const code = (codeParam || '').toString().trim();
+    if (!type || !code) return;
+
+    const result = findAssetSelection(type, code);
+    if (result) selectSuggestion(result);
+}
+
 function handleSearch() {
     const q = (document.getElementById('search-input').value || '').trim().toLowerCase();
     hideSuggestions();
@@ -1272,5 +1322,5 @@ Promise.all([
     loadPipes(),
     loadManholes(),
     loadStats(),
-]).catch(e => console.error('Bootstrap error:', e));
+]).then(openAssetFromQuery).catch(e => console.error('Bootstrap error:', e));
 </script>
