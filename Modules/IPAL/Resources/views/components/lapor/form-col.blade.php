@@ -64,7 +64,7 @@
 
         {{-- Deskripsi Laporan --}}
         <div style="margin-bottom:14px;">
-            <label class="lapor-label" for="field-deskripsi">Deskripsi Laporan</label>
+            <label class="lapor-label" for="field-deskripsi">Deskripsi Laporan <span style="color:#dc2626;">*</span></label>
             <textarea id="field-deskripsi" rows="5" maxlength="5000"
                       placeholder="Jelaskan detail masalah yang Anda temukan…"
                       class="lapor-textarea"></textarea>
@@ -81,7 +81,7 @@
 
         {{-- Upload Foto --}}
         <div style="margin-bottom:18px;">
-            <label class="lapor-label">Upload Foto Dokumentasi</label>
+            <label class="lapor-label">Upload Foto Dokumentasi <span style="color:#dc2626;">*</span></label>
             <div id="foto-dropzone" class="lapor-dropzone"
                  onclick="document.getElementById('foto-input').click()">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -90,8 +90,8 @@
                 </svg>
                 <p style="margin:0;font-size:13px;color:#94a3b8;">Klik atau drag untuk unggah foto</p>
             </div>
-            <input id="foto-input" type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
-                   multiple style="display:none;" onchange="handleFotoChange(this)" />
+                 <input id="foto-input" type="file" accept="image/jpeg,image/jpg,image/png,image/webp"
+                     multiple required style="display:none;" onchange="handleFotoChange(this)" />
             <div id="foto-preview" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:10px;"></div>
         </div>
 

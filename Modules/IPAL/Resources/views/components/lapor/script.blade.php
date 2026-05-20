@@ -441,6 +441,12 @@
         document.getElementById('field-deskripsi').classList.remove('error');
         errorDiv.style.display = 'none';
 
+        const fotoInput = document.getElementById('foto-input');
+        if (!fotoInput || fotoInput.files.length === 0) {
+            showError('Foto dokumentasi wajib diunggah.');
+            return;
+        }
+
         if (!pipaId && !manholeId) {
             showError('Aset tidak valid. Silakan kembali ke peta dan klik "Lapor Masalah" pada aset yang ingin dilaporkan.');
             return;
@@ -474,7 +480,6 @@
             formData.append('captcha_answer', captchaAnswerEl.value.trim());
         }
 
-        const fotoInput = document.getElementById('foto-input');
         Array.from(fotoInput.files).forEach((file, i) => {
             formData.append(`foto[${i}]`, file);
         });
