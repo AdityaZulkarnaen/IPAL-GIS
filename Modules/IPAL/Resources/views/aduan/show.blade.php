@@ -41,9 +41,13 @@
 
             $asset = $aduan->pipa ?: $aduan->manhole;
             $assetTypeLabel = $aduan->pipa_id ? 'Pipa' : ($aduan->manhole_id ? 'Manhole' : '-');
+            $assetTypeKey = $aduan->pipa_id ? 'pipa' : ($aduan->manhole_id ? 'manhole' : null);
             $assetCode = $aduan->pipa?->kode_pipa ?? $aduan->manhole?->kode_manhole ?? '-';
             $assetLocation = $aduan->pipa?->wilayah ?? $aduan->manhole?->wilayah ?? '-';
             $laporanCount = (int) ($relatedAduanCount ?? 1);
+            $assetMapUrl = ($assetTypeKey && $assetCode !== '-')
+                ? route('ipal.map.index', ['asset_type' => $assetTypeKey, 'asset_code' => $assetCode])
+                : null;
 
             $normalizeAssetStatus = static function (?string $status): string {
                 $raw = strtolower(trim((string) $status));
@@ -205,7 +209,11 @@
                             <div class="aduan-info-label">Aset</div>
                             <div class="aduan-info-value d-flex align-items-center gap-2">
                                 <span class="badge {{ $aduan->pipa_id ? 'badge-light-info' : 'badge-light-warning' }}">{{ strtoupper($assetTypeLabel) }}</span>
-                                <span class="aduan-info-ticket">{{ $assetCode }}</span>
+                                @if($assetMapUrl)
+                                    <a href="{{ $assetMapUrl }}" class="aduan-info-ticket aduan-asset-link">{{ $assetCode }}</a>
+                                @else
+                                    <span class="aduan-info-ticket">{{ $assetCode }}</span>
+                                @endif
                             </div>
                         </div>
                         <div class="aduan-info-row">
@@ -941,6 +949,16 @@
     .aduan-info-ticket {
         font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
         font-weight: 700;
+    }
+
+    .aduan-asset-link {
+        color: #1d4ed8;
+        text-decoration: underline;
+        text-underline-offset: 3px;
+    }
+
+    .aduan-asset-link:hover {
+        color: #1e40af;
     }
 
     .aduan-info-desc {
