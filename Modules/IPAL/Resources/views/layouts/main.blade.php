@@ -215,6 +215,7 @@
                                         <div class="menu-link">
                                             <form method="POST" action="{{ route('logout') }}">
                                                 @csrf
+                                                <input type="hidden" name="redirect_to" value="{{ route('ipal.map.index', [], false) }}">
                                                 <x-dropdown-link :href="route('logout')"
                                                     onclick="event.preventDefault(); this.closest('form').submit();">
                                                     {{ __('Log Out') }}

@@ -66,6 +66,7 @@
         <div class="menu-item">
             <form method="POST" action="{{ route('logout') }}" class="m-0">
                 @csrf
+                <input type="hidden" name="redirect_to" value="{{ route('ipal.map.index', [], false) }}">
                 <button type="submit" class="menu-link w-100 border-0 bg-transparent text-start">
                     <span class="menu-icon">
                         <span class="svg-icon svg-icon-2">

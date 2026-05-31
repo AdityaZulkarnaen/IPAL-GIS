@@ -8,6 +8,7 @@ use App\Providers\RouteServiceProvider;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\View\View;
 
 class AuthenticatedSessionController extends Controller
@@ -47,6 +48,14 @@ class AuthenticatedSessionController extends Controller
         $request->session()->invalidate();
 
         $request->session()->regenerateToken();
+
+        $redirectTo = $request->input('redirect_to');
+        if (is_string($redirectTo)) {
+            $redirectTo = trim($redirectTo);
+            if ($redirectTo !== '' && Str::startsWith($redirectTo, '/') && !Str::startsWith($redirectTo, '//')) {
+                return redirect()->to($redirectTo);
+            }
+        }
 
         return redirect('/');
     }
